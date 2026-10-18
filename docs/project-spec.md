@@ -1,132 +1,132 @@
-# Persoonlijke website — projectspecificatie
+# Personal website — project specification
 
 Oct 18, 2026 · @Lucien
 
-## Doel en uitgangspunten
+## Goals and principles
 
-Een snelle, persoonlijke website die laat zien wie ik ben en wat ik bouw. Paginawissels voelen als een app, en één subtiele 3D-scène is het herkenbare signatuur-element.
+A fast, personal website that shows who I am and what I build. Page changes feel like an app, and one subtle 3D scene is the recognizable signature element.
 
-De structuur is rustig en strak, zoals [Brittany Chiang](https://brittanychiang.com). Het speelse en persoonlijke komt van [Lynn Fisher](https://lynnandtonic.com).
+The structure is calm and clean, like [Brittany Chiang](https://brittanychiang.com). The playful, personal touch comes from [Lynn Fisher](https://lynnandtonic.com).
 
-**Doelen**
+**Goals**
 
-- **Snel:** statische HTML, geen JavaScript die de eerste weergave blokkeert.
-- **Vloeiend:** de zijbalk blijft staan, de content-card morpht en de inhoud vloeit over bij elke navigatie.
-- **Persoonlijk:** één signatuur-element (de 3D-scène) in plaats van overal effecten.
-- **Onderhoudbaar:** een nieuw project of nieuwe post is één Markdown/MDX-bestand.
+- **Fast:** static HTML, no JavaScript that blocks the first render.
+- **Smooth:** the sidebar stays put, the content card morphs and the content crossfades on every navigation.
+- **Personal:** one signature element (the 3D scene) instead of effects everywhere.
+- **Maintainable:** a new project or post is a single Markdown/MDX file.
 
-**Non-goals (niet in scope)**
+**Non-goals (out of scope)**
 
-- Geen CMS, geen accounts, geen database of eigen backend.
-- Geen meertaligheid in de eerste versie.
-- Geen volledige 3D-wereld; de scène is achtergrond, geen spel.
-- Geen tracking met cookies.
+- No CMS, no accounts, no database or custom backend.
+- No multiple languages in the first version.
+- No full 3D world; the scene is a background, not a game.
+- No tracking with cookies.
 
-**Uitgangspunt: progressive enhancement.** Alles werkt zonder JavaScript: navigatie, content en links. Transities, 3D en de command palette zijn een laag erbovenop die mag wegvallen zonder dat de site breekt.
+**Principle: progressive enhancement.** Everything works without JavaScript: navigation, content and links. Transitions, 3D and the command palette are a layer on top that can drop away without breaking the site.
 
 ## Tech stack
 
-Astro met statische output, en React alleen voor de onderdelen die echt interactief zijn.
+Astro with static output, and React only for the parts that are truly interactive.
 
-| Onderdeel | Keuze | Waarom |
+| Part | Choice | Why |
 | --- | --- | --- |
-| Framework | Astro, laatste stabiele versie, `output: 'static'` | HTML-first, islands, ingebouwde view transitions |
-| Taal | TypeScript, `strict` | Type-veilige content-schema's en componenten |
-| Interactieve islands | React via `@astrojs/react` | Expertise van de eigenaar; nodig voor React Three Fiber |
-| 3D | `three`, `@react-three/fiber`, `@react-three/drei` (alleen benodigde helpers) | Declaratieve 3D in React |
-| Content | Markdown/MDX via `@astrojs/mdx` + content collections met Zod-schema's | Eén bestand per project of post, gevalideerd bij de build |
-| Styling | CSS custom properties (design tokens) + scoped styles in `.astro` | Geen runtime-CSS, volledige controle over het ontwerp |
-| Fonts | Zelf gehost via Fontsource, variable `woff2`, preload | Geen externe requests, geen layout shift |
-| Code highlighting | Shiki (ingebouwd in Astro) | Highlighting tijdens de build, 0 kB JS |
-| Package manager | pnpm | Snel, strikte dependencies |
-| Kwaliteit | ESLint, Prettier + `prettier-plugin-astro`, `astro check` | Consistente code, typefouten vóór deploy |
-| Tests | Playwright | Smoke-tests en navigatie met transities |
+| Framework | Astro, latest stable version, `output: 'static'` | HTML-first, islands, built-in view transitions |
+| Language | TypeScript, `strict` | Type-safe content schemas and components |
+| Interactive islands | React via `@astrojs/react` | The owner's expertise; required for React Three Fiber |
+| 3D | `three`, `@react-three/fiber`, `@react-three/drei` (only the helpers needed) | Declarative 3D in React |
+| Content | Markdown/MDX via `@astrojs/mdx` + content collections with Zod schemas | One file per project or post, validated at build time |
+| Styling | CSS custom properties (design tokens) + scoped styles in `.astro` | No runtime CSS, full control over the design |
+| Fonts | Self-hosted via Fontsource, variable `woff2`, preloaded | No external requests, no layout shift |
+| Code highlighting | Shiki (built into Astro) | Highlighting at build time, 0 kB JS |
+| Package manager | pnpm | Fast, strict dependencies |
+| Quality | ESLint, Prettier + `prettier-plugin-astro`, `astro check` | Consistent code, type errors caught before deploy |
+| Tests | Playwright | Smoke tests and navigation with transitions |
 
-**Preact valt buiten scope voor versie 1.** Later kan het geëvalueerd worden voor kleine islands. De 3D-scène blijft altijd React, omdat React Three Fiber op `react-reconciler` draait en niet met Preact werkt.
+**Preact is out of scope for version 1.** It can be evaluated later for small islands. The 3D scene always stays React, because React Three Fiber runs on `react-reconciler` and does not work with Preact.
 
-## Pagina's en routes
+## Pages and routes
 
-De site start met vijf pagina's in fase 1 en groeit naar twaalf routes; alle pagina's delen dezelfde layout met zijbalk en content-card.
+The site starts with five pages in phase 1 and grows to twelve routes; all pages share the same layout with sidebar and content card.
 
-| Route | Pagina | Inhoud | Fase |
+| Route | Page | Content | Phase |
 | --- | --- | --- | --- |
-| `/` | Home | Korte intro, 3 uitgelichte projecten, laatste 3 posts (vanaf fase 2) | 1 |
-| `/projects` | Projecten | Lijst van alle projecten als cards, nieuwste eerst | 1 |
-| `/projects/[slug]` | Projectdetail | Cover, probleem, aanpak, resultaat, gebruikte stack, links | 1 |
-| `/about` | Over mij | Bio, werkervaring als tijdlijn, skills | 1 |
-| `/404` | Niet gevonden | Vriendelijke melding met links terug, in dezelfde layout | 1 |
-| `/blog` | Blog | Lijst van posts met datum en tags | 2 |
-| `/blog/[slug]` | Post | MDX met optionele interactieve islands | 2 |
-| `/now` | Nu | Waar ik op dit moment mee bezig ben, met datum van laatste update | 2 |
-| `/uses` | Setup | Hardware, software, homelab | 2 |
-| `/rss.xml` | RSS-feed | Alle gepubliceerde posts | 2 |
-| `/lab` | Lab | Kleine experimenten en demo's | 3 |
-| `/lab/[slug]` | Experiment | Eén demo met korte uitleg | 3 |
+| `/` | Home | Short intro, 3 featured projects, latest 3 posts (from phase 2) | 1 |
+| `/projects` | Projects | List of all projects as cards, newest first | 1 |
+| `/projects/[slug]` | Project detail | Cover, problem, approach, result, stack used, links | 1 |
+| `/about` | About me | Bio, work experience as a timeline, skills | 1 |
+| `/404` | Not found | Friendly message with links back, in the same layout | 1 |
+| `/blog` | Blog | List of posts with date and tags | 2 |
+| `/blog/[slug]` | Post | MDX with optional interactive islands | 2 |
+| `/now` | Now | What I'm working on right now, with the date of the last update | 2 |
+| `/uses` | Uses | Hardware, software, homelab | 2 |
+| `/rss.xml` | RSS feed | All published posts | 2 |
+| `/lab` | Lab | Small experiments and demos | 3 |
+| `/lab/[slug]` | Experiment | One demo with a short explanation | 3 |
 
-**Navigatie in de zijbalk:** Home, Projecten, Blog, Over mij. Nu, Setup en Lab staan als secundaire links eronder. De actieve pagina krijgt `aria-current="page"` en een visuele markering.
+**Sidebar navigation:** Home, Projects, Blog, About. Now, Uses and Lab are secondary links below them. The active page gets `aria-current="page"` and a visual marker.
 
-## Layout en visueel ontwerp
+## Layout and visual design
 
-Een vaste zijbalk links en één content-card rechts, met de 3D-scène als achtergrondlaag die rond beide zichtbaar is.
+A fixed sidebar on the left and one content card on the right, with the 3D scene as a background layer that is visible around both.
 
-**Bij navigatie animeert alleen de content-card** (desktop-layout, van achter naar voor)
+**Only the content card animates on navigation** (desktop layout, back to front)
 
-| Laag | Inhoud | Bij een paginawissel | Animeert |
+| Layer | Contents | On a page change | Animates |
 | --- | --- | --- | --- |
-| 0 · 3D-scène | Achtergrond op elke pagina | Blijft bestaan en loopt door tijdens de overgang | Nee |
-| 1 · Zijbalk | Naam, intro, navigatie en thema-knop | Wordt vervangen, zonder animatie | Nee |
-| 2 · Content-card: kader | De card zelf | Kader morpht in 300 ms naar de nieuwe hoogte | **Ja** |
-| 2 · Content-card: inhoud (apart vastgelegd) | De tekst in de card | Oude inhoud fadet uit in 150 ms; nieuwe inhoud fadet in en schuift 8 px op (250 ms). De tekst vervormt dus niet tijdens de morph. | **Ja** |
+| 0 · 3D scene | Background on every page | Persists and keeps running during the transition | No |
+| 1 · Sidebar | Name, intro, navigation and theme toggle | Replaced, without animation | No |
+| 2 · Content card: frame | The card itself | The frame morphs to the new height in 300 ms | **Yes** |
+| 2 · Content card: content (captured separately) | The text in the card | Old content fades out in 150 ms; new content fades in and slides up 8 px (250 ms). So the text doesn't distort during the morph. | **Yes** |
 
-De 3D-scène en de zijbalk staan stil tijdens een paginawissel; alleen het kader en de inhoud van de card bewegen.
+The 3D scene and the sidebar stay still during a page change; only the card's frame and content move.
 
-**Desktop (vanaf 1024 px)**
+**Desktop (1024 px and up)**
 
-- Twee kolommen. De zijbalk is `position: sticky`, 100vh hoog, maximaal 440 px breed.
-- De zijbalk bevat naam, functietitel, intro van 1–2 zinnen, navigatie, sociale links en de thema-knop.
-- De content-card staat rechts, maximaal 720 px breed, met 40 px padding en een radius van 16 px.
-- De pagina scrollt als geheel; de card heeft geen eigen scrollbalk.
+- Two columns. The sidebar is `position: sticky`, 100vh tall, at most 440 px wide.
+- The sidebar contains name, job title, a 1–2 sentence intro, navigation, social links and the theme toggle.
+- The content card sits on the right, at most 720 px wide, with 40 px padding and a 16 px radius.
+- The page scrolls as a whole; the card has no scrollbar of its own.
 
-**Mobiel (onder 1024 px)**
+**Mobile (below 1024 px)**
 
-- De zijbalk wordt een compacte header met naam en navigatie.
-- De card is volle breedte met 16 px marge aan beide kanten en 24 px padding.
-- Geen horizontale scroll, ook niet bij lange code-blokken (die scrollen binnen hun eigen blok).
+- The sidebar becomes a compact header with name and navigation.
+- The card is full width with a 16 px margin on both sides and 24 px padding.
+- No horizontal scrolling, not even with long code blocks (those scroll within their own block).
 
-**Visuele richting:** rustig, veel witruimte en duidelijke typografie. Persoonlijkheid zit in de 3D-scène, de thema-wissel en kleine micro-interacties, niet in drukke decoratie.
+**Visual direction:** calm, plenty of whitespace and clear typography. The personality lives in the 3D scene, the theme switch and small micro-interactions, not in busy decoration.
 
-**Design tokens (voorstel, aan te passen)**
+**Design tokens (proposal, open to change)**
 
-| Token | Donker | Licht | Gebruik |
+| Token | Dark | Light | Use |
 | --- | --- | --- | --- |
-| `--color-bg` | `#0B0F17` | `#F6F6F3` | Paginakleur achter alles |
-| `--color-surface` | `#121826` | `#FFFFFF` | Content-card |
-| `--color-text` | `#E6E9EF` | `#1A1D24` | Lopende tekst en koppen |
-| `--color-text-muted` | `#8B93A7` | `#5B6170` | Datums, labels, secundaire tekst |
-| `--color-border` | `#1F2737` | `#E3E4E0` | Randen van card en scheidingslijnen |
-| `--color-accent` | `#7C9CFF` | `#3B5BDB` | Links, actieve navigatie, 3D-accent |
+| `--color-bg` | `#0B0F17` | `#F6F6F3` | Page color behind everything |
+| `--color-surface` | `#121826` | `#FFFFFF` | Content card |
+| `--color-text` | `#E6E9EF` | `#1A1D24` | Body text and headings |
+| `--color-text-muted` | `#8B93A7` | `#5B6170` | Dates, labels, secondary text |
+| `--color-border` | `#1F2737` | `#E3E4E0` | Card borders and dividers |
+| `--color-accent` | `#7C9CFF` | `#3B5BDB` | Links, active navigation, 3D accent |
 
-- **Spacing:** schaal op basis van 4 px (4, 8, 12, 16, 24, 32, 48, 64).
-- **Radius:** 16 px voor de card, 8 px voor kleinere elementen.
-- **Typografie:** één sans variable font voor alles en één mono font voor code. Body 17 px met regelafstand 1,6; koppen 22, 28 en 40 px met regelafstand 1,2.
+- **Spacing:** a scale based on 4 px (4, 8, 12, 16, 24, 32, 48, 64).
+- **Radius:** 16 px for the card, 8 px for smaller elements.
+- **Typography:** one sans variable font for everything and one mono font for code. Body 17 px with a 1.6 line height; headings 22, 28 and 40 px with a 1.2 line height.
 
-**Dark mode:** standaard volgt de site `prefers-color-scheme`. De thema-knop overschrijft dat en bewaart de keuze in `localStorage`. Een inline script in `<head>` zet `data-theme` vóór de eerste paint, zodat er geen flits van het verkeerde thema is.
+**Dark mode:** by default the site follows `prefers-color-scheme`. The theme toggle overrides that and stores the choice in `localStorage`. An inline script in `<head>` sets `data-theme` before the first paint, so there is no flash of the wrong theme.
 
-## Paginatransities
+## Page transitions
 
-Bij elke navigatie blijft de zijbalk staan, morpht het kader van de card in 300 ms naar de nieuwe hoogte, en vloeit de inhoud over. De 3D-scène loopt ondertussen gewoon door.
+On every navigation the sidebar stays put, the card's frame morphs to the new height in 300 ms, and the content crossfades. Meanwhile the 3D scene simply keeps running.
 
-**Hoe het werkt**
+**How it works**
 
-1. `<ClientRouter />` uit `astro:transitions` staat in de `<head>` van `BaseLayout.astro`.
-2. De zijbalk krijgt `transition:name="sidebar"` en `transition:animate="none"`. Hij wordt wel vervangen (zodat de actieve link klopt), maar zonder animatie.
-3. Het kader van de card (`<main>`) krijgt `transition:name="content-card"` met de standaard morph van de browser. Het kader bevat zelf geen tekst, dus het mag tijdens de morph uitrekken.
-4. De inhoud van de card krijgt een eigen `transition:name="content-body"` met een custom fade. Doordat de inhoud apart wordt vastgelegd, vervormt de tekst niet tijdens de morph.
-5. De container van de 3D-scène krijgt `transition:persist="scene"` plus een eigen `transition:name` met `transition:animate="none"`, zodat de canvas live blijft.
+1. `<ClientRouter />` from `astro:transitions` is in the `<head>` of `BaseLayout.astro`.
+2. The sidebar gets `transition:name="sidebar"` and `transition:animate="none"`. It is still replaced (so the active link is correct), but without animation.
+3. The card's frame (`<main>`) gets `transition:name="content-card"` with the browser's default morph. The frame itself contains no text, so it may stretch during the morph.
+4. The card's content gets its own `transition:name="content-body"` with a custom fade. Because the content is captured separately, the text doesn't distort during the morph.
+5. The 3D scene's container gets `transition:persist="scene"` plus its own `transition:name` with `transition:animate="none"`, so the canvas stays live.
 
 ```astro
 ---
-// src/layouts/BaseLayout.astro (uittreksel)
+// src/layouts/BaseLayout.astro (excerpt)
 import { ClientRouter } from 'astro:transitions';
 import { contentFade } from '../lib/transitions';
 ---
@@ -136,11 +136,11 @@ import { contentFade } from '../lib/transitions';
   </head>
   <body>
     <div class="scene" transition:persist="scene" transition:name="scene" transition:animate="none" aria-hidden="true">
-      <!-- SceneLoader, zie 3D-achtergrond -->
+      <!-- SceneLoader, see 3D background -->
     </div>
 
     <aside transition:name="sidebar" transition:animate="none">
-      <!-- naam, intro, navigatie, thema-knop -->
+      <!-- name, intro, navigation, theme toggle -->
     </aside>
 
     <main class="card" transition:name="content-card" transition:animate="initial">
@@ -179,7 +179,7 @@ export const contentFade: TransitionDirectionalAnimations = {
 ::view-transition-old(content-card),
 ::view-transition-new(content-card) { height: 100%; }
 
-/* De rest van de pagina (alleen achtergrond) niet laten overvloeien */
+/* Don't crossfade the rest of the page (background only) */
 ::view-transition-old(root),
 ::view-transition-new(root) { animation: none; }
 
@@ -190,39 +190,39 @@ export const contentFade: TransitionDirectionalAnimations = {
 }
 ```
 
-**Prefetch:** zet in `astro.config.mjs` `prefetch: { prefetchAll: true, defaultStrategy: 'hover' }`. Dan is de volgende pagina meestal al geladen voordat er geklikt wordt.
+**Prefetch:** in `astro.config.mjs`, set `prefetch: { prefetchAll: true, defaultStrategy: 'hover' }`. That way the next page is usually already loaded before the click.
 
-**Valkuilen voor de bouwer**
+**Pitfalls for the builder**
 
-- Scripts die bij het laden van een pagina iets doen, luisteren naar `astro:page-load` in plaats van `DOMContentLoaded`. Anders draaien ze na een navigatie niet opnieuw.
-- Het thema (`data-theme` op `<html>`) moet opnieuw gezet worden in `astro:after-swap`, anders springt het na een navigatie terug.
-- Elke `transition:name` is uniek per pagina. Twee elementen met dezelfde naam op één pagina breken de transitie.
-- De standaard animaties van Astro moeten mogelijk overschreven worden; controleer in DevTools (Animations-paneel) welke animatie echt draait.
+- Scripts that do something on page load listen for `astro:page-load` instead of `DOMContentLoaded`. Otherwise they don't run again after a navigation.
+- The theme (`data-theme` on `<html>`) must be set again in `astro:after-swap`, otherwise it jumps back after a navigation.
+- Every `transition:name` is unique per page. Two elements with the same name on one page break the transition.
+- Astro's default animations may need to be overridden; check in DevTools (Animations panel) which animation actually runs.
 
-**Acceptatiecriteria**
+**Acceptance criteria**
 
-- [ ] Bij navigatie tussen twee willekeurige pagina's beweegt de zijbalk niet.
-- [ ] Het kader van de card verandert soepel van hoogte; de tekst vervormt niet.
-- [ ] De hele transitie duurt maximaal 350 ms.
-- [ ] De terugknop van de browser speelt dezelfde transitie en herstelt de scrollpositie.
-- [ ] Met `prefers-reduced-motion: reduce` wisselt de pagina zonder animatie.
-- [ ] Zonder JavaScript werkt navigatie via gewone page loads.
-- [ ] In een browser zonder View Transitions API werkt navigatie zonder fouten in de console.
-- [ ] De 3D-scène blijft doorlopen tijdens de overgang, zonder flits of ghosting.
-- [ ] Na navigatie wordt de nieuwe pagina aangekondigd voor screenreaders en staat de focus bovenaan de nieuwe inhoud.
+- [ ] When navigating between any two pages, the sidebar doesn't move.
+- [ ] The card's frame changes height smoothly; the text doesn't distort.
+- [ ] The whole transition takes at most 350 ms.
+- [ ] The browser's back button plays the same transition and restores the scroll position.
+- [ ] With `prefers-reduced-motion: reduce`, the page changes without animation.
+- [ ] Without JavaScript, navigation works through regular page loads.
+- [ ] In a browser without the View Transitions API, navigation works without console errors.
+- [ ] The 3D scene keeps running during the transition, without flashing or ghosting.
+- [ ] After navigation, the new page is announced to screen readers and focus is at the top of the new content.
 
-## 3D-achtergrond
+## 3D background
 
-Eén subtiele 3D-scène achter de content, op elke pagina, die blijft draaien tijdens navigatie en de eerste weergave nooit vertraagt.
+One subtle 3D scene behind the content, on every page, that keeps running during navigation and never delays the first render.
 
-**Concept (eerste voorstel):** één abstract object of een kleine groep vormen in de accentkleur. Het draait langzaam en kantelt licht mee met de muispositie. Het exacte concept is een open vraag voor de eigenaar.
+**Concept (first proposal):** one abstract object or a small group of shapes in the accent color. It rotates slowly and tilts slightly with the mouse position. The exact concept is an open question for the owner.
 
-**Laadstrategie**
+**Loading strategy**
 
-1. De pagina toont eerst een statische fallback: een CSS-gradiënt of een poster-afbeelding (AVIF/WebP) van de scène.
-2. `SceneLoader.tsx` wordt geladen met `client:only="react"`, omdat WebGL niet op de server kan renderen.
-3. `SceneLoader` wacht op `requestIdleCallback` (fallback: `setTimeout` van 1 s) en laadt dan pas `SceneCanvas.tsx` via `React.lazy(() => import(...))`. Zo komt three.js in een aparte chunk die de eerste weergave niet raakt.
-4. Zodra de eerste frame gerenderd is, fadet de canvas in 600 ms in over de fallback.
+1. The page first shows a static fallback: a CSS gradient or a poster image (AVIF/WebP) of the scene.
+2. `SceneLoader.tsx` is loaded with `client:only="react"`, because WebGL can't render on the server.
+3. `SceneLoader` waits for `requestIdleCallback` (fallback: a 1 s `setTimeout`) and only then loads `SceneCanvas.tsx` via `React.lazy(() => import(...))`. This puts three.js in a separate chunk that doesn't affect the first render.
+4. Once the first frame has rendered, the canvas fades in over the fallback in 600 ms.
 
 ```astro
 <div class="scene" transition:persist="scene" transition:name="scene" transition:animate="none" aria-hidden="true">
@@ -230,40 +230,40 @@ Eén subtiele 3D-scène achter de content, op elke pagina, die blijft draaien ti
 </div>
 ```
 
-**Plaatsing:** `position: fixed; inset: 0; z-index: 0`, met zijbalk en card erboven. De container heeft `pointer-events: none`; de muispositie wordt gelezen via een `pointermove`-listener op `window`.
+**Placement:** `position: fixed; inset: 0; z-index: 0`, with the sidebar and card above it. The container has `pointer-events: none`; the mouse position is read through a `pointermove` listener on `window`.
 
-**Performance-regels**
+**Performance rules**
 
-- Device pixel ratio begrensd op `[1, 1.5]` via `dpr` op de `<Canvas>`.
-- Renderen pauzeert als het tabblad verborgen is (`visibilitychange`).
-- Geen post-processing in versie 1.
-- De 3D-chunk (three + R3F + gebruikte drei-helpers) is maximaal 250 kB gzip.
-- Doel: stabiel 60 fps op een gemiddelde laptop, zonder merkbare invloed op scrollen.
+- Device pixel ratio capped at `[1, 1.5]` via `dpr` on the `<Canvas>`.
+- Rendering pauses when the tab is hidden (`visibilitychange`).
+- No post-processing in version 1.
+- The 3D chunk (three + R3F + the drei helpers used) is at most 250 kB gzip.
+- Target: a steady 60 fps on an average laptop, with no noticeable effect on scrolling.
 
-**Wanneer de scène níet laadt (alleen de statische fallback)**
+**When the scene does *not* load (static fallback only)**
 
-- `prefers-reduced-motion: reduce`: de scène toont één stilstaande frame of alleen de fallback.
-- Schermbreedte onder 768 px.
+- `prefers-reduced-motion: reduce`: the scene shows a single still frame or only the fallback.
+- Screen width below 768 px.
 - `navigator.connection.saveData` is `true`.
-- WebGL is niet beschikbaar.
+- WebGL is not available.
 
-**Thema:** de scène leest `--color-accent` en `--color-bg` uit de CSS en past kleuren aan als `data-theme` verandert (via een `MutationObserver` op `<html>` of een custom event `theme-change`).
+**Theme:** the scene reads `--color-accent` and `--color-bg` from the CSS and updates its colors when `data-theme` changes (via a `MutationObserver` on `<html>` or a custom `theme-change` event).
 
-**Acceptatiecriteria**
+**Acceptance criteria**
 
-- [ ] De LCP van een pagina met en zonder 3D verschilt minder dan 100 ms.
-- [ ] De scène herstart niet bij navigatie; de rotatie loopt naadloos door.
-- [ ] Elk van de vier uitzonderingen hierboven toont alleen de fallback, zonder fouten.
-- [ ] Bij het wisselen van thema verandert de scène binnen één frame mee.
-- [ ] De scène is decoratief (`aria-hidden="true"`) en niet bereikbaar met het toetsenbord.
+- [ ] The LCP of a page with and without 3D differs by less than 100 ms.
+- [ ] The scene doesn't restart on navigation; the rotation continues seamlessly.
+- [ ] Each of the four exceptions above shows only the fallback, without errors.
+- [ ] When the theme changes, the scene follows within one frame.
+- [ ] The scene is decorative (`aria-hidden="true"`) and not reachable by keyboard.
 
-## Overige interactieve onderdelen
+## Other interactive parts
 
-Drie extra onderdelen, elk met de lichtst mogelijke techniek: de thema-wissel in vanilla JS, de command palette als React-island en de live-data widget als optionele uitbreiding.
+Three extra parts, each built with the lightest possible technique: the theme switch in vanilla JS, the command palette as a React island, and the live-data widget as an optional extension.
 
-### Thema-wissel met cirkel-reveal (fase 1)
+### Theme switch with circle reveal (phase 1)
 
-Bij een klik op de thema-knop breidt het nieuwe thema zich als cirkel uit vanaf de knop. Dit is een klein inline script in `ThemeToggle.astro`, zonder React.
+When the theme toggle is clicked, the new theme expands as a circle from the button. This is a small inline script in `ThemeToggle.astro`, without React.
 
 ```ts
 function toggleTheme(e: MouseEvent) {
@@ -285,45 +285,45 @@ function toggleTheme(e: MouseEvent) {
 }
 ```
 
-- Tijdens de wissel zet `.theme-transition * { view-transition-name: none !important; }` alle benoemde elementen tijdelijk uit. Zo wordt de hele pagina in één keer onthuld, in plaats van dat card en zijbalk apart overvloeien.
-- De root-regel in `transitions.css` krijgt ook `mix-blend-mode: normal`, zodat de cirkel scherp is.
-- Het script koppelt de click-listener in `astro:page-load`, zodat hij na elke navigatie werkt.
-- Zonder View Transitions API of met reduced motion wisselt het thema direct.
+- During the switch, `.theme-transition * { view-transition-name: none !important; }` temporarily turns off all named elements. That way the whole page is revealed at once, instead of the card and sidebar crossfading separately.
+- The root rule in `transitions.css` also gets `mix-blend-mode: normal`, so the circle stays sharp.
+- The script attaches the click listener in `astro:page-load`, so it works after every navigation.
+- Without the View Transitions API, or with reduced motion, the theme switches instantly.
 
-### Command palette (fase 3)
+### Command palette (phase 3)
 
-- Opent met ⌘K of Ctrl+K, en met een zichtbare knop in de zijbalk voor muis- en touchgebruikers.
-- React-island op basis van [`cmdk`](https://github.com/pacocoursey/cmdk), geladen met `client:idle` en `transition:persist`, zodat hij niet bij elke navigatie opnieuw hydrateert.
-- Bevat pagina's, projecten en posts (alleen titel en URL, als props doorgegeven tijdens de build), plus acties: thema wisselen en e-mailadres kopiëren.
-- Navigeert met `navigate()` uit `astro:transitions/client`, zodat de paginatransitie gewoon afspeelt.
-- Volledig met toetsenbord te bedienen: pijltjes, Enter, Esc; focus blijft binnen de palette zolang die open is.
+- Opens with ⌘K or Ctrl+K, and with a visible button in the sidebar for mouse and touch users.
+- A React island based on [`cmdk`](https://github.com/pacocoursey/cmdk), loaded with `client:idle` and `transition:persist`, so it doesn't rehydrate on every navigation.
+- Contains pages, projects and posts (title and URL only, passed as props at build time), plus actions: switch theme and copy email address.
+- Navigates with `navigate()` from `astro:transitions/client`, so the page transition still plays.
+- Fully keyboard operable: arrow keys, Enter, Esc; focus stays inside the palette while it's open.
 
-### Live-data widget (fase 3, optioneel)
+### Live-data widget (phase 3, optional)
 
-- Bijvoorbeeld "nu aan het luisteren", recente GitHub-activiteit of een status uit de homelab. De bron is een open vraag.
-- De browser haalt data op bij een eigen klein endpoint (bijvoorbeeld een serverless function) dat tokens bewaart en 60 seconden cachet.
-- Nooit secrets in de frontend, en Home Assistant of andere homelab-diensten nooit rechtstreeks aan internet blootstellen.
-- Geladen met `client:visible`; toont een skeleton tijdens het laden en verbergt zichzelf bij een fout.
+- For example "now listening", recent GitHub activity or a status from the homelab. The source is an open question.
+- The browser fetches data from a small endpoint of its own (for example a serverless function) that holds the tokens and caches for 60 seconds.
+- Never put secrets in the frontend, and never expose Home Assistant or other homelab services directly to the internet.
+- Loaded with `client:visible`; shows a skeleton while loading and hides itself on error.
 
-### Micro-interacties (fase 1)
+### Micro-interactions (phase 1)
 
-Alleen CSS: projectcards komen 2 px omhoog en krijgen een accentrand bij hover en focus, links krijgen een geanimeerde onderstreping. Alles staat uit bij `prefers-reduced-motion`.
+CSS only: project cards rise 2 px and get an accent border on hover and focus, and links get an animated underline. All of it is turned off with `prefers-reduced-motion`.
 
-## Contentmodel
+## Content model
 
-Alle content staat als bestanden in de repo en wordt bij de build gevalideerd met Zod-schema's in `src/content.config.ts`; een fout in de frontmatter laat de build falen.
+All content lives as files in the repo and is validated at build time with Zod schemas in `src/content.config.ts`; an error in the frontmatter fails the build.
 
-| Collectie | Bron | Velden |
+| Collection | Source | Fields |
 | --- | --- | --- |
-| `projects` | `src/content/projects/*.mdx` | `title`, `summary` (max 160 tekens), `date`, `role`, `stack[]`, `cover`, `coverAlt`, `links.live?`, `links.repo?`, `featured`, `draft` |
-| `posts` | `src/content/posts/*.mdx` | `title`, `description` (max 160 tekens), `pubDate`, `updatedDate?`, `tags[]`, `draft` |
+| `projects` | `src/content/projects/*.mdx` | `title`, `summary` (max 160 characters), `date`, `role`, `stack[]`, `cover`, `coverAlt`, `links.live?`, `links.repo?`, `featured`, `draft` |
+| `posts` | `src/content/posts/*.mdx` | `title`, `description` (max 160 characters), `pubDate`, `updatedDate?`, `tags[]`, `draft` |
 | `lab` | `src/content/lab/*.mdx` | `title`, `description`, `date`, `draft` |
 | `experience` | `src/content/experience.json` | `company`, `role`, `start`, `end?`, `summary`, `stack[]` |
 
-`/now` en `/uses` zijn losse MDX-pagina's in `src/pages/` met een `updated`-datum in de frontmatter.
+`/now` and `/uses` are standalone MDX pages in `src/pages/` with an `updated` date in the frontmatter.
 
 ```ts
-// src/content.config.ts (uittreksel)
+// src/content.config.ts (excerpt)
 import { defineCollection } from 'astro:content';
 import { glob, file } from 'astro/loaders';
 import { z } from 'astro/zod';
@@ -362,62 +362,62 @@ const experience = defineCollection({
 export const collections = { projects, experience /*, posts, lab */ };
 ```
 
-**Regels**
+**Rules**
 
-- Items met `draft: true` zijn alleen zichtbaar in development, nooit in de productie-build.
-- De slug is de bestandsnaam.
-- Projecten sorteren op `date`, nieuwste eerst; de homepage toont maximaal 3 projecten met `featured: true`.
-- Afbeeldingen gaan via `astro:assets` (`<Image>` of `<Picture>`) en worden als AVIF/WebP met vaste breedte en hoogte uitgeleverd.
-- `coverAlt` is verplicht, zodat geen enkele afbeelding zonder alt-tekst live gaat.
+- Items with `draft: true` are only visible in development, never in the production build.
+- The slug is the file name.
+- Projects are sorted by `date`, newest first; the homepage shows at most 3 projects with `featured: true`.
+- Images go through `astro:assets` (`<Image>` or `<Picture>`) and are served as AVIF/WebP with a fixed width and height.
+- `coverAlt` is required, so no image goes live without alt text.
 
-**Startcontent**
+**Starter content**
 
-De eigenaar levert de echte teksten aan. Tot die tijd gebruikt de bouwer duidelijk herkenbare placeholders, gemarkeerd met `TODO(content)`.
+The owner supplies the real copy. Until then, the builder uses clearly recognizable placeholders, marked with `TODO(content)`.
 
-- [ ] Project 1: deze website zelf (stack, keuzes, transities, 3D).
-- [ ] Project 2 en 3: werk- of side projects, beschreven als probleem, aanpak en resultaat.
-- [ ] Werkervaring voor `/about`.
-- [ ] Eerste post (fase 2): "Hoe ik deze site bouwde".
-- [ ] `/uses`: setup, tools en de homelab.
+- [ ] Project 1: this website itself (stack, choices, transitions, 3D).
+- [ ] Projects 2 and 3: work or side projects, described as problem, approach and result.
+- [ ] Work experience for `/about`.
+- [ ] First post (phase 2): "How I built this site".
+- [ ] `/uses`: setup, tools and the homelab.
 
-## Performance, toegankelijkheid en SEO
+## Performance, accessibility and SEO
 
-Elke fase wordt pas afgerond als de site binnen deze budgetten blijft, gemeten op een mobiel profiel (Lighthouse, gesimuleerde 4G).
+A phase is only finished when the site stays within these budgets, measured on a mobile profile (Lighthouse, simulated 4G).
 
-**Performance-budget**
+**Performance budget**
 
-| Meting | Doel |
+| Metric | Target |
 | --- | --- |
-| Lighthouse Performance (mobiel) | ≥ 95 |
-| Largest Contentful Paint | ≤ 1,8 s |
-| Cumulative Layout Shift | ≤ 0,05 |
+| Lighthouse Performance (mobile) | ≥ 95 |
+| Largest Contentful Paint | ≤ 1.8 s |
+| Cumulative Layout Shift | ≤ 0.05 |
 | Interaction to Next Paint | ≤ 200 ms |
-| JavaScript dat de eerste weergave blokkeert | 0 kB (alleen het inline thema-script, < 1 kB) |
-| Totale JavaScript na idle, zonder 3D | ≤ 100 kB gzip |
-| 3D-chunk, pas geladen na idle | ≤ 250 kB gzip |
-| CSS per pagina | ≤ 30 kB gzip |
-| Fonts | Maximaal 2 bestanden, `woff2`, Latin-subset, `font-display: swap` |
+| JavaScript that blocks the first render | 0 kB (only the inline theme script, < 1 kB) |
+| Total JavaScript after idle, without 3D | ≤ 100 kB gzip |
+| 3D chunk, loaded only after idle | ≤ 250 kB gzip |
+| CSS per page | ≤ 30 kB gzip |
+| Fonts | At most 2 files, `woff2`, Latin subset, `font-display: swap` |
 
-**Toegankelijkheid (WCAG 2.2 niveau AA)**
+**Accessibility (WCAG 2.2 level AA)**
 
-- Tekstcontrast minimaal 4,5:1 in beide thema's, ook voor `--color-text-muted`.
-- Alles is met het toetsenbord te bedienen, met een duidelijk zichtbare focusstijl.
-- Een skip-link "Naar inhoud" als eerste focusbare element.
-- Semantische landmarks: `<header>` of `<aside>`, `<nav>`, `<main>`, `<footer>`.
-- `lang` op `<html>`, `aria-current="page"` op de actieve navigatielink.
-- Alle animaties respecteren `prefers-reduced-motion`.
-- Elke afbeelding heeft een betekenisvolle alt-tekst; decoratieve elementen hebben `aria-hidden="true"`.
+- Text contrast of at least 4.5:1 in both themes, including `--color-text-muted`.
+- Everything is keyboard operable, with a clearly visible focus style.
+- A "Skip to content" link as the first focusable element.
+- Semantic landmarks: `<header>` or `<aside>`, `<nav>`, `<main>`, `<footer>`.
+- `lang` on `<html>`, `aria-current="page"` on the active navigation link.
+- All animations respect `prefers-reduced-motion`.
+- Every image has meaningful alt text; decorative elements have `aria-hidden="true"`.
 
-**SEO en delen**
+**SEO and sharing**
 
-- Unieke `<title>` en meta description per pagina, plus een canonical URL.
-- Open Graph- en Twitter-meta met een standaard OG-afbeelding van 1200 × 630 px; gegenereerde OG-afbeeldingen per post volgen in fase 3.
-- `sitemap.xml` via `@astrojs/sitemap`, RSS via `@astrojs/rss`, en een `robots.txt`.
-- JSON-LD van het type `Person` op de homepage.
+- A unique `<title>` and meta description per page, plus a canonical URL.
+- Open Graph and Twitter meta with a default 1200 × 630 px OG image; generated OG images per post follow in phase 3.
+- `sitemap.xml` via `@astrojs/sitemap`, RSS via `@astrojs/rss`, and a `robots.txt`.
+- `Person` JSON-LD on the homepage.
 
-## Projectstructuur
+## Project structure
 
-Statische onderdelen zijn `.astro`-bestanden; React (`.tsx`) staat uitsluitend in `src/islands/`, zodat in één oogopslag zichtbaar is wat JavaScript naar de browser stuurt.
+Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so you can see at a glance what sends JavaScript to the browser.
 
 ```text
 .
@@ -436,20 +436,20 @@ Statische onderdelen zijn `.astro`-bestanden; React (`.tsx`) staat uitsluitend i
 │   │   ├── lab/
 │   │   └── experience.json
 │   ├── layouts/
-│   │   └── BaseLayout.astro      # ClientRouter, scène, zijbalk, card
+│   │   └── BaseLayout.astro      # ClientRouter, scene, sidebar, card
 │   ├── components/
 │   │   ├── Sidebar.astro
 │   │   ├── ContentCard.astro
 │   │   ├── ProjectCard.astro
-│   │   ├── ThemeToggle.astro     # vanilla script, geen React
+│   │   ├── ThemeToggle.astro     # vanilla script, no React
 │   │   └── Seo.astro
-│   ├── islands/                  # alleen React, alleen wat interactief is
+│   ├── islands/                  # React only, only what's interactive
 │   │   ├── CommandPalette.tsx
 │   │   └── scene/
-│   │       ├── SceneLoader.tsx   # wacht op idle, lazy import
-│   │       └── SceneCanvas.tsx   # R3F Canvas en objecten
+│   │       ├── SceneLoader.tsx   # waits for idle, lazy import
+│   │       └── SceneCanvas.tsx   # R3F Canvas and objects
 │   ├── lib/
-│   │   ├── transitions.ts        # custom transitie-animaties
+│   │   ├── transitions.ts        # custom transition animations
 │   │   └── theme.ts
 │   ├── pages/
 │   │   ├── index.astro
@@ -465,120 +465,120 @@ Statische onderdelen zijn `.astro`-bestanden; React (`.tsx`) staat uitsluitend i
 │   │   ├── 404.astro
 │   │   └── rss.xml.ts
 │   └── styles/
-│       ├── tokens.css            # kleuren, spacing, typografie
+│       ├── tokens.css            # colors, spacing, typography
 │       ├── global.css
 │       └── transitions.css
 └── tests/
     └── navigation.spec.ts        # Playwright
 ```
 
-**Conventies**
+**Conventions**
 
-- Elke `client:*`-directive krijgt een korte comment met waarom die nodig is en waarom deze strategie.
-- Kleuren, spacing en fontgroottes komen altijd uit `tokens.css`; geen losse hexwaarden in componenten.
-- Componenten zijn klein en hebben één taak; props zijn getypeerd met een `Props`-interface.
-- Commits volgen Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`).
+- Every `client:*` directive gets a short comment on why it's needed and why this strategy.
+- Colors, spacing and font sizes always come from `tokens.css`; no loose hex values in components.
+- Components are small and do one thing; props are typed with a `Props` interface.
+- Commits follow Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`).
 
-## Bouwfases
+## Build phases
 
-Vier fases, elk afgesloten met een werkende, gedeployde site; fase 1 is de eerste versie die live gaat.
+Four phases, each ending with a working, deployed site; phase 1 is the first version that goes live.
 
-**Fase 1 is de eerste versie die live gaat.** Elke fase eindigt met een gate; pas daarna begint de volgende.
+**Phase 1 is the first version that goes live.** Each phase ends with a gate; only then does the next one start.
 
 ```mermaid
 flowchart LR
-  F0["<b>Fase 0 · Fundament</b><br/>Setup en tooling<br/>Design tokens<br/>Basislayout<br/>Preview-deploys<br/><br/><i>Gate: checks groen,<br/>preview werkt</i>"]
-  F1["<b>Fase 1 · Kern, gaat live</b><br/>5 pagina's<br/>Transities<br/>Thema-wissel<br/>SEO en a11y-basis<br/><br/><i>Gate: Lighthouse ≥ 95,<br/>live op domein</i>"]
-  F2["<b>Fase 2 · 3D en content</b><br/>3D-achtergrond<br/>Blog en RSS<br/>/now en /uses<br/>Laatste posts op home<br/><br/><i>Gate: budget gehaald<br/>mét 3D</i>"]
-  F3["<b>Fase 3 · Extra's</b><br/>Command palette<br/>Lab-pagina's<br/>OG-afbeeldingen<br/>Live-data (optioneel)<br/><br/><i>Gate: budget gehaald,<br/>alles toetsenbord</i>"]
+  F0["<b>Phase 0 · Foundation</b><br/>Setup and tooling<br/>Design tokens<br/>Base layout<br/>Preview deploys<br/><br/><i>Gate: checks green,<br/>preview works</i>"]
+  F1["<b>Phase 1 · Core, goes live</b><br/>5 pages<br/>Transitions<br/>Theme switch<br/>SEO and a11y basics<br/><br/><i>Gate: Lighthouse ≥ 95,<br/>live on domain</i>"]
+  F2["<b>Phase 2 · 3D and content</b><br/>3D background<br/>Blog and RSS<br/>/now and /uses<br/>Latest posts on home<br/><br/><i>Gate: budget met<br/>with 3D</i>"]
+  F3["<b>Phase 3 · Extras</b><br/>Command palette<br/>Lab pages<br/>OG images<br/>Live data (optional)<br/><br/><i>Gate: budget met,<br/>all keyboard operable</i>"]
   F0 --> F1 --> F2 --> F3
   classDef live stroke:#3B5BDB,stroke-width:3px
   class F1 live
 ```
 
-Fase 0 levert nog niets publieks op; vanaf de gate van fase 1 staat de site live en groeit hij per fase.
+Phase 0 doesn't deliver anything public yet; from the phase 1 gate onward the site is live and grows with each phase.
 
-### Fase 0: Fundament
+### Phase 0: Foundation
 
-- [ ] Astro-project met TypeScript strict, pnpm, ESLint, Prettier en `astro check`.
-- [ ] `tokens.css` met kleuren, spacing en typografie voor beide thema's; fonts zelf gehost.
-- [ ] `BaseLayout.astro` met zijbalk en content-card, responsief, nog zonder transities.
-- [ ] Automatische preview-deploy per branch.
-- [ ] **Gate:** de preview-URL werkt, en `astro check`, lint en build zijn groen.
+- [ ] Astro project with TypeScript strict, pnpm, ESLint, Prettier and `astro check`.
+- [ ] `tokens.css` with colors, spacing and typography for both themes; self-hosted fonts.
+- [ ] `BaseLayout.astro` with sidebar and content card, responsive, no transitions yet.
+- [ ] Automatic preview deploy per branch.
+- [ ] **Gate:** the preview URL works, and `astro check`, lint and build are green.
 
-### Fase 1: Kern (eerste live versie)
+### Phase 1: Core (first live version)
 
-- [ ] Pagina's `/`, `/projects`, `/projects/[slug]`, `/about` en `/404`.
-- [ ] Content collections `projects` en `experience` met schema's en placeholder-content.
-- [ ] Paginatransities volgens de sectie Paginatransities, inclusief alle acceptatiecriteria.
-- [ ] Thema-wissel met cirkel-reveal, zonder flits bij laden of navigeren.
-- [ ] Micro-interacties, skip-link, focusstijlen en SEO-basis (meta, canonical, sitemap, OG-standaardafbeelding).
-- [ ] Playwright-test die door alle pagina's navigeert en controleert dat er geen console-fouten zijn.
-- [ ] **Gate:** Lighthouse mobiel ≥ 95 op alle pagina's, alle budgetten gehaald, live op het productiedomein.
+- [ ] Pages `/`, `/projects`, `/projects/[slug]`, `/about` and `/404`.
+- [ ] Content collections `projects` and `experience` with schemas and placeholder content.
+- [ ] Page transitions as described in the Page transitions section, including all acceptance criteria.
+- [ ] Theme switch with circle reveal, with no flash on load or navigation.
+- [ ] Micro-interactions, skip link, focus styles and SEO basics (meta, canonical, sitemap, default OG image).
+- [ ] A Playwright test that navigates through every page and checks there are no console errors.
+- [ ] **Gate:** Lighthouse mobile ≥ 95 on every page, all budgets met, live on the production domain.
 
-### Fase 2: 3D en content
+### Phase 2: 3D and content
 
-- [ ] 3D-achtergrond volgens de sectie 3D-achtergrond, inclusief fallback en uitzonderingen.
-- [ ] Blog: collectie `posts`, `/blog`, `/blog/[slug]`, RSS-feed.
-- [ ] Pagina's `/now` en `/uses`.
-- [ ] Homepage toont de laatste 3 posts.
-- [ ] **Gate:** budgetten nog steeds gehaald mét 3D; LCP met en zonder 3D verschilt minder dan 100 ms.
+- [ ] 3D background as described in the 3D background section, including the fallback and exceptions.
+- [ ] Blog: `posts` collection, `/blog`, `/blog/[slug]`, RSS feed.
+- [ ] Pages `/now` and `/uses`.
+- [ ] The homepage shows the latest 3 posts.
+- [ ] **Gate:** budgets still met with 3D; LCP with and without 3D differs by less than 100 ms.
 
-### Fase 3: Extra's
+### Phase 3: Extras
 
 - [ ] Command palette (⌘K / Ctrl+K).
-- [ ] Lab: collectie `lab`, `/lab` en `/lab/[slug]`, met minimaal één experiment.
-- [ ] Gegenereerde OG-afbeeldingen per post.
-- [ ] Optioneel: live-data widget, na keuze van de bron door de eigenaar.
-- [ ] Optioneel: evaluatie of kleine islands naar Preact kunnen (niet de 3D-scène).
-- [ ] **Gate:** budgetten gehaald, alle nieuwe onderdelen met toetsenbord bedienbaar.
+- [ ] Lab: `lab` collection, `/lab` and `/lab/[slug]`, with at least one experiment.
+- [ ] Generated OG images per post.
+- [ ] Optional: live-data widget, once the owner has chosen the source.
+- [ ] Optional: evaluate whether small islands can move to Preact (not the 3D scene).
+- [ ] **Gate:** budgets met, all new parts keyboard operable.
 
-## Deployment en hosting
+## Deployment and hosting
 
-Voorstel: de statische build hosten op Cloudflare, met automatische preview-deploys per branch en productie-deploys vanaf `main`. Het Astro-team is sinds januari 2026 onderdeel van Cloudflare ([persbericht](https://secure.businesswire.com/news/home/20260116386991/en/Cloudflare-Acquires-Astro-to-Accelerate-the-Future-of-High-Performance-Web-Development)); Astro blijft open source en op elk platform te hosten.
+Proposal: host the static build on Cloudflare, with automatic preview deploys per branch and production deploys from `main`. The Astro team has been part of Cloudflare since January 2026 ([press release](https://secure.businesswire.com/news/home/20260116386991/en/Cloudflare-Acquires-Astro-to-Accelerate-the-Future-of-High-Performance-Web-Development)); Astro remains open source and can be hosted on any platform.
 
-| Optie | Voordelen | Nadelen |
+| Option | Pros | Cons |
 | --- | --- | --- |
-| Cloudflare (voorstel) | Gratis tier, wereldwijd CDN, preview per branch, sluit aan bij DNS via Cloudflare | Vendor-specifieke instellingen voor headers en redirects |
-| Netlify of Vercel | Vergelijkbare preview-flow, veel documentatie | Ander platform dan de DNS |
-| Eigen homelab (Docker + Caddy, via Cloudflare Tunnel) | Volledige controle, geen derde partij | Beschikbaarheid hangt af van de thuisverbinding en hardware; meer onderhoud |
+| Cloudflare (proposal) | Free tier, global CDN, preview per branch, fits with DNS on Cloudflare | Vendor-specific settings for headers and redirects |
+| Netlify or Vercel | Similar preview flow, lots of documentation | A different platform from the DNS |
+| Own homelab (Docker + Caddy, via Cloudflare Tunnel) | Full control, no third party | Availability depends on the home connection and hardware; more maintenance |
 
-**Pipeline bij elke push**
+**Pipeline on every push**
 
 1. `pnpm install --frozen-lockfile`
-2. `astro check` en lint
+2. `astro check` and lint
 3. `astro build`
-4. Deploy naar preview (branch) of productie (`main`)
-5. Playwright-smoke-tests tegen de preview-URL
+4. Deploy to preview (branch) or production (`main`)
+5. Playwright smoke tests against the preview URL
 
-**Caching:** bestanden in `/_astro/` hebben een hash in de naam en krijgen `Cache-Control: public, max-age=31536000, immutable`. HTML krijgt een korte cache met revalidatie, zodat een nieuwe deploy direct zichtbaar is.
+**Caching:** files in `/_astro/` have a hash in their name and get `Cache-Control: public, max-age=31536000, immutable`. HTML gets a short cache with revalidation, so a new deploy is visible right away.
 
-## Open vragen voor de eigenaar
+## Open questions for the owner
 
-Deze keuzes zijn nog niet gemaakt; de eerste vier zijn nodig vóór fase 1, de rest kan later.
+These choices haven't been made yet; the first four are needed before phase 1, the rest can wait.
 
-- [ ] **Taal:** Nederlands, Engels of beide? Dit bepaalt `lang`, teksten en of er later i18n nodig is.
-- [ ] **Domein:** op welk domein of subdomein komt de site?
-- [ ] **Font:** welke sans en welke mono? Voorstel: Inter Variable en JetBrains Mono, of Geist en Geist Mono.
-- [ ] **Accentkleur:** blijft het voorgestelde blauw, of een eigen kleur?
-- [ ] **Projecten:** welke 3 projecten staan in fase 1 op de site?
-- [ ] **3D-concept:** abstract object, deeltjes, of een kleine 3D-versie van je bureau of setup?
-- [ ] **Styling:** eigen CSS met tokens (voorstel) of toch Tailwind?
-- [ ] **Hosting:** Cloudflare (voorstel) of de eigen homelab?
-- [ ] **Analytics:** geen, of privacyvriendelijk zonder cookies (bijvoorbeeld Cloudflare Web Analytics, Plausible of een zelf gehoste Umami)?
-- [ ] **Live-data widget:** welke bron, als die er komt?
+- [ ] **Language:** Dutch, English or both? This determines `lang`, the copy, and whether i18n is needed later.
+- [ ] **Domain:** which domain or subdomain will the site live on?
+- [ ] **Font:** which sans and which mono? Proposal: Inter Variable and JetBrains Mono, or Geist and Geist Mono.
+- [ ] **Accent color:** keep the proposed blue, or a color of your own?
+- [ ] **Projects:** which 3 projects go on the site in phase 1?
+- [ ] **3D concept:** an abstract object, particles, or a small 3D version of your desk or setup?
+- [ ] **Styling:** custom CSS with tokens (proposal) or Tailwind after all?
+- [ ] **Hosting:** Cloudflare (proposal) or your own homelab?
+- [ ] **Analytics:** none, or privacy-friendly without cookies (for example Cloudflare Web Analytics, Plausible or a self-hosted Umami)?
+- [ ] **Live-data widget:** which source, if there is one?
 
-## Werkafspraken voor de bouwer
+## Working agreements for the builder
 
-Werk fase voor fase, rapporteer na elke fase, en kies bij twijfel de rustigste en lichtste oplossing. Dit geldt zowel voor een developer als voor een AI-coding-agent.
+Work phase by phase, report after each phase, and when in doubt choose the calmest and lightest solution. This applies to a developer as well as to an AI coding agent.
 
-1. **Lees eerst het hele document.** De volgorde van de fases is bindend; werk niet vooruit naar een volgende fase.
-2. **Stop na elke fase** en lever een kort rapport: wat er gebouwd is, de gemeten budget-cijfers, en welke acceptatiecriteria (nog) niet gehaald zijn.
-3. **Geen nieuwe dependencies** buiten de tech stack zonder akkoord van de eigenaar.
-4. **Standaard geen JavaScript.** Elke `client:*`-directive moet te verdedigen zijn; een statische oplossing gaat altijd voor.
-5. **Nooit content verzinnen.** Gebruik duidelijk herkenbare placeholders met `TODO(content)`; geen fictieve projecten, werkgevers of resultaten die echt lijken.
-6. **Open vragen niet zelf beslissen.** Kies tijdelijk het voorstel uit dit document, markeer het met `TODO(beslissing)` en noem het in het fase-rapport.
-7. **Testen in meerdere browsers:** de laatste versies van Chrome, Safari en Firefox, plus iOS Safari en Chrome op Android.
-8. **Toegankelijkheid testen:** elke pagina en elke interactie met alleen het toetsenbord, en één keer met een screenreader (VoiceOver of NVDA).
-9. **Kleine commits** per onderdeel, met Conventional Commits, zodat elke stap terug te draaien is.
-10. **Bij afwijken van dit document:** leg kort uit waarom, en pas de betreffende sectie aan of noteer het als open vraag.
+1. **Read the whole document first.** The order of the phases is binding; don't work ahead into the next phase.
+2. **Stop after each phase** and deliver a short report: what was built, the measured budget figures, and which acceptance criteria are not (yet) met.
+3. **No new dependencies** outside the tech stack without the owner's approval.
+4. **No JavaScript by default.** Every `client:*` directive must be defensible; a static solution always wins.
+5. **Never make up content.** Use clearly recognizable placeholders with `TODO(content)`; no fictional projects, employers or results that look real.
+6. **Don't decide open questions yourself.** Temporarily pick the proposal from this document, mark it with `TODO(decision)` and mention it in the phase report.
+7. **Test in multiple browsers:** the latest versions of Chrome, Safari and Firefox, plus iOS Safari and Chrome on Android.
+8. **Test accessibility:** every page and every interaction with the keyboard only, and once with a screen reader (VoiceOver or NVDA).
+9. **Small commits** per part, using Conventional Commits, so every step can be reverted.
+10. **When deviating from this document:** briefly explain why, and update the relevant section or record it as an open question.
