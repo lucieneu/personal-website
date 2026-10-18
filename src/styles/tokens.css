@@ -1,0 +1,77 @@
+/*
+ * Design tokens. Components take colors, spacing and font sizes from here; no loose values.
+ *
+ * Themes: the site follows `prefers-color-scheme`. Setting `data-theme="light"` or
+ * `data-theme="dark"` on <html> overrides it (the theme toggle does this from phase 1).
+ * All text colors meet 4.5:1 contrast on both --color-bg and --color-surface.
+ *
+ * Breakpoint: the two-column layout starts at 1024px. Custom properties can't be used in
+ * media queries, so components write `@media (min-width: 1024px)` directly.
+ */
+
+:root {
+  /* Colors: light theme */
+  color-scheme: light;
+  --color-bg: #f6f6f3;
+  --color-surface: #ffffff;
+  --color-text: #1a1d24;
+  --color-text-muted: #5b6170;
+  --color-border: #e3e4e0;
+  /* TODO(decision): accent color not chosen yet; this is the proposed blue. */
+  --color-accent: #3b5bdb;
+
+  /* Spacing: 4px scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Radius */
+  --radius-card: 16px;
+  --radius-sm: 8px;
+
+  /* Typography. The font families come from the `fonts` config in astro.config.mjs. */
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+  --font-size-body: 1.0625rem; /* 17px */
+  --font-size-h3: 1.375rem; /* 22px */
+  --font-size-h2: 1.75rem; /* 28px */
+  --font-size-h1: 2.5rem; /* 40px */
+  --font-size-code: 0.9em;
+  --font-weight-regular: 400;
+  --font-weight-heading: 650;
+  --line-height-body: 1.6;
+  --line-height-heading: 1.2;
+
+  /* Layout */
+  --sidebar-max-width: 440px;
+  --card-max-width: 720px;
+  --card-padding: 40px;
+  --card-padding-mobile: 24px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --color-bg: #0b0f17;
+    --color-surface: #121826;
+    --color-text: #e6e9ef;
+    --color-text-muted: #8b93a7;
+    --color-border: #1f2737;
+    --color-accent: #7c9cff;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg: #0b0f17;
+  --color-surface: #121826;
+  --color-text: #e6e9ef;
+  --color-text-muted: #8b93a7;
+  --color-border: #1f2737;
+  --color-accent: #7c9cff;
+}
