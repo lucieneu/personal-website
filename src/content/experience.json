@@ -1,0 +1,25 @@
+[
+  {
+    "id": "placeholder-current",
+    "company": "TODO(content): werkgever / employer",
+    "role": { "nl": "TODO(content): functie", "en": "TODO(content): role" },
+    "start": "2023-01-01",
+    "summary": {
+      "nl": "TODO(content): wat je daar doet, in één of twee zinnen.",
+      "en": "TODO(content): what you do there, in one or two sentences."
+    },
+    "stack": ["TODO(content)"]
+  },
+  {
+    "id": "placeholder-previous",
+    "company": "TODO(content): werkgever / employer",
+    "role": { "nl": "TODO(content): functie", "en": "TODO(content): role" },
+    "start": "2020-01-01",
+    "end": "2022-12-31",
+    "summary": {
+      "nl": "TODO(content): wat je daar deed, in één of twee zinnen.",
+      "en": "TODO(content): what you did there, in one or two sentences."
+    },
+    "stack": ["TODO(content)"]
+  }
+]
