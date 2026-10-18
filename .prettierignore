@@ -1,5 +1,5 @@
 dist/
 .astro/
-pnpm-lock.yaml
+package-lock.json
 # Hand-written specs; Prettier would realign every table.
 docs/

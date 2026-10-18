@@ -40,7 +40,7 @@ Astro with static output, and React only for the parts that are truly interactiv
 | Styling | CSS custom properties (design tokens) + scoped styles in `.astro` | No runtime CSS, full control over the design |
 | Fonts | Self-hosted via Fontsource, variable `woff2`, preloaded | No external requests, no layout shift |
 | Code highlighting | Shiki (built into Astro) | Highlighting at build time, 0 kB JS |
-| Package manager | pnpm | Fast, strict dependencies |
+| Package manager | npm | Comes with Node, so there is no extra tool to install (changed from pnpm on Oct 18, 2026) |
 | Quality | ESLint, Prettier + `prettier-plugin-astro`, `astro check` | Consistent code, type errors caught before deploy |
 | Tests | Playwright | Smoke tests and navigation with transitions |
 
@@ -536,7 +536,7 @@ Phase 0 doesn't deliver anything public yet; from the phase 1 gate onward the si
 
 ### Phase 0: Foundation
 
-- [ ] Astro project with TypeScript strict, pnpm, ESLint, Prettier and `astro check`.
+- [ ] Astro project with TypeScript strict, npm, ESLint, Prettier and `astro check`.
 - [ ] i18n set up in `astro.config.mjs` (Dutch at `/`, English under `/en/`), with `src/i18n/ui.ts` for interface text.
 - [ ] `tokens.css` with colors, spacing and typography for both themes; self-hosted fonts.
 - [ ] `BaseLayout.astro` with sidebar and content card, responsive, with `lang` set from the current language, no transitions yet.
@@ -583,7 +583,7 @@ Proposal: host the static build on Cloudflare, with automatic preview deploys pe
 
 **Pipeline on every push**
 
-1. `pnpm install --frozen-lockfile`
+1. `npm ci`
 2. `astro check` and lint
 3. `astro build`
 4. Deploy to preview (branch) or production (`main`)

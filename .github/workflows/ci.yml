@@ -19,11 +19,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6 # version comes from `packageManager` in package.json
       - uses: actions/setup-node@v7
         with:
           node-version-file: .node-version
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+          cache: npm
+      - run: npm ci
       # The same script is the Cloudflare build command, so CI and deploys run the same checks.
-      - run: pnpm verify
+      - run: npm run verify
