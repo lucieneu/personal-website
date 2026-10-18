@@ -1,0 +1,28 @@
+name: CI
+
+# Runs the phase gate checks on every push. Deploys (preview per branch, production from main)
+# are done by Cloudflare Workers Builds; see README.md.
+on:
+  push:
+
+# The job only reads the repo.
+permissions:
+  contents: read
+
+# A newer push to the same branch cancels the run that's still going.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      # The same script is the Cloudflare build command, so CI and deploys run the same checks.
+      - run: npm run verify

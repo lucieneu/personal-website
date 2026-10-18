@@ -1,0 +1,85 @@
+/* Base element styles. Everything layout-specific lives in the components' scoped styles. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-body);
+  /* Long words and URLs wrap instead of pushing the page sideways. */
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 var(--space-4);
+  font-weight: var(--font-weight-heading);
+  line-height: var(--line-height-heading);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+}
+
+h2 {
+  margin-top: var(--space-12);
+  font-size: var(--font-size-h2);
+}
+
+h3 {
+  margin-top: var(--space-8);
+  font-size: var(--font-size-h3);
+}
+
+p,
+ul,
+ol,
+pre {
+  margin: 0 0 var(--space-4);
+}
+
+a {
+  color: var(--color-accent);
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-code);
+}
+
+/* The <pre> is already sized, so its <code> must not shrink a second time. */
+pre code {
+  font-size: inherit;
+}
+
+/* Long code scrolls inside its own block, never the page. */
+pre {
+  overflow-x: auto;
+}
+
+img,
+video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}

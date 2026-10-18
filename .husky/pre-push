@@ -1,0 +1,3 @@
+# The same checks as CI and the Cloudflare build, so a push that would fail there stops here.
+# It checks the files on disk, including uncommitted changes. Skip it once with `git push --no-verify`.
+npm run verify

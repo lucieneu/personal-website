@@ -1,0 +1,15 @@
+// Cloudflare Workers: serves the static build in dist/ (no Worker script).
+// Workers Builds deploys main to production and gives every other branch a preview URL.
+// TODO(decision): hosting isn't decided yet; this is the proposal (Cloudflare).
+{
+  "name": "personal-website",
+  "compatibility_date": "2026-10-18",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+  },
+  // Required by `wrangler preview` (the branch preview deploy command). Previews don't inherit
+  // production settings, but a static site has nothing preview-specific, so it stays empty.
+  "previews": {},
+  "preview_urls": true,
+}

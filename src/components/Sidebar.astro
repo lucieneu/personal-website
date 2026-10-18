@@ -1,0 +1,132 @@
+---
+import type { Lang, UiKey } from '../i18n/ui';
+import { localePath, useTranslations } from '../i18n/utils';
+
+interface Props {
+  lang: Lang;
+}
+
+interface NavItem {
+  key: UiKey;
+  path: string;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+// Pages are added here as they're built (Projects, Blog, About from phase 1 on).
+const navItems: NavItem[] = [{ key: 'nav.home', path: '' }];
+
+const withoutTrailingSlash = (path: string) => path.replace(/\/+$/, '') || '/';
+const currentPath = withoutTrailingSlash(Astro.url.pathname);
+---
+
+<header class="sidebar">
+  <a class="name" href={localePath(lang)}>
+    {t('site.name')}
+  </a>
+  <p class="role">{t('site.role')}</p>
+  <p class="intro">{t('site.intro')}</p>
+
+  <nav aria-label={t('nav.label')}>
+    <ul>
+      {navItems.map(({ key, path }) => {
+        const href = localePath(lang, path);
+        const isCurrent = withoutTrailingSlash(href) === currentPath;
+        return (
+          <li>
+            <a href={href} aria-current={isCurrent ? 'page' : undefined}>
+              {t(key)}
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  </nav>
+</header>
+
+<style>
+  .sidebar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-6);
+    padding: var(--space-4);
+  }
+
+  .name {
+    color: var(--color-text);
+    font-size: var(--font-size-h3);
+    font-weight: var(--font-weight-heading);
+    line-height: var(--line-height-heading);
+    text-decoration: none;
+  }
+
+  /* The compact mobile header only shows the name and navigation. */
+  .role,
+  .intro {
+    display: none;
+  }
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  nav a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  nav a[aria-current='page'] {
+    color: var(--color-accent);
+  }
+
+  @media (min-width: 1024px) {
+    .sidebar {
+      position: sticky;
+      top: 0;
+      flex-direction: column;
+      flex-wrap: nowrap;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 0;
+      height: 100dvh;
+      /* On short screens (or when zoomed in) the sidebar scrolls on its own, so nothing in it
+         ends up out of reach below the fold. */
+      overflow-y: auto;
+      padding: var(--space-16) 0;
+    }
+
+    .name {
+      font-size: var(--font-size-h1);
+    }
+
+    .role {
+      display: block;
+      margin: var(--space-3) 0 0;
+      font-size: var(--font-size-h3);
+      line-height: var(--line-height-heading);
+    }
+
+    .intro {
+      display: block;
+      margin: var(--space-4) 0 0;
+      color: var(--color-text-muted);
+    }
+
+    nav {
+      margin-top: var(--space-12);
+    }
+
+    ul {
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+  }
+</style>

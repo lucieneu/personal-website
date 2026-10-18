@@ -1,0 +1,4 @@
+# Keep LF everywhere (Prettier enforces LF; this stops Git on Windows from converting to CRLF).
+* text=auto eol=lf
+*.woff2 binary
+*.png binary

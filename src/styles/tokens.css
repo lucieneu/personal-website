@@ -1,0 +1,68 @@
+/*
+ * Design tokens. Components take colors, spacing and font sizes from here; no loose values.
+ *
+ * Themes: each color is `light-dark(<light>, <dark>)`, picked by `color-scheme`. By default
+ * that follows `prefers-color-scheme`; setting `data-theme="light"` or `data-theme="dark"` on
+ * <html> overrides it (the theme toggle does this from phase 1).
+ * All text colors meet 4.5:1 contrast on both --color-bg and --color-surface.
+ * Reading a color in JS (the 3D scene, phase 2): getPropertyValue('--color-accent') returns
+ * the light-dark() text, so read the computed `color` of an element that uses the token.
+ *
+ * Breakpoint: the two-column layout starts at 1024px. Custom properties can't be used in
+ * media queries, so components write `@media (min-width: 1024px)` directly.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* Colors: light-dark(light theme, dark theme) */
+  --color-bg: light-dark(#f6f6f3, #0b0f17);
+  --color-surface: light-dark(#ffffff, #121826);
+  --color-text: light-dark(#1a1d24, #e6e9ef);
+  --color-text-muted: light-dark(#5b6170, #8b93a7);
+  --color-border: light-dark(#e3e4e0, #1f2737);
+  /* TODO(decision): accent color not chosen yet; this is the proposed blue. */
+  --color-accent: light-dark(#3b5bdb, #7c9cff);
+
+  /* Spacing: 4px scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Radius */
+  --radius-card: 16px;
+  --radius-sm: 8px;
+
+  /* Typography. The font families come from the `fonts` config in astro.config.mjs. */
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+  --font-size-body: 1.0625rem; /* 17px */
+  --font-size-h3: 1.375rem; /* 22px */
+  --font-size-h2: 1.75rem; /* 28px */
+  --font-size-h1: 2.5rem; /* 40px */
+  --font-size-code: 0.9em;
+  --font-weight-regular: 400;
+  --font-weight-heading: 650;
+  --line-height-body: 1.6;
+  --line-height-heading: 1.2;
+
+  /* Layout. BaseLayout.astro splits the columns 11fr : 18fr, which is 440 : 720; update that
+     ratio when you change either max width. */
+  --sidebar-max-width: 440px;
+  --card-max-width: 720px;
+  --card-padding: 40px;
+  --card-padding-mobile: 24px;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}

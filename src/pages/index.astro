@@ -1,0 +1,25 @@
+---
+// TODO(content): placeholder home page for phase 0; the real home page follows in phase 1.
+import { localePath } from '../i18n/utils';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout>
+  <h1>TODO(content): homepage</h1>
+  <p>
+    Dit is een tijdelijke pagina uit fase 0. Hij laat de layout, de design tokens en de lettertypes
+    zien, zodat de basis te controleren is voordat de echte inhoud komt.
+  </p>
+
+  <h2>Kop van niveau 2</h2>
+  <p>
+    Lopende tekst met een{' '}
+    <a href={localePath('en')} hreflang="en">
+      link naar de Engelse versie
+    </a>{' '}
+    en een stukje <code>inline code</code>.
+  </p>
+
+  <h3>Kop van niveau 3</h3>
+  <pre><code>const greeting = 'Hallo! Lange regels code scrollen binnen hun eigen blok, niet de hele pagina.';</code></pre>
+</BaseLayout>
