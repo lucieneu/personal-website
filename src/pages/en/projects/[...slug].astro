@@ -1,0 +1,13 @@
+---
+import type { InferGetStaticPropsType } from 'astro';
+import ProjectView from '../../../components/views/ProjectView.astro';
+import { projectPaths } from '../../../lib/projects';
+
+export const getStaticPaths = () => projectPaths('en');
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { project } = Astro.props;
+---
+
+<ProjectView project={project} />

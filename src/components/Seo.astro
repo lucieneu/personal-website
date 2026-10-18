@@ -1,0 +1,78 @@
+---
+// Everything in <head> that search engines and link previews read: title, description,
+// canonical URL, the language alternates, Open Graph / Twitter meta and, on the home pages,
+// JSON-LD about me.
+import { ogLocales, type Lang } from '../i18n/ui';
+import { langs, useTranslations } from '../i18n/utils';
+import { socialLinks } from '../lib/site';
+
+interface Props {
+  lang: Lang;
+  /** The full page title, site name included. */
+  title: string;
+  description: string;
+  /** The path of this page in each language. Leave out on pages that have no translation (404). */
+  alternates?: Record<Lang, string>;
+  noindex?: boolean;
+  ogType?: 'website' | 'article';
+  /** Adds JSON-LD of type Person (the home pages). */
+  person?: boolean;
+}
+
+const {
+  lang,
+  title,
+  description,
+  alternates,
+  noindex = false,
+  ogType = 'website',
+  person = false,
+} = Astro.props;
+const t = useTranslations(lang);
+
+// `site` is set in astro.config.mjs; every URL here is absolute, as crawlers expect.
+const absolute = (path: string) => new URL(path, Astro.site).href;
+const canonical = alternates ? absolute(alternates[lang]) : undefined;
+const ogImage = absolute('/og-default.png');
+
+const personSchema = person && {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: t('site.name'),
+  jobTitle: t('site.role'),
+  url: canonical,
+  sameAs: socialLinks.map((link) => link.href),
+};
+---
+
+<title>{title}</title>
+<meta name="description" content={description} />
+{noindex && <meta name="robots" content="noindex" />}
+{canonical && <link rel="canonical" href={canonical} />}
+{alternates &&
+  langs.map((code) => <link rel="alternate" hreflang={code} href={absolute(alternates[code])} />)}
+{alternates && <link rel="alternate" hreflang="x-default" href={absolute(alternates.nl)} />}
+
+<meta property="og:type" content={ogType} />
+<meta property="og:site_name" content={t('site.name')} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+{canonical && <meta property="og:url" content={canonical} />}
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={t('site.name')} />
+<meta property="og:locale" content={ogLocales[lang]} />
+{langs
+  .filter((code) => code !== lang)
+  .map((code) => (
+    <meta property="og:locale:alternate" content={ogLocales[code]} />
+  ))}
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+
+{personSchema && (
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(personSchema)} />
+)}

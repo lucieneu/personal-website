@@ -1,10 +1,32 @@
 // @ts-check
+import mdx from '@astrojs/mdx';
+import sitemap from '@astrojs/sitemap';
 import { defineConfig, fontProviders } from 'astro/config';
 import { defaultLang, languages } from './src/i18n/ui';
+import checkTranslations from './src/integrations/check-translations';
 
 // https://astro.build/config
 export default defineConfig({
   output: 'static',
+
+  // The production URL, used for canonical URLs, hreflang links, Open Graph and the sitemap.
+  // TODO(decision): the domain isn't chosen yet; until then production is the workers.dev address.
+  site: 'https://personal-website.lucien-hilversum.workers.dev',
+
+  integrations: [
+    mdx(),
+    // Lists both language versions of every page; the 404 page is left out automatically.
+    sitemap({
+      i18n: {
+        defaultLocale: defaultLang,
+        locales: Object.fromEntries(Object.keys(languages).map((lang) => [lang, lang])),
+      },
+    }),
+    checkTranslations(),
+  ],
+
+  // Loads the next page on hover, so it's usually there before the click.
+  prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
 
   // Dutch is the default and has no prefix; English lives under /en/.
   // The languages are defined once, in src/i18n/ui.ts.

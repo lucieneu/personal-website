@@ -1,0 +1,36 @@
+---
+// A small list of tags, such as the stack of a project or a job.
+interface Props {
+  items: string[];
+  /** Accessible name for the list, e.g. "Stack". */
+  label?: string;
+}
+
+const { items, label } = Astro.props;
+---
+
+<ul class="tags" aria-label={label}>
+  {items.map((item) => (
+    <li>{item}</li>
+  ))}
+</ul>
+
+<style>
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    padding: 2px var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-small);
+    line-height: var(--line-height-heading);
+  }
+</style>

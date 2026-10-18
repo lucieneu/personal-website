@@ -1,0 +1,56 @@
+/*
+ * View transitions: page navigation (ClientRouter) and the theme switch (src/lib/theme.ts).
+ * On a navigation only the content card moves: its frame morphs to the new height in 300 ms
+ * while its content crossfades (timing in src/lib/transitions.ts). The sidebar has
+ * transition:animate="none", and the rest of the page (the root) switches without a crossfade.
+ */
+
+@keyframes content-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes content-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* The card's frame, its content and the footer below it move as one. */
+::view-transition-group(content-card),
+::view-transition-group(content-body),
+::view-transition-group(site-footer) {
+  animation-duration: 300ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* The frame holds no text (the content is captured on its own), so it may stretch. */
+::view-transition-old(content-card),
+::view-transition-new(content-card) {
+  height: 100%;
+}
+
+/* Don't animate the rest of the page (the background only). mix-blend-mode: normal keeps
+   the theme switch's circle sharp, instead of the default blend of old and new. */
+::view-transition-group(root),
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* During the theme switch the whole page is revealed at once, so no part of it gets its own
+   transition. The class is set on <html> by toggleTheme(). */
+.theme-transition * {
+  view-transition-name: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

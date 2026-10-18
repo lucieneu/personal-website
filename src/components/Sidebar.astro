@@ -1,9 +1,14 @@
 ---
 import type { Lang, UiKey } from '../i18n/ui';
 import { localePath, useTranslations } from '../i18n/utils';
+import { socialLinks } from '../lib/site';
+import LanguageSwitch from './LanguageSwitch.astro';
+import ThemeToggle from './ThemeToggle.astro';
 
 interface Props {
   lang: Lang;
+  /** Where the language switch links to, per language. */
+  languageTargets: Record<Lang, string>;
 }
 
 interface NavItem {
@@ -11,31 +16,45 @@ interface NavItem {
   path: string;
 }
 
-const { lang } = Astro.props;
+const { lang, languageTargets } = Astro.props;
 const t = useTranslations(lang);
 
-// Pages are added here as they're built (Projects, Blog, About from phase 1 on).
-const navItems: NavItem[] = [{ key: 'nav.home', path: '' }];
+// Blog follows in phase 2; Now, Uses and Lab become secondary links below these.
+const navItems: NavItem[] = [
+  { key: 'nav.home', path: '' },
+  { key: 'nav.projects', path: 'projects' },
+  { key: 'nav.about', path: 'about' },
+];
 
 const withoutTrailingSlash = (path: string) => path.replace(/\/+$/, '') || '/';
 const currentPath = withoutTrailingSlash(Astro.url.pathname);
+
+// The page itself gets aria-current="page"; on a page inside a section (a project), the
+// section's link gets aria-current="true", so it's marked as well.
+function currentState(href: string): 'page' | 'true' | undefined {
+  const target = withoutTrailingSlash(href);
+  if (target === currentPath) return 'page';
+  const isHome = target === withoutTrailingSlash(localePath(lang));
+  if (!isHome && currentPath.startsWith(`${target}/`)) return 'true';
+  return undefined;
+}
 ---
 
-<header class="sidebar">
+{/* Replaced on every navigation (so the current link is right), but never animated. */}
+<header class="sidebar" transition:name="sidebar" transition:animate="none">
   <a class="name" href={localePath(lang)}>
     {t('site.name')}
   </a>
   <p class="role">{t('site.role')}</p>
   <p class="intro">{t('site.intro')}</p>
 
-  <nav aria-label={t('nav.label')}>
+  <nav class="main-nav" aria-label={t('nav.label')}>
     <ul>
       {navItems.map(({ key, path }) => {
         const href = localePath(lang, path);
-        const isCurrent = withoutTrailingSlash(href) === currentPath;
         return (
           <li>
-            <a href={href} aria-current={isCurrent ? 'page' : undefined}>
+            <a href={href} aria-current={currentState(href)}>
               {t(key)}
             </a>
           </li>
@@ -43,19 +62,37 @@ const currentPath = withoutTrailingSlash(Astro.url.pathname);
       })}
     </ul>
   </nav>
+
+  <ul class="social" aria-label={t('social.label')}>
+    {socialLinks.map(({ label, href }) => (
+      <li>
+        <a href={href}>{label}</a>
+      </li>
+    ))}
+  </ul>
+
+  <div class="controls">
+    <LanguageSwitch lang={lang} targets={languageTargets} />
+    <ThemeToggle lang={lang} />
+  </div>
 </header>
 
 <style>
+  /* Mobile: a compact header with the name and controls on one row, the navigation below. */
   .sidebar {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'name controls'
+      'nav nav';
     align-items: center;
-    justify-content: space-between;
-    gap: var(--space-2) var(--space-6);
+    gap: var(--space-2) var(--space-4);
     padding: var(--space-4);
   }
 
   .name {
+    grid-area: name;
+    justify-self: start;
     color: var(--color-text);
     font-size: var(--font-size-h3);
     font-weight: var(--font-weight-heading);
@@ -63,39 +100,89 @@ const currentPath = withoutTrailingSlash(Astro.url.pathname);
     text-decoration: none;
   }
 
-  /* The compact mobile header only shows the name and navigation. */
+  /* The compact mobile header only shows the name, navigation and controls. */
   .role,
-  .intro {
+  .intro,
+  .social {
     display: none;
   }
 
-  ul {
+  .main-nav {
+    grid-area: nav;
+  }
+
+  .controls {
+    grid-area: controls;
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-4);
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  ul {
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  nav a {
-    color: var(--color-text-muted);
-    text-decoration: none;
+  .main-nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-6);
   }
 
-  nav a[aria-current='page'] {
+  .main-nav a {
+    display: inline-block;
+    padding-block: var(--space-1);
+    color: var(--color-text-muted);
+    font-weight: var(--font-weight-medium);
+    text-decoration: none;
+    /* An underline that grows from the left on hover, and stays on the current page. */
+    background: linear-gradient(currentColor, currentColor) no-repeat left bottom / 0 2px;
+    transition:
+      color var(--duration-hover) ease-out,
+      background-size var(--duration-hover) ease-out;
+  }
+
+  .main-nav a:hover,
+  .main-nav a[aria-current] {
+    color: var(--color-accent);
+    background-size: 100% 2px;
+  }
+
+  .social {
+    grid-area: social;
+    gap: var(--space-4);
+  }
+
+  .social a {
+    color: var(--color-text-muted);
+  }
+
+  .social a:hover {
     color: var(--color-accent);
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .main-nav a {
+      transition: none;
+    }
+  }
+
   @media (min-width: 1024px) {
+    /* Desktop: name, intro and navigation at the top; links and controls at the bottom. */
     .sidebar {
       position: sticky;
       top: 0;
-      flex-direction: column;
-      flex-wrap: nowrap;
-      align-items: flex-start;
-      justify-content: flex-start;
-      gap: 0;
+      grid-template-rows: auto auto auto auto 1fr auto;
+      grid-template-areas:
+        'name name'
+        'role role'
+        'intro intro'
+        'nav nav'
+        '. .'
+        'social controls';
+      align-items: start;
+      gap: 0 var(--space-4);
       height: 100dvh;
       /* On short screens (or when zoomed in) the sidebar scrolls on its own, so nothing in it
          ends up out of reach below the fold. */
@@ -108,6 +195,7 @@ const currentPath = withoutTrailingSlash(Astro.url.pathname);
     }
 
     .role {
+      grid-area: role;
       display: block;
       margin: var(--space-3) 0 0;
       font-size: var(--font-size-h3);
@@ -115,18 +203,32 @@ const currentPath = withoutTrailingSlash(Astro.url.pathname);
     }
 
     .intro {
+      grid-area: intro;
       display: block;
       margin: var(--space-4) 0 0;
       color: var(--color-text-muted);
     }
 
-    nav {
+    .main-nav {
       margin-top: var(--space-12);
     }
 
-    ul {
+    .main-nav ul {
       flex-direction: column;
-      gap: var(--space-3);
+      align-items: flex-start;
+      gap: var(--space-2);
+    }
+
+    .social {
+      display: flex;
+      flex-wrap: wrap;
+      align-self: center;
+      margin-top: var(--space-8);
+    }
+
+    .controls {
+      align-self: center;
+      margin-top: var(--space-8);
     }
   }
 </style>

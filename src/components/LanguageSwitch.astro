@@ -1,0 +1,72 @@
+---
+import { languages, type Lang } from '../i18n/ui';
+import { langs, useTranslations } from '../i18n/utils';
+
+interface Props {
+  lang: Lang;
+  /** Where each language's link goes: the same page in that language. */
+  targets: Record<Lang, string>;
+}
+
+const { lang, targets } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<nav class="lang-switch" aria-label={t('lang.label')}>
+  <ul>
+    {langs.map((code) => (
+      <li>
+        {code === lang ? (
+          <span class="current" aria-current="true">
+            <span aria-hidden="true">{code.toUpperCase()}</span>
+            <span class="visually-hidden">{languages[code]}</span>
+          </span>
+        ) : (
+          <a href={targets[code]} hreflang={code} lang={code}>
+            <span aria-hidden="true">{code.toUpperCase()}</span>
+            <span class="visually-hidden">{languages[code]}</span>
+          </a>
+        )}
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<style>
+  ul {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--font-size-small);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: 0.04em;
+  }
+
+  /* A slash between the two languages: NL / EN */
+  li + li::before {
+    content: '/';
+    padding-inline: var(--space-1);
+    color: var(--color-border-strong);
+  }
+
+  a,
+  .current {
+    display: inline-block;
+    padding: var(--space-2) var(--space-1);
+  }
+
+  a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--color-accent);
+  }
+
+  .current {
+    color: var(--color-text);
+  }
+</style>

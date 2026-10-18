@@ -1,25 +1,9 @@
 ---
-// TODO(content): placeholder home page for phase 0; the real home page follows in phase 1.
-import { localePath } from '../../i18n/utils';
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import HomeView from '../../components/views/HomeView.astro';
 ---
 
-<BaseLayout>
-  <h1>TODO(content): home page</h1>
-  <p>
-    This is a temporary page from phase 0. It shows the layout, the design tokens and the fonts, so
-    the foundation can be checked before the real content arrives.
-  </p>
-
-  <h2>Level 2 heading</h2>
-  <p>
-    Body text with a{' '}
-    <a href={localePath('nl')} hreflang="nl">
-      link to the Dutch version
-    </a>{' '}
-    and a piece of <code>inline code</code>.
-  </p>
-
-  <h3>Level 3 heading</h3>
-  <pre><code>const greeting = 'Hello! Long lines of code scroll inside their own block, not the whole page.';</code></pre>
-</BaseLayout>
+<HomeView>
+  {/* TODO(content): the intro, supplied by the owner. */}
+  <h1>TODO(content): greeting</h1>
+  <p>TODO(content): a short intro of two or three sentences about who you are and what you make.</p>
+</HomeView>

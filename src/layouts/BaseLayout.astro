@@ -1,21 +1,48 @@
 ---
 import { Font } from 'astro:assets';
+import { ClientRouter } from 'astro:transitions';
 import ContentCard from '../components/ContentCard.astro';
+import Seo from '../components/Seo.astro';
 import Sidebar from '../components/Sidebar.astro';
-import { getLang, useTranslations } from '../i18n/utils';
+import SiteFooter from '../components/SiteFooter.astro';
+import ThemeScript from '../components/ThemeScript.astro';
+import type { Lang } from '../i18n/ui';
+import {
+  getLang,
+  langs,
+  localePath,
+  splitLocalePath,
+  translatePath,
+  useTranslations,
+} from '../i18n/utils';
 import '../styles/tokens.css';
 import '../styles/global.css';
+import '../styles/transitions.css';
 
 interface Props {
   /** Page title; the site name is appended. Leave out on the home page. */
   title?: string;
-  description?: string;
+  description: string;
+  ogType?: 'website' | 'article';
+  /** The 404 page: one page for both languages, so it has no translation and isn't indexed. */
+  notFound?: boolean;
 }
 
-const { title, description } = Astro.props;
+const { title, description, ogType, notFound = false } = Astro.props;
 const lang = getLang(Astro.currentLocale);
 const t = useTranslations(lang);
 const pageTitle = title ? `${title} · ${t('site.name')}` : t('site.name');
+
+// Every page exists in both languages under the same path, so the language switch and the
+// hreflang links point to the same path in the other language. The 404 page links to both homes.
+const pathIn = (code: Lang) => translatePath(Astro.url.pathname, code);
+const alternates = notFound
+  ? undefined
+  : (Object.fromEntries(langs.map((code) => [code, pathIn(code)])) as Record<Lang, string>);
+const languageTargets =
+  alternates ??
+  (Object.fromEntries(langs.map((code) => [code, localePath(code)])) as Record<Lang, string>);
+const isHome = !notFound && splitLocalePath(Astro.url.pathname)[1] === '';
 ---
 
 <!doctype html>
@@ -24,37 +51,87 @@ const pageTitle = title ? `${title} · ${t('site.name')}` : t('site.name');
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
-    <title>{pageTitle}</title>
-    {description && <meta name="description" content={description} />}
+    <ThemeScript />
+    <Seo
+      lang={lang}
+      title={pageTitle}
+      description={description}
+      alternates={alternates}
+      noindex={notFound}
+      ogType={ogType}
+      person={isHome}
+    />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     {/* Only the sans font is preloaded: it's used above the fold on every page. */}
     <Font cssVariable="--font-inter" preload />
     <Font cssVariable="--font-jetbrains-mono" />
+    {/* Client-side navigation with view transitions; without JavaScript, links just load pages. */}
+    <ClientRouter />
   </head>
   <body>
+    <a class="skip-link" href="#content">
+      {t('skip.link')}
+    </a>
     <div class="layout">
-      <Sidebar lang={lang} />
+      <Sidebar lang={lang} languageTargets={languageTargets} />
       <ContentCard>
         <slot />
       </ContentCard>
+      <SiteFooter lang={lang} />
     </div>
   </body>
 </html>
 
+<script>
+  // After a client-side navigation, focus moves to the new content, so keyboard and screen
+  // reader users start at the top of the page they asked for. (ClientRouter announces the new
+  // page title on its own.) preventScroll keeps the restored scroll position on Back.
+  document.addEventListener('astro:after-swap', () => {
+    document.getElementById('content')?.focus({ preventScroll: true });
+  });
+</script>
+
 <style>
+  .skip-link {
+    position: absolute;
+    top: var(--space-2);
+    left: var(--space-2);
+    z-index: 10;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-sm);
+    background: var(--color-accent);
+    color: var(--color-surface);
+    font-weight: var(--font-weight-medium);
+    text-decoration: none;
+    /* Off screen until it gets keyboard focus. */
+    transform: translateY(calc(-100% - var(--space-4)));
+  }
+
+  .skip-link:focus-visible {
+    transform: none;
+    outline-offset: 2px;
+  }
+
   @media (min-width: 1024px) {
     /* 11fr : 18fr is the 440 : 720 ratio of the two max widths, so on narrower screens both
-       columns shrink together and reach their max widths at the same time. */
+       columns shrink together and reach their max widths at the same time. The sidebar spans
+       both rows, so the footer sits below the card. */
     .layout {
       display: grid;
       grid-template-columns: minmax(0, 11fr) minmax(0, 18fr);
+      grid-template-rows: auto 1fr;
       align-items: start;
       column-gap: var(--space-16);
       max-width: calc(
         var(--sidebar-max-width) + var(--card-max-width) + var(--space-16) + 2 * var(--space-12)
       );
+      min-height: 100dvh;
       margin-inline: auto;
       padding-inline: var(--space-12);
+    }
+
+    .layout > :global(.sidebar) {
+      grid-row: 1 / span 2;
     }
   }
 </style>

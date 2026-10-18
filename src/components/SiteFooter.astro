@@ -1,0 +1,66 @@
+---
+import type { Lang } from '../i18n/ui';
+import { useTranslations } from '../i18n/utils';
+import { repoUrl, socialLinks } from '../lib/site';
+
+interface Props {
+  lang: Lang;
+}
+
+const t = useTranslations(Astro.props.lang);
+const year = new Date().getFullYear();
+---
+
+{/* Sits below the card, so it follows the card's bottom edge while the card morphs. */}
+<footer class="footer" transition:name="site-footer" transition:animate="initial">
+  {/* On desktop these links are in the sidebar; the compact mobile header has no room. */}
+  <ul class="social" aria-label={t('social.label')}>
+    {socialLinks.map(({ label, href }) => (
+      <li>
+        <a href={href}>{label}</a>
+      </li>
+    ))}
+  </ul>
+  <p>
+    {`© ${year} ${t('site.name')}`} · <a href={repoUrl}>{t('footer.source')}</a>
+  </p>
+</footer>
+
+<style>
+  .footer {
+    padding: var(--space-6) var(--space-4) var(--space-8);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-small);
+  }
+
+  .social {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin: 0 0 var(--space-2);
+    padding: 0;
+    list-style: none;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  a:hover {
+    color: var(--color-accent);
+  }
+
+  @media (min-width: 1024px) {
+    .footer {
+      padding: var(--space-6) 0 var(--space-16);
+    }
+
+    .social {
+      display: none;
+    }
+  }
+</style>

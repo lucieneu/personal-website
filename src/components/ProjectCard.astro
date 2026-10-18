@@ -1,0 +1,129 @@
+---
+import { Picture } from 'astro:assets';
+import type { Lang } from '../i18n/ui';
+import { formatDate, localePath, useTranslations } from '../i18n/utils';
+import { projectSlug, type Project } from '../lib/projects';
+import Tags from './Tags.astro';
+
+interface Props {
+  project: Project;
+  lang: Lang;
+  /** The heading level of the title, one below the heading of the list it's in. */
+  headingLevel: 'h2' | 'h3';
+}
+
+const { project, lang, headingLevel: Heading } = Astro.props;
+const { title, summary, date, stack, cover, coverAlt } = project.data;
+const t = useTranslations(lang);
+const href = localePath(lang, `projects/${projectSlug(project)}`);
+---
+
+{/* The whole card is clickable through its title link; see .title a::after. */}
+<article class="project-card">
+  <Picture
+    class="cover"
+    src={cover}
+    alt={coverAlt}
+    formats={['avif']}
+    fallbackFormat="webp"
+    widths={[320, 640]}
+    sizes="(min-width: 640px) 160px, calc(100vw - 82px)"
+  />
+  <div class="text">
+    <Heading class="title">
+      <a href={href}>{title}</a>
+    </Heading>
+    <p class="summary">{summary}</p>
+    <p class="date">
+      <time datetime={date.toISOString().slice(0, 10)}>{formatDate(date, lang)}</time>
+    </p>
+    <Tags items={stack} label={t('project.stack')} />
+  </div>
+</article>
+
+<style>
+  .project-card {
+    position: relative;
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    transition:
+      transform var(--duration-hover) ease-out,
+      border-color var(--duration-hover) ease-out;
+  }
+
+  /* Rises 2px and gets an accent border on hover and keyboard focus. */
+  .project-card:hover,
+  .project-card:has(a:focus-visible) {
+    border-color: var(--color-accent);
+    transform: translateY(-2px);
+  }
+
+  /* The card's border shows the focus, so the link inside needs no outline of its own. */
+  .project-card:has(a:focus-visible) {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .title a:focus-visible {
+    outline: none;
+  }
+
+  .cover {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+  }
+
+  .title {
+    margin: 0 0 var(--space-2);
+    font-size: var(--font-size-h3);
+  }
+
+  .title a {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .project-card:hover .title a {
+    color: var(--color-accent);
+  }
+
+  .summary {
+    margin-bottom: var(--space-2);
+  }
+
+  .date {
+    margin-bottom: var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-small);
+  }
+
+  @media (min-width: 640px) {
+    .project-card {
+      grid-template-columns: 160px minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .project-card {
+      transition: none;
+    }
+
+    .project-card:hover,
+    .project-card:has(a:focus-visible) {
+      transform: none;
+    }
+  }
+</style>

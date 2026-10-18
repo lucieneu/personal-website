@@ -1,0 +1,124 @@
+---
+// One project in either language: cover, the body (problem, approach, result), stack and links.
+import { Picture } from 'astro:assets';
+import { render } from 'astro:content';
+import { formatDate, getLang, localePath, useTranslations } from '../../i18n/utils';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import type { Project } from '../../lib/projects';
+import Tags from '../Tags.astro';
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+const { title, summary, date, role, stack, cover, coverAlt, links } = project.data;
+const lang = getLang(Astro.currentLocale);
+const t = useTranslations(lang);
+const { Content } = await render(project);
+---
+
+<BaseLayout title={title} description={summary} ogType="article">
+  <p class="back">
+    <a href={localePath(lang, 'projects')}>← {t('project.back')}</a>
+  </p>
+
+  <h1>{title}</h1>
+  <p class="summary">{summary}</p>
+
+  <dl class="meta">
+    <div>
+      <dt>{t('project.date')}</dt>
+      <dd>
+        <time datetime={date.toISOString().slice(0, 10)}>{formatDate(date, lang)}</time>
+      </dd>
+    </div>
+    <div>
+      <dt>{t('project.role')}</dt>
+      <dd>{role}</dd>
+    </div>
+  </dl>
+
+  {/* Above the fold, so it loads right away (it's often the largest element on the page). */}
+  <Picture
+    class="cover"
+    src={cover}
+    alt={coverAlt}
+    formats={['avif']}
+    fallbackFormat="webp"
+    widths={[640, 1280]}
+    sizes="(min-width: 1024px) 640px, calc(100vw - 82px)"
+    loading="eager"
+    fetchpriority="high"
+  />
+
+  <div class="body">
+    <Content />
+  </div>
+
+  <h2>{t('project.stack')}</h2>
+  <Tags items={stack} />
+
+  {(links.live || links.repo) && (
+    <ul class="links">
+      {links.live && (
+        <li>
+          <a href={links.live}>{t('project.live')}</a>
+        </li>
+      )}
+      {links.repo && (
+        <li>
+          <a href={links.repo}>{t('project.repo')}</a>
+        </li>
+      )}
+    </ul>
+  )}
+</BaseLayout>
+
+<style>
+  .back {
+    margin-bottom: var(--space-6);
+    font-size: var(--font-size-small);
+  }
+
+  .summary {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-h3);
+    line-height: var(--line-height-heading);
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-8);
+    margin: var(--space-6) 0;
+    font-size: var(--font-size-small);
+  }
+
+  dt {
+    color: var(--color-text-muted);
+  }
+
+  dd {
+    margin: 0;
+  }
+
+  .cover {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-sm);
+  }
+
+  .body {
+    margin-top: var(--space-8);
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-6);
+    margin-top: var(--space-8);
+    padding: 0;
+    list-style: none;
+  }
+</style>

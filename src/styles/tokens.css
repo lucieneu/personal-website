@@ -21,6 +21,8 @@
   --color-text: light-dark(#1a1d24, #e6e9ef);
   --color-text-muted: light-dark(#5b6170, #8b93a7);
   --color-border: light-dark(#e3e4e0, #1f2737);
+  /* Dividers that need to stand out a little more (decorative, no contrast requirement). */
+  --color-border-strong: light-dark(#c9cbc4, #34405a);
   /* TODO(decision): accent color not chosen yet; this is the proposed blue. */
   --color-accent: light-dark(#3b5bdb, #7c9cff);
 
@@ -45,11 +47,19 @@
   --font-size-h3: 1.375rem; /* 22px */
   --font-size-h2: 1.75rem; /* 28px */
   --font-size-h1: 2.5rem; /* 40px */
+  --font-size-small: 0.9375rem; /* 15px: dates, labels, tags */
   --font-size-code: 0.9em;
   --font-weight-regular: 400;
+  --font-weight-medium: 550;
   --font-weight-heading: 650;
   --line-height-body: 1.6;
   --line-height-heading: 1.2;
+
+  /* Motion. Hover effects; page and theme transitions are timed in src/styles/transitions.css. */
+  --duration-hover: 150ms;
+
+  /* Controls such as the theme toggle: at least the 24px target size of WCAG 2.2. */
+  --size-control: 40px;
 
   /* Layout. BaseLayout.astro splits the columns 11fr : 18fr, which is 440 : 720; update that
      ratio when you change either max width. */
