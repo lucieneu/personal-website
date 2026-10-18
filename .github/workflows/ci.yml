@@ -5,6 +5,15 @@ name: CI
 on:
   push:
 
+# The job only reads the repo.
+permissions:
+  contents: read
+
+# A newer push to the same branch cancels the run that's still going.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -16,7 +25,5 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm check
-      - run: pnpm lint
-      - run: pnpm format:check
-      - run: pnpm build
+      # The same script is the Cloudflare build command, so CI and deploys run the same checks.
+      - run: pnpm verify
