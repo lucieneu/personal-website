@@ -26,3 +26,46 @@ jobs:
       - run: npm ci
       # The same script is the Cloudflare build command, so CI and deploys run the same checks.
       - run: npm run verify
+
+  # Playwright smoke tests against the deploy of this commit: the branch preview, or production
+  # for main. Cloudflare deploys after its own build, so the job first waits until the deploy
+  # serves this commit (it reports it at /version.json).
+  e2e:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps
+      - name: Find the deploy URL
+        run: |
+          if [ "$GITHUB_REF_NAME" = main ]; then
+            url=https://personal-website.lucien-hilversum.workers.dev
+          else
+            # Cloudflare's preview alias: the branch name in lowercase, with every run of other
+            # characters than letters and digits replaced by one '-'.
+            alias=$(printf '%s' "$GITHUB_REF_NAME" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+|-+$//g')
+            url="https://${alias}-personal-website.lucien-hilversum.workers.dev"
+          fi
+          echo "BASE_URL=$url" >> "$GITHUB_ENV"
+      - name: Wait until the deploy serves this commit
+        run: |
+          for _ in $(seq 1 60); do
+            commit=$(curl -fsS "$BASE_URL/version.json" | jq -r .commit || true)
+            if [ "$commit" = "$GITHUB_SHA" ]; then exit 0; fi
+            sleep 10
+          done
+          echo "::error::$BASE_URL didn't serve $GITHUB_SHA within 10 minutes. Did the Cloudflare build fail?"
+          exit 1
+      - run: npx playwright test
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-results
+          path: test-results/
+          retention-days: 7
