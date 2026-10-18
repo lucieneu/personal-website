@@ -126,7 +126,7 @@ The 3D scene and the sidebar stay still during a page change; only the card's fr
 - **Radius:** 16 px for the card, 8 px for smaller elements.
 - **Typography:** one sans variable font for everything and one mono font for code. Body 17 px with a 1.6 line height; headings 22, 28 and 40 px with a 1.2 line height.
 
-**Dark mode:** by default the site follows `prefers-color-scheme`. The theme toggle overrides that and stores the choice in `localStorage`. An inline script in `<head>` sets `data-theme` before the first paint, so there is no flash of the wrong theme.
+**Dark mode:** by default the site follows `prefers-color-scheme`. The theme toggle overrides that and stores the choice in `localStorage`. An inline script in `<head>` sets `data-theme` before the first paint, so there is no flash of the wrong theme. In `tokens.css` every color is a `light-dark(<light>, <dark>)` value, so `data-theme` only has to switch `color-scheme` (done since phase 0).
 
 ## Page transitions
 
@@ -265,7 +265,7 @@ One subtle 3D scene behind the content, on every page, that keeps running during
 - `navigator.connection.saveData` is `true`.
 - WebGL is not available.
 
-**Theme:** the scene reads `--color-accent` and `--color-bg` from the CSS and updates its colors when `data-theme` changes (via a `MutationObserver` on `<html>` or a custom `theme-change` event).
+**Theme:** the scene reads `--color-accent` and `--color-bg` from the CSS and updates its colors when `data-theme` changes (via a `MutationObserver` on `<html>` or a custom `theme-change` event). Because the tokens are `light-dark()` values, `getPropertyValue('--color-accent')` returns the `light-dark(…)` text, not a color: read the computed `color` or `background-color` of an element that uses the token instead.
 
 **Acceptance criteria**
 
@@ -286,7 +286,9 @@ When the theme toggle is clicked, the new theme expands as a circle from the but
 ```ts
 function toggleTheme(e: MouseEvent) {
   const root = document.documentElement;
-  const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+  // Without a stored choice, data-theme is unset and the OS preference is the current theme.
+  const current = root.dataset.theme ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const next = current === 'dark' ? 'light' : 'dark';
   const apply = () => { root.dataset.theme = next; localStorage.setItem('theme', next); };
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (!document.startViewTransition || reduce) return apply();
@@ -447,10 +449,14 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 
 ```text
 .
+├── .github/workflows/ci.yml      # npm ci + npm run verify on every push
+├── .husky/pre-push               # npm run verify before every push
 ├── astro.config.mjs              # includes the i18n config
 ├── package.json
 ├── tsconfig.json
+├── wrangler.jsonc                # Cloudflare Workers: static assets, previews
 ├── public/
+│   ├── _headers                  # cache headers for /_astro/*
 │   ├── favicon.svg
 │   ├── og-default.png
 │   └── robots.txt
@@ -532,16 +538,18 @@ flowchart LR
   class F1 live
 ```
 
-Phase 0 doesn't deliver anything public yet; from the phase 1 gate onward the site is live and grows with each phase.
+Phase 0 doesn't deliver anything meant for visitors: its placeholder pages are only on workers.dev addresses that nothing links to. From the phase 1 gate onward the site is live on its own domain and grows with each phase.
 
 ### Phase 0: Foundation
 
-- [ ] Astro project with TypeScript strict, npm, ESLint, Prettier and `astro check`.
-- [ ] i18n set up in `astro.config.mjs` (Dutch at `/`, English under `/en/`), with `src/i18n/ui.ts` for interface text.
-- [ ] `tokens.css` with colors, spacing and typography for both themes; self-hosted fonts.
-- [ ] `BaseLayout.astro` with sidebar and content card, responsive, with `lang` set from the current language, no transitions yet.
-- [ ] Automatic preview deploy per branch.
-- [ ] **Gate:** the preview URL works, and `astro check`, lint and build are green.
+Done on Oct 18, 2026 in [PR #6](https://github.com/lucieneu/personal-website/pull/6); the phase report is on [issue #1](https://github.com/lucieneu/personal-website/issues/1).
+
+- [x] Astro project with TypeScript strict, npm, ESLint, Prettier and `astro check`.
+- [x] i18n set up in `astro.config.mjs` (Dutch at `/`, English under `/en/`), with `src/i18n/ui.ts` for interface text.
+- [x] `tokens.css` with colors, spacing and typography for both themes; self-hosted fonts.
+- [x] `BaseLayout.astro` with sidebar and content card, responsive, with `lang` set from the current language, no transitions yet.
+- [x] Automatic preview deploy per branch.
+- [x] **Gate:** the preview URL works, and `astro check`, lint and build are green.
 
 ### Phase 1: Core (first live version)
 
@@ -573,7 +581,7 @@ Phase 0 doesn't deliver anything public yet; from the phase 1 gate onward the si
 
 ## Deployment and hosting
 
-Proposal: host the static build on Cloudflare, with automatic preview deploys per branch and production deploys from `main`. The Astro team has been part of Cloudflare since January 2026 ([press release](https://secure.businesswire.com/news/home/20260116386991/en/Cloudflare-Acquires-Astro-to-Accelerate-the-Future-of-High-Performance-Web-Development)); Astro remains open source and can be hosted on any platform.
+Proposal (in use since phase 0, still a `TODO(decision)`): host the static build on Cloudflare, with automatic preview deploys per branch and production deploys from `main`. The Astro team has been part of Cloudflare since January 2026 ([press release](https://secure.businesswire.com/news/home/20260116386991/en/Cloudflare-Acquires-Astro-to-Accelerate-the-Future-of-High-Performance-Web-Development)); Astro remains open source and can be hosted on any platform.
 
 | Option | Pros | Cons |
 | --- | --- | --- |
@@ -581,15 +589,22 @@ Proposal: host the static build on Cloudflare, with automatic preview deploys pe
 | Netlify or Vercel | Similar preview flow, lots of documentation | A different platform from the DNS |
 | Own homelab (Docker + Caddy, via Cloudflare Tunnel) | Full control, no third party | Availability depends on the home connection and hardware; more maintenance |
 
+**How it's set up (since phase 0)**
+
+- Cloudflare Workers with static assets only: `wrangler.jsonc` serves `dist/`, with no Worker script. Workers Builds is connected to the GitHub repo; the one-time dashboard setup is in the README.
+- `main` deploys to production at `https://personal-website.lucien-hilversum.workers.dev` until the domain is decided. Every other branch gets a preview at `https://<branch>-personal-website.lucien-hilversum.workers.dev`.
+- Previews are public but send `X-Robots-Tag: noindex`. The production workers.dev address doesn't, so it can be indexed until the domain is live.
+
 **Pipeline on every push**
 
-1. `npm ci`
-2. `astro check` and lint
-3. `astro build`
-4. Deploy to preview (branch) or production (`main`)
-5. Playwright smoke tests against the preview URL
+`npm run verify` runs `astro check`, ESLint, the Prettier check and `astro build`. The same script runs in all three places, so they can't drift apart:
 
-**Caching:** files in `/_astro/` have a hash in their name and get `Cache-Control: public, max-age=31536000, immutable`. HTML gets a short cache with revalidation, so a new deploy is visible right away.
+1. Locally, before the push: the Husky pre-push hook.
+2. GitHub Actions: `npm ci`, then `npm run verify`.
+3. Cloudflare Workers Builds: `npm run verify` as the build command, then `npx wrangler deploy` (`main`) or `npx wrangler preview` (other branches).
+4. From phase 1: Playwright smoke tests against the preview URL.
+
+**Caching:** files in `/_astro/` have a hash in their name and get `Cache-Control: public, max-age=31536000, immutable` (set in `public/_headers`). HTML keeps Cloudflare's default (`max-age=0, must-revalidate`), so a new deploy is visible right away.
 
 ## Open questions for the owner
 
@@ -597,12 +612,12 @@ Unchecked items are still open; the first four items are needed before phase 1, 
 
 - [x] **Language:** Dutch and English, both from phase 1. Dutch at `/`, English under `/en/` (decided Oct 18, 2026).
 - [ ] **Domain:** which domain or subdomain will the site live on?
-- [ ] **Font:** which sans and which mono? Proposal: Inter Variable and JetBrains Mono, or Geist and Geist Mono.
-- [ ] **Accent color:** keep the proposed blue, or a color of your own?
+- [ ] **Font:** which sans and which mono? Proposal: Inter Variable and JetBrains Mono, or Geist and Geist Mono. (Inter + JetBrains Mono are used temporarily since phase 0.)
+- [ ] **Accent color:** keep the proposed blue, or a color of your own? (The proposed blue is used temporarily since phase 0.)
 - [ ] **Projects:** which 3 projects go on the site in phase 1?
 - [ ] **3D concept:** an abstract object, particles, or a small 3D version of your desk or setup?
 - [ ] **Styling:** custom CSS with tokens (proposal) or Tailwind after all?
-- [ ] **Hosting:** Cloudflare (proposal) or your own homelab?
+- [ ] **Hosting:** Cloudflare (proposal) or your own homelab? (Cloudflare is used temporarily since phase 0; see Deployment and hosting.)
 - [ ] **Analytics:** none, or privacy-friendly without cookies (for example Cloudflare Web Analytics, Plausible or a self-hosted Umami)?
 - [ ] **Live-data widget:** which source, if there is one?
 
