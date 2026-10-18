@@ -1,15 +1,16 @@
 // @ts-check
 import { defineConfig, fontProviders } from 'astro/config';
+import { defaultLang, languages } from './src/i18n/ui';
 
 // https://astro.build/config
 export default defineConfig({
   output: 'static',
 
   // Dutch is the default and has no prefix; English lives under /en/.
-  // Keep the locales in sync with `languages` in src/i18n/ui.ts.
+  // The languages are defined once, in src/i18n/ui.ts.
   i18n: {
-    defaultLocale: 'nl',
-    locales: ['nl', 'en'],
+    defaultLocale: defaultLang,
+    locales: Object.keys(languages),
     routing: { prefixDefaultLocale: false },
   },
 

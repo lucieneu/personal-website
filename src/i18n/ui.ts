@@ -1,5 +1,6 @@
 // Interface text per language. Components never hard-code text; they read it through t().
 
+// The supported languages. astro.config.mjs builds its i18n routing from these and `defaultLang`.
 export const languages = {
   nl: 'Nederlands',
   en: 'English',

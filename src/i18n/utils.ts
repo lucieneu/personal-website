@@ -2,7 +2,8 @@ import { getRelativeLocaleUrl } from 'astro:i18n';
 import { defaultLang, languages, ui, type Lang, type UiKey } from './ui';
 
 function isLang(value: string): value is Lang {
-  return value in languages;
+  // Not `in`: that also matches inherited keys such as 'constructor'.
+  return Object.hasOwn(languages, value);
 }
 
 /** Narrows `Astro.currentLocale` to a supported language, falling back to Dutch. */

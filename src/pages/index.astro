@@ -1,5 +1,6 @@
 ---
 // TODO(content): placeholder home page for phase 0; the real home page follows in phase 1.
+import { localePath } from '../i18n/utils';
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
@@ -13,7 +14,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <h2>Kop van niveau 2</h2>
   <p>
     Lopende tekst met een{' '}
-    <a href="/en/" hreflang="en" lang="en">
+    <a href={localePath('en')} hreflang="en">
       link naar de Engelse versie
     </a>{' '}
     en een stukje <code>inline code</code>.

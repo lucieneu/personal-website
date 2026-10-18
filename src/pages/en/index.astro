@@ -1,5 +1,6 @@
 ---
 // TODO(content): placeholder home page for phase 0; the real home page follows in phase 1.
+import { localePath } from '../../i18n/utils';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 ---
 
@@ -13,7 +14,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <h2>Level 2 heading</h2>
   <p>
     Body text with a{' '}
-    <a href="/" hreflang="nl" lang="nl">
+    <a href={localePath('nl')} hreflang="nl">
       link to the Dutch version
     </a>{' '}
     and a piece of <code>inline code</code>.
