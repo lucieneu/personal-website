@@ -8,4 +8,7 @@
     "directory": "./dist",
     "not_found_handling": "404-page",
   },
+  // Required by `wrangler preview` (the branch preview deploy command). Previews don't inherit
+  // production settings, but a static site has nothing preview-specific, so it stays empty.
+  "previews": {},
 }
