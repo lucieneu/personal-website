@@ -55,3 +55,9 @@ production, and every other branch gets its own preview URL. One-time setup in t
    Deploy command: `npx wrangler deploy` (default).
    Non-production branch deploy command: `npx wrangler preview` (default).
 4. Turn on builds for non-production branches.
+5. In the Worker's **Domains** tab, under **Worker URL**, turn on **Preview**. `"preview_urls": true`
+   in `wrangler.jsonc` does the same, but only takes effect on a production deploy
+   (`wrangler deploy`), so without this switch previews have no URL until `main` has deployed once.
+
+A branch preview is at `https://<branch>-personal-website.lucien-hilversum.workers.dev`. Previews
+are public but send `X-Robots-Tag: noindex`, so search engines skip them.
