@@ -13,16 +13,17 @@ The structure is calm and clean, like [Brittany Chiang](https://brittanychiang.c
 - **Fast:** static HTML, no JavaScript that blocks the first render.
 - **Smooth:** the sidebar stays put, the content card morphs and the content crossfades on every navigation.
 - **Personal:** one signature element (the 3D scene) instead of effects everywhere.
-- **Maintainable:** a new project or post is a single Markdown/MDX file.
+- **Bilingual:** all content in Dutch and English from the first live version; Dutch is the default.
+- **Maintainable:** a new project or post is a single Markdown/MDX file per language.
 
 **Non-goals (out of scope)**
 
 - No CMS, no accounts, no database or custom backend.
-- No multiple languages in the first version.
+- No languages beyond Dutch and English, and no automatic redirect based on the browser language; visitors switch language themselves.
 - No full 3D world; the scene is a background, not a game.
 - No tracking with cookies.
 
-**Principle: progressive enhancement.** Everything works without JavaScript: navigation, content and links. Transitions, 3D and the command palette are a layer on top that can drop away without breaking the site.
+**Principle: progressive enhancement.** Everything works without JavaScript: navigation, content, links and the language switch. Transitions, 3D and the command palette are a layer on top that can drop away without breaking the site.
 
 ## Tech stack
 
@@ -34,7 +35,8 @@ Astro with static output, and React only for the parts that are truly interactiv
 | Language | TypeScript, `strict` | Type-safe content schemas and components |
 | Interactive islands | React via `@astrojs/react` | The owner's expertise; required for React Three Fiber |
 | 3D | `three`, `@react-three/fiber`, `@react-three/drei` (only the helpers needed) | Declarative 3D in React |
-| Content | Markdown/MDX via `@astrojs/mdx` + content collections with Zod schemas | One file per project or post, validated at build time |
+| Content | Markdown/MDX via `@astrojs/mdx` + content collections with Zod schemas | One file per project or post per language, validated at build time |
+| i18n | Astro's built-in i18n routing | No extra dependency; locale-aware URLs and `Astro.currentLocale` |
 | Styling | CSS custom properties (design tokens) + scoped styles in `.astro` | No runtime CSS, full control over the design |
 | Fonts | Self-hosted via Fontsource, variable `woff2`, preloaded | No external requests, no layout shift |
 | Code highlighting | Shiki (built into Astro) | Highlighting at build time, 0 kB JS |
@@ -48,22 +50,36 @@ Astro with static output, and React only for the parts that are truly interactiv
 
 The site starts with five pages in phase 1 and grows to twelve routes; all pages share the same layout with sidebar and content card.
 
+**Languages:** every page exists in Dutch and English. Dutch is the default and has no prefix; English lives under `/en/` (for example `/projects` and `/en/projects`). A project, post or experiment has the same slug in both languages. The table below lists the Dutch paths.
+
+```js
+// astro.config.mjs (excerpt)
+export default defineConfig({
+  output: 'static',
+  i18n: {
+    defaultLocale: 'nl',
+    locales: ['nl', 'en'],
+    routing: { prefixDefaultLocale: false },
+  },
+});
+```
+
 | Route | Page | Content | Phase |
 | --- | --- | --- | --- |
 | `/` | Home | Short intro, 3 featured projects, latest 3 posts (from phase 2) | 1 |
 | `/projects` | Projects | List of all projects as cards, newest first | 1 |
 | `/projects/[slug]` | Project detail | Cover, problem, approach, result, stack used, links | 1 |
 | `/about` | About me | Bio, work experience as a timeline, skills | 1 |
-| `/404` | Not found | Friendly message with links back, in the same layout | 1 |
+| `/404` | Not found | Friendly message in both languages with links back to both home pages, in the same layout (static hosts serve a single 404 page) | 1 |
 | `/blog` | Blog | List of posts with date and tags | 2 |
 | `/blog/[slug]` | Post | MDX with optional interactive islands | 2 |
 | `/now` | Now | What I'm working on right now, with the date of the last update | 2 |
 | `/uses` | Uses | Hardware, software, homelab | 2 |
-| `/rss.xml` | RSS feed | All published posts | 2 |
+| `/rss.xml` | RSS feed | All published posts; one feed per language (`/rss.xml` and `/en/rss.xml`) | 2 |
 | `/lab` | Lab | Small experiments and demos | 3 |
 | `/lab/[slug]` | Experiment | One demo with a short explanation | 3 |
 
-**Sidebar navigation:** Home, Projects, Blog, About. Now, Uses and Lab are secondary links below them. The active page gets `aria-current="page"` and a visual marker.
+**Sidebar navigation:** Home, Projects, Blog, About. Now, Uses and Lab are secondary links below them. The active page gets `aria-current="page"` and a visual marker. A language switch (NL / EN) links to the same page in the other language.
 
 ## Layout and visual design
 
@@ -83,13 +99,13 @@ The 3D scene and the sidebar stay still during a page change; only the card's fr
 **Desktop (1024 px and up)**
 
 - Two columns. The sidebar is `position: sticky`, 100vh tall, at most 440 px wide.
-- The sidebar contains name, job title, a 1–2 sentence intro, navigation, social links and the theme toggle.
+- The sidebar contains name, job title, a 1–2 sentence intro, navigation, social links, the language switch and the theme toggle.
 - The content card sits on the right, at most 720 px wide, with 40 px padding and a 16 px radius.
 - The page scrolls as a whole; the card has no scrollbar of its own.
 
 **Mobile (below 1024 px)**
 
-- The sidebar becomes a compact header with name and navigation.
+- The sidebar becomes a compact header with name, navigation and the language switch.
 - The card is full width with a 16 px margin on both sides and 24 px padding.
 - No horizontal scrolling, not even with long code blocks (those scroll within their own block).
 
@@ -130,7 +146,7 @@ On every navigation the sidebar stays put, the card's frame morphs to the new he
 import { ClientRouter } from 'astro:transitions';
 import { contentFade } from '../lib/transitions';
 ---
-<html lang="nl">
+<html lang={Astro.currentLocale}>
   <head>
     <ClientRouter />
   </head>
@@ -140,7 +156,7 @@ import { contentFade } from '../lib/transitions';
     </div>
 
     <aside transition:name="sidebar" transition:animate="none">
-      <!-- name, intro, navigation, theme toggle -->
+      <!-- name, intro, navigation, language switch, theme toggle -->
     </aside>
 
     <main class="card" transition:name="content-card" transition:animate="initial">
@@ -196,6 +212,7 @@ export const contentFade: TransitionDirectionalAnimations = {
 
 - Scripts that do something on page load listen for `astro:page-load` instead of `DOMContentLoaded`. Otherwise they don't run again after a navigation.
 - The theme (`data-theme` on `<html>`) must be set again in `astro:after-swap`, otherwise it jumps back after a navigation.
+- Switching language is a normal navigation with the same transition. The `lang` attribute on `<html>` comes from the new page; check that it is updated after a client-side navigation, because screen readers rely on it.
 - Every `transition:name` is unique per page. Two elements with the same name on one page break the transition.
 - Astro's default animations may need to be overridden; check in DevTools (Animations panel) which animation actually runs.
 
@@ -210,6 +227,7 @@ export const contentFade: TransitionDirectionalAnimations = {
 - [ ] In a browser without the View Transitions API, navigation works without console errors.
 - [ ] The 3D scene keeps running during the transition, without flashing or ghosting.
 - [ ] After navigation, the new page is announced to screen readers and focus is at the top of the new content.
+- [ ] After switching language, `lang` on `<html>` matches the new page.
 
 ## 3D background
 
@@ -252,7 +270,7 @@ One subtle 3D scene behind the content, on every page, that keeps running during
 **Acceptance criteria**
 
 - [ ] The LCP of a page with and without 3D differs by less than 100 ms.
-- [ ] The scene doesn't restart on navigation; the rotation continues seamlessly.
+- [ ] The scene doesn't restart on navigation, including when switching language; the rotation continues seamlessly.
 - [ ] Each of the four exceptions above shows only the fallback, without errors.
 - [ ] When the theme changes, the scene follows within one frame.
 - [ ] The scene is decorative (`aria-hidden="true"`) and not reachable by keyboard.
@@ -294,7 +312,7 @@ function toggleTheme(e: MouseEvent) {
 
 - Opens with ⌘K or Ctrl+K, and with a visible button in the sidebar for mouse and touch users.
 - A React island based on [`cmdk`](https://github.com/pacocoursey/cmdk), loaded with `client:idle` and `transition:persist`, so it doesn't rehydrate on every navigation.
-- Contains pages, projects and posts (title and URL only, passed as props at build time), plus actions: switch theme and copy email address.
+- Contains pages, projects and posts in the current language (title and URL only, passed as props at build time), plus actions: switch theme and copy email address.
 - Navigates with `navigate()` from `astro:transitions/client`, so the page transition still plays.
 - Fully keyboard operable: arrow keys, Enter, Esc; focus stays inside the palette while it's open.
 
@@ -311,16 +329,16 @@ CSS only: project cards rise 2 px and get an accent border on hover and focus, a
 
 ## Content model
 
-All content lives as files in the repo and is validated at build time with Zod schemas in `src/content.config.ts`; an error in the frontmatter fails the build.
+All content lives as files in the repo, in Dutch and English, and is validated at build time with Zod schemas in `src/content.config.ts`; an error in the frontmatter fails the build.
 
 | Collection | Source | Fields |
 | --- | --- | --- |
-| `projects` | `src/content/projects/*.mdx` | `title`, `summary` (max 160 characters), `date`, `role`, `stack[]`, `cover`, `coverAlt`, `links.live?`, `links.repo?`, `featured`, `draft` |
-| `posts` | `src/content/posts/*.mdx` | `title`, `description` (max 160 characters), `pubDate`, `updatedDate?`, `tags[]`, `draft` |
-| `lab` | `src/content/lab/*.mdx` | `title`, `description`, `date`, `draft` |
-| `experience` | `src/content/experience.json` | `company`, `role`, `start`, `end?`, `summary`, `stack[]` |
+| `projects` | `src/content/projects/{nl,en}/*.mdx` | `title`, `summary` (max 160 characters), `date`, `role`, `stack[]`, `cover`, `coverAlt`, `links.live?`, `links.repo?`, `featured`, `draft` |
+| `posts` | `src/content/posts/{nl,en}/*.mdx` | `title`, `description` (max 160 characters), `pubDate`, `updatedDate?`, `tags[]`, `draft` |
+| `lab` | `src/content/lab/{nl,en}/*.mdx` | `title`, `description`, `date`, `draft` |
+| `experience` | `src/content/experience.json` | `company`, `role` (nl + en), `start`, `end?`, `summary` (nl + en), `stack[]` |
 
-`/now` and `/uses` are standalone MDX pages in `src/pages/` with an `updated` date in the frontmatter.
+`/now` and `/uses` are standalone MDX pages, one per language (`src/pages/now.mdx` and `src/pages/en/now.mdx`, and the same for `uses`), each with an `updated` date in the frontmatter.
 
 ```ts
 // src/content.config.ts (excerpt)
@@ -328,7 +346,11 @@ import { defineCollection } from 'astro:content';
 import { glob, file } from 'astro/loaders';
 import { z } from 'astro/zod';
 
+// Text that appears in both languages within a single entry
+const localized = z.object({ nl: z.string(), en: z.string() });
+
 const projects = defineCollection({
+  // Files live in nl/ and en/ subfolders, so ids look like 'nl/my-project'
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/projects' }),
   schema: ({ image }) => z.object({
     title: z.string(),
@@ -351,10 +373,10 @@ const experience = defineCollection({
   loader: file('./src/content/experience.json'),
   schema: z.object({
     company: z.string(),
-    role: z.string(),
+    role: localized,
     start: z.coerce.date(),
     end: z.coerce.date().optional(),
-    summary: z.string(),
+    summary: localized,
     stack: z.array(z.string()),
   }),
 });
@@ -365,19 +387,21 @@ export const collections = { projects, experience /*, posts, lab */ };
 **Rules**
 
 - Items with `draft: true` are only visible in development, never in the production build.
-- The slug is the file name.
+- The language is the subfolder (`nl/` or `en/`) and the slug is the file name, so `nl/my-project.mdx` and `en/my-project.mdx` are the two versions of one project.
+- Every project, post and experiment exists in both languages. The build fails when a translation is missing, unless the item is `draft: true`.
 - Projects are sorted by `date`, newest first; the homepage shows at most 3 projects with `featured: true`.
 - Images go through `astro:assets` (`<Image>` or `<Picture>`) and are served as AVIF/WebP with a fixed width and height.
 - `coverAlt` is required, so no image goes live without alt text.
+- Interface text (navigation, labels, buttons, the skip link) lives in `src/i18n/ui.ts`, not in components. Dates are formatted with `Intl.DateTimeFormat` for the page's language.
 
 **Starter content**
 
-The owner supplies the real copy. Until then, the builder uses clearly recognizable placeholders, marked with `TODO(content)`.
+The owner supplies the real copy in both languages. Until then, the builder uses clearly recognizable placeholders, marked with `TODO(content)`.
 
 - [ ] Project 1: this website itself (stack, choices, transitions, 3D).
 - [ ] Projects 2 and 3: work or side projects, described as problem, approach and result.
 - [ ] Work experience for `/about`.
-- [ ] First post (phase 2): "How I built this site".
+- [ ] First post (phase 2): "Hoe ik deze site bouwde" / "How I built this site".
 - [ ] `/uses`: setup, tools and the homelab.
 
 ## Performance, accessibility and SEO
@@ -402,18 +426,20 @@ A phase is only finished when the site stays within these budgets, measured on a
 
 - Text contrast of at least 4.5:1 in both themes, including `--color-text-muted`.
 - Everything is keyboard operable, with a clearly visible focus style.
-- A "Skip to content" link as the first focusable element.
+- A skip link ("Naar inhoud" / "Skip to content") as the first focusable element.
 - Semantic landmarks: `<header>` or `<aside>`, `<nav>`, `<main>`, `<footer>`.
-- `lang` on `<html>`, `aria-current="page"` on the active navigation link.
+- `lang` on `<html>` matches the page's language; `aria-current="page"` on the active navigation link.
+- The language switch links carry `hreflang` and `lang` (for example `<a href="/en/" hreflang="en" lang="en">English</a>`), so screen readers pronounce them correctly.
 - All animations respect `prefers-reduced-motion`.
 - Every image has meaningful alt text; decorative elements have `aria-hidden="true"`.
 
 **SEO and sharing**
 
 - A unique `<title>` and meta description per page, plus a canonical URL.
-- Open Graph and Twitter meta with a default 1200 × 630 px OG image; generated OG images per post follow in phase 3.
-- `sitemap.xml` via `@astrojs/sitemap`, RSS via `@astrojs/rss`, and a `robots.txt`.
-- `Person` JSON-LD on the homepage.
+- `<link rel="alternate" hreflang="…">` on every page for both language versions, plus `x-default` pointing to the Dutch version.
+- Open Graph and Twitter meta with a default 1200 × 630 px OG image, and `og:locale` / `og:locale:alternate` per language; generated OG images per post follow in phase 3.
+- `sitemap.xml` via `@astrojs/sitemap` with its `i18n` option (so it lists both language versions), RSS via `@astrojs/rss` (one feed per language), and a `robots.txt`.
+- JSON-LD of type `Person` on both home pages.
 
 ## Project structure
 
@@ -421,7 +447,7 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 
 ```text
 .
-├── astro.config.mjs
+├── astro.config.mjs              # includes the i18n config
 ├── package.json
 ├── tsconfig.json
 ├── public/
@@ -431,18 +457,22 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 ├── src/
 │   ├── content.config.ts
 │   ├── content/
-│   │   ├── projects/
-│   │   ├── posts/
-│   │   ├── lab/
+│   │   ├── projects/             # nl/ and en/ subfolders
+│   │   ├── posts/                # nl/ and en/ subfolders
+│   │   ├── lab/                  # nl/ and en/ subfolders
 │   │   └── experience.json
+│   ├── i18n/
+│   │   ├── ui.ts                 # interface text per language
+│   │   └── utils.ts              # t() and locale helpers
 │   ├── layouts/
 │   │   └── BaseLayout.astro      # ClientRouter, scene, sidebar, card
 │   ├── components/
 │   │   ├── Sidebar.astro
 │   │   ├── ContentCard.astro
 │   │   ├── ProjectCard.astro
+│   │   ├── LanguageSwitch.astro  # same page in the other language
 │   │   ├── ThemeToggle.astro     # vanilla script, no React
-│   │   └── Seo.astro
+│   │   └── Seo.astro             # meta, canonical, hreflang
 │   ├── islands/                  # React only, only what's interactive
 │   │   ├── CommandPalette.tsx
 │   │   └── scene/
@@ -451,7 +481,7 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │   ├── lib/
 │   │   ├── transitions.ts        # custom transition animations
 │   │   └── theme.ts
-│   ├── pages/
+│   ├── pages/                    # Dutch (default, no prefix)
 │   │   ├── index.astro
 │   │   ├── about.astro
 │   │   ├── projects/index.astro
@@ -462,8 +492,12 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │   │   ├── lab/[...slug].astro
 │   │   ├── now.mdx
 │   │   ├── uses.mdx
-│   │   ├── 404.astro
-│   │   └── rss.xml.ts
+│   │   ├── 404.astro             # one page, both languages
+│   │   ├── rss.xml.ts
+│   │   └── en/                   # English: the same routes under /en/
+│   │       ├── index.astro
+│   │       ├── about.astro
+│   │       └── …
 │   └── styles/
 │       ├── tokens.css            # colors, spacing, typography
 │       ├── global.css
@@ -476,6 +510,8 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 
 - Every `client:*` directive gets a short comment on why it's needed and why this strategy.
 - Colors, spacing and font sizes always come from `tokens.css`; no loose hex values in components.
+- Interface text always comes from `src/i18n/ui.ts`; no hard-coded text in components.
+- Dutch and English pages share their layout and components; a page file only picks the language and the content.
 - Components are small and do one thing; props are typed with a `Props` interface.
 - Commits follow Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`).
 
@@ -487,8 +523,8 @@ Four phases, each ending with a working, deployed site; phase 1 is the first ver
 
 ```mermaid
 flowchart LR
-  F0["<b>Phase 0 · Foundation</b><br/>Setup and tooling<br/>Design tokens<br/>Base layout<br/>Preview deploys<br/><br/><i>Gate: checks green,<br/>preview works</i>"]
-  F1["<b>Phase 1 · Core, goes live</b><br/>5 pages<br/>Transitions<br/>Theme switch<br/>SEO and a11y basics<br/><br/><i>Gate: Lighthouse ≥ 95,<br/>live on domain</i>"]
+  F0["<b>Phase 0 · Foundation</b><br/>Setup and tooling<br/>Design tokens<br/>Base layout and i18n<br/>Preview deploys<br/><br/><i>Gate: checks green,<br/>preview works</i>"]
+  F1["<b>Phase 1 · Core, goes live</b><br/>5 pages in NL and EN<br/>Transitions<br/>Theme switch<br/>SEO and a11y basics<br/><br/><i>Gate: Lighthouse ≥ 95,<br/>live on domain</i>"]
   F2["<b>Phase 2 · 3D and content</b><br/>3D background<br/>Blog and RSS<br/>/now and /uses<br/>Latest posts on home<br/><br/><i>Gate: budget met<br/>with 3D</i>"]
   F3["<b>Phase 3 · Extras</b><br/>Command palette<br/>Lab pages<br/>OG images<br/>Live data (optional)<br/><br/><i>Gate: budget met,<br/>all keyboard operable</i>"]
   F0 --> F1 --> F2 --> F3
@@ -501,33 +537,35 @@ Phase 0 doesn't deliver anything public yet; from the phase 1 gate onward the si
 ### Phase 0: Foundation
 
 - [ ] Astro project with TypeScript strict, pnpm, ESLint, Prettier and `astro check`.
+- [ ] i18n set up in `astro.config.mjs` (Dutch at `/`, English under `/en/`), with `src/i18n/ui.ts` for interface text.
 - [ ] `tokens.css` with colors, spacing and typography for both themes; self-hosted fonts.
-- [ ] `BaseLayout.astro` with sidebar and content card, responsive, no transitions yet.
+- [ ] `BaseLayout.astro` with sidebar and content card, responsive, with `lang` set from the current language, no transitions yet.
 - [ ] Automatic preview deploy per branch.
 - [ ] **Gate:** the preview URL works, and `astro check`, lint and build are green.
 
 ### Phase 1: Core (first live version)
 
-- [ ] Pages `/`, `/projects`, `/projects/[slug]`, `/about` and `/404`.
-- [ ] Content collections `projects` and `experience` with schemas and placeholder content.
+- [ ] Pages `/`, `/projects`, `/projects/[slug]`, `/about` and `/404`, in Dutch and English.
+- [ ] Content collections `projects` and `experience` with schemas and placeholder content in both languages.
+- [ ] Language switch, `hreflang` links, and a build check for missing translations.
 - [ ] Page transitions as described in the Page transitions section, including all acceptance criteria.
 - [ ] Theme switch with circle reveal, with no flash on load or navigation.
 - [ ] Micro-interactions, skip link, focus styles and SEO basics (meta, canonical, sitemap, default OG image).
-- [ ] A Playwright test that navigates through every page and checks there are no console errors.
+- [ ] A Playwright test that navigates through every page in both languages and checks there are no console errors.
 - [ ] **Gate:** Lighthouse mobile ≥ 95 on every page, all budgets met, live on the production domain.
 
 ### Phase 2: 3D and content
 
 - [ ] 3D background as described in the 3D background section, including the fallback and exceptions.
-- [ ] Blog: `posts` collection, `/blog`, `/blog/[slug]`, RSS feed.
-- [ ] Pages `/now` and `/uses`.
+- [ ] Blog: `posts` collection, `/blog`, `/blog/[slug]`, and an RSS feed per language.
+- [ ] Pages `/now` and `/uses` in both languages.
 - [ ] The homepage shows the latest 3 posts.
 - [ ] **Gate:** budgets still met with 3D; LCP with and without 3D differs by less than 100 ms.
 
 ### Phase 3: Extras
 
 - [ ] Command palette (⌘K / Ctrl+K).
-- [ ] Lab: `lab` collection, `/lab` and `/lab/[slug]`, with at least one experiment.
+- [ ] Lab: `lab` collection, `/lab` and `/lab/[slug]`, with at least one experiment in both languages.
 - [ ] Generated OG images per post.
 - [ ] Optional: live-data widget, once the owner has chosen the source.
 - [ ] Optional: evaluate whether small islands can move to Preact (not the 3D scene).
@@ -555,9 +593,9 @@ Proposal: host the static build on Cloudflare, with automatic preview deploys pe
 
 ## Open questions for the owner
 
-These choices haven't been made yet; the first four are needed before phase 1, the rest can wait.
+Unchecked items are still open; the first four items are needed before phase 1, the rest can wait.
 
-- [ ] **Language:** Dutch, English or both? This determines `lang`, the copy, and whether i18n is needed later.
+- [x] **Language:** Dutch and English, both from phase 1. Dutch at `/`, English under `/en/` (decided Oct 18, 2026).
 - [ ] **Domain:** which domain or subdomain will the site live on?
 - [ ] **Font:** which sans and which mono? Proposal: Inter Variable and JetBrains Mono, or Geist and Geist Mono.
 - [ ] **Accent color:** keep the proposed blue, or a color of your own?
@@ -576,7 +614,7 @@ Work phase by phase, report after each phase, and when in doubt choose the calme
 2. **Stop after each phase** and deliver a short report: what was built, the measured budget figures, and which acceptance criteria are not (yet) met.
 3. **No new dependencies** outside the tech stack without the owner's approval.
 4. **No JavaScript by default.** Every `client:*` directive must be defensible; a static solution always wins.
-5. **Never make up content.** Use clearly recognizable placeholders with `TODO(content)`; no fictional projects, employers or results that look real.
+5. **Never make up content.** Use clearly recognizable placeholders with `TODO(content)`; no fictional projects, employers or results that look real. This also applies to translations: don't machine-translate the owner's copy without marking it.
 6. **Don't decide open questions yourself.** Temporarily pick the proposal from this document, mark it with `TODO(decision)` and mention it in the phase report.
 7. **Test in multiple browsers:** the latest versions of Chrome, Safari and Firefox, plus iOS Safari and Chrome on Android.
 8. **Test accessibility:** every page and every interaction with the keyboard only, and once with a screen reader (VoiceOver or NVDA).
