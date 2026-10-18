@@ -31,19 +31,49 @@ on your machine. It checks the files on disk, uncommitted changes included. To s
 | `npm run format`       | Format everything with Prettier                                         |
 | `npm run format:check` | Check formatting without changing files                                 |
 | `npm run verify`       | Check, lint, format check and build (CI, deploys and the pre-push hook) |
+| `npm run test:e2e`     | Playwright smoke tests (see below)                                      |
 
 ## Where things live
 
-- `src/layouts/BaseLayout.astro`: the page shell (sidebar and content card).
-- `src/components/`: static components. React islands will go in `src/islands/` from phase 2.
-- `src/styles/tokens.css`: colors, spacing and typography for both themes.
+- `src/layouts/BaseLayout.astro`: the page shell (sidebar, content card, footer, SEO tags and the
+  view transitions).
+- `src/components/`: static components. `src/components/views/` holds one view per page, shared by
+  the Dutch and English page files. React islands will go in `src/islands/` from phase 2.
+- `src/content/`: projects (`projects/nl/` and `projects/en/`, one MDX file per language) and work
+  experience (`experience.json`). The schemas are in `src/content.config.ts`.
+- `src/styles/`: `tokens.css` (colors, spacing and typography for both themes), `global.css` and
+  `transitions.css` (page transitions and the theme switch).
 - `src/i18n/ui.ts`: all interface text, per language. Components read it through `t()` from `src/i18n/utils.ts`.
-- `src/pages/`: Dutch pages; `src/pages/en/`: the same routes in English.
+- `src/pages/`: Dutch pages; `src/pages/en/`: the same routes in English. `404.astro` is one page
+  for both languages.
+- `src/integrations/check-translations.ts`: fails the build when a page or project exists in only one
+  language (drafts excepted, since they aren't built).
+- `tests/`: Playwright tests.
+
+## Adding a project
+
+Add `src/content/projects/nl/<slug>.mdx` and `src/content/projects/en/<slug>.mdx` with the same
+file name, and put the cover image in `src/assets/projects/`. The frontmatter fields are checked at
+build time; `draft: true` keeps a project out of the production build. Projects with
+`featured: true` appear on the home page (the newest 3).
+
+## Tests
+
+`npm run test:e2e` builds the site, serves it locally and runs the Playwright tests in Chromium,
+Firefox, WebKit and two phone profiles. To test a deployed site instead, set `BASE_URL`:
+
+```bash
+BASE_URL=https://<branch>-personal-website.lucien-hilversum.workers.dev npm run test:e2e
+```
+
+The first time, install the browsers with `npx playwright install`.
 
 ## Deploys
 
 Every push runs `npm run verify` (`astro check`, ESLint, Prettier and the build) in GitHub Actions
-(`.github/workflows/ci.yml`).
+(`.github/workflows/ci.yml`). A second job then waits until Cloudflare has deployed that commit
+(the deploy reports its commit at `/version.json`) and runs the Playwright tests against it: the
+branch preview, or production for `main`.
 
 Hosting is on Cloudflare Workers (static assets only, configured in `wrangler.jsonc`) with
 [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/): `main` deploys to

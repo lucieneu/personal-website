@@ -139,6 +139,7 @@ On every navigation the sidebar stays put, the card's frame morphs to the new he
 3. The card's frame (`<main>`) gets `transition:name="content-card"` with the browser's default morph. The frame itself contains no text, so it may stretch during the morph.
 4. The card's content gets its own `transition:name="content-body"` with a custom fade. Because the content is captured separately, the text doesn't distort during the morph.
 5. The 3D scene's container gets `transition:persist="scene"` plus its own `transition:name` with `transition:animate="none"`, so the canvas stays live.
+6. The footer below the card (added in phase 1 for the `<footer>` landmark) gets `transition:name="site-footer"`, and its group uses the card's timing, so it follows the card's bottom edge instead of jumping.
 
 ```astro
 ---
@@ -195,9 +196,10 @@ export const contentFade: TransitionDirectionalAnimations = {
 ::view-transition-old(content-card),
 ::view-transition-new(content-card) { height: 100%; }
 
-/* Don't crossfade the rest of the page (background only) */
+/* Don't animate the rest of the page (background only); the group too, since phase 1 */
+::view-transition-group(root),
 ::view-transition-old(root),
-::view-transition-new(root) { animation: none; }
+::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
 
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
@@ -211,7 +213,7 @@ export const contentFade: TransitionDirectionalAnimations = {
 **Pitfalls for the builder**
 
 - Scripts that do something on page load listen for `astro:page-load` instead of `DOMContentLoaded`. Otherwise they don't run again after a navigation.
-- The theme (`data-theme` on `<html>`) must be set again in `astro:after-swap`, otherwise it jumps back after a navigation.
+- The theme (`data-theme` on `<html>`) must be carried over on every navigation, because ClientRouter replaces all attributes of `<html>`; otherwise it jumps back. Since phase 1 the inline theme script copies it onto the new page in `astro:before-swap` (`event.newDocument`), so it's already right when the new page is swapped in, even when `localStorage` is blocked.
 - Switching language is a normal navigation with the same transition. The `lang` attribute on `<html>` comes from the new page; check that it is updated after a client-side navigation, because screen readers rely on it.
 - Every `transition:name` is unique per page. Two elements with the same name on one page break the transition.
 - Astro's default animations may need to be overridden; check in DevTools (Animations panel) which animation actually runs.
@@ -453,14 +455,15 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 ├── .husky/pre-push               # npm run verify before every push
 ├── astro.config.mjs              # includes the i18n config
 ├── package.json
+├── playwright.config.ts          # local build, or BASE_URL (a deploy)
 ├── tsconfig.json
 ├── wrangler.jsonc                # Cloudflare Workers: static assets, previews
 ├── public/
 │   ├── _headers                  # cache headers for /_astro/*
 │   ├── favicon.svg
-│   ├── og-default.png
-│   └── robots.txt
+│   └── og-default.png
 ├── src/
+│   ├── assets/projects/          # cover images
 │   ├── content.config.ts
 │   ├── content/
 │   │   ├── projects/             # nl/ and en/ subfolders
@@ -470,21 +473,28 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │   ├── i18n/
 │   │   ├── ui.ts                 # interface text per language
 │   │   └── utils.ts              # t() and locale helpers
+│   ├── integrations/
+│   │   └── check-translations.ts # fails the build on a page in only one language
 │   ├── layouts/
-│   │   └── BaseLayout.astro      # ClientRouter, scene, sidebar, card
+│   │   └── BaseLayout.astro      # ClientRouter, scene, sidebar, card, footer
 │   ├── components/
 │   │   ├── Sidebar.astro
 │   │   ├── ContentCard.astro
 │   │   ├── ProjectCard.astro
 │   │   ├── LanguageSwitch.astro  # same page in the other language
+│   │   ├── ThemeScript.astro     # inline in <head>: stored theme before first paint
 │   │   ├── ThemeToggle.astro     # vanilla script, no React
-│   │   └── Seo.astro             # meta, canonical, hreflang
+│   │   ├── SiteFooter.astro
+│   │   ├── Seo.astro             # meta, canonical, hreflang, OG, JSON-LD
+│   │   └── views/                # one view per page, shared by both languages
 │   ├── islands/                  # React only, only what's interactive
 │   │   ├── CommandPalette.tsx
 │   │   └── scene/
 │   │       ├── SceneLoader.tsx   # waits for idle, lazy import
 │   │       └── SceneCanvas.tsx   # R3F Canvas and objects
 │   ├── lib/
+│   │   ├── projects.ts           # projects per language, sorted, drafts filtered
+│   │   ├── site.ts               # social links
 │   │   ├── transitions.ts        # custom transition animations
 │   │   └── theme.ts
 │   ├── pages/                    # Dutch (default, no prefix)
@@ -499,6 +509,8 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │   │   ├── now.mdx
 │   │   ├── uses.mdx
 │   │   ├── 404.astro             # one page, both languages
+│   │   ├── robots.txt.ts         # generated, so the sitemap URL follows `site`
+│   │   ├── version.json.ts       # the commit of the build, for CI
 │   │   ├── rss.xml.ts
 │   │   └── en/                   # English: the same routes under /en/
 │   │       ├── index.astro
@@ -508,8 +520,10 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │       ├── tokens.css            # colors, spacing, typography
 │       ├── global.css
 │       └── transitions.css
-└── tests/
-    └── navigation.spec.ts        # Playwright
+└── tests/                        # Playwright
+    ├── fixtures.ts               # fails a test on any console error
+    ├── navigation.spec.ts
+    └── theme.spec.ts
 ```
 
 **Conventions**
@@ -602,7 +616,7 @@ Proposal (in use since phase 0, still a `TODO(decision)`): host the static build
 1. Locally, before the push: the Husky pre-push hook.
 2. GitHub Actions: `npm ci`, then `npm run verify`.
 3. Cloudflare Workers Builds: `npm run verify` as the build command, then `npx wrangler deploy` (`main`) or `npx wrangler preview` (other branches).
-4. From phase 1: Playwright smoke tests against the preview URL.
+4. From phase 1: Playwright smoke tests against the deploy, in a second GitHub Actions job. Every build reports its commit at `/version.json` (from `WORKERS_CI_COMMIT_SHA`); the job waits until the branch preview (or production, for `main`) serves the pushed commit, then runs the tests with `BASE_URL` set to it.
 
 **Caching:** files in `/_astro/` have a hash in their name and get `Cache-Control: public, max-age=31536000, immutable` (set in `public/_headers`). HTML keeps Cloudflare's default (`max-age=0, must-revalidate`), so a new deploy is visible right away.
 
