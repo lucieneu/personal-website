@@ -96,8 +96,10 @@ const currentPath = withoutTrailingSlash(Astro.url.pathname);
       align-items: flex-start;
       justify-content: flex-start;
       gap: 0;
-      height: 100vh;
       height: 100dvh;
+      /* On short screens (or when zoomed in) the sidebar scrolls on its own, so nothing in it
+         ends up out of reach below the fold. */
+      overflow-y: auto;
       padding: var(--space-16) 0;
     }
 
