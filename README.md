@@ -14,18 +14,23 @@ npm install
 npm run dev
 ```
 
+`npm install` also sets up a Git pre-push hook ([Husky](https://typicode.github.io/husky/), in
+`.husky/pre-push`) that runs `npm run verify` before every push, so a push that would fail CI stops
+on your machine. It checks the files on disk, uncommitted changes included. To skip it once, use
+`git push --no-verify`.
+
 ## Scripts
 
-| Command                | What it does                                         |
-| ---------------------- | ---------------------------------------------------- |
-| `npm run dev`          | Start the dev server at `localhost:4321`             |
-| `npm run build`        | Build the static site to `dist/`                     |
-| `npm run preview`      | Serve the production build locally                   |
-| `npm run check`        | Type-check `.astro` and `.ts` files                  |
-| `npm run lint`         | Lint with ESLint                                     |
-| `npm run format`       | Format everything with Prettier                      |
-| `npm run format:check` | Check formatting without changing files              |
-| `npm run verify`       | Check, lint, format check and build (CI and deploys) |
+| Command                | What it does                                                            |
+| ---------------------- | ----------------------------------------------------------------------- |
+| `npm run dev`          | Start the dev server at `localhost:4321`                                |
+| `npm run build`        | Build the static site to `dist/`                                        |
+| `npm run preview`      | Serve the production build locally                                      |
+| `npm run check`        | Type-check `.astro` and `.ts` files                                     |
+| `npm run lint`         | Lint with ESLint                                                        |
+| `npm run format`       | Format everything with Prettier                                         |
+| `npm run format:check` | Check formatting without changing files                                 |
+| `npm run verify`       | Check, lint, format check and build (CI, deploys and the pre-push hook) |
 
 ## Where things live
 

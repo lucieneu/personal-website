@@ -41,7 +41,7 @@ Astro with static output, and React only for the parts that are truly interactiv
 | Fonts | Self-hosted via Fontsource, variable `woff2`, preloaded | No external requests, no layout shift |
 | Code highlighting | Shiki (built into Astro) | Highlighting at build time, 0 kB JS |
 | Package manager | npm | Comes with Node, so there is no extra tool to install (changed from pnpm on Oct 18, 2026) |
-| Quality | ESLint, Prettier + `prettier-plugin-astro`, `astro check` | Consistent code, type errors caught before deploy |
+| Quality | ESLint, Prettier + `prettier-plugin-astro`, `astro check`, a Husky pre-push hook that runs them all (added Oct 18, 2026) | Consistent code, type errors caught before a push or deploy |
 | Tests | Playwright | Smoke tests and navigation with transitions |
 
 **Preact is out of scope for version 1.** It can be evaluated later for small islands. The 3D scene always stays React, because React Three Fiber runs on `react-reconciler` and does not work with Preact.
