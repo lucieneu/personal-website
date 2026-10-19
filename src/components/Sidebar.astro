@@ -153,11 +153,21 @@ function currentState(href: string): 'page' | 'true' | undefined {
       padding: var(--space-1);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-pill);
-      /* Opaque, so the text it floats over never shows through its labels. */
-      background: var(--color-surface);
+      /* Just a little see-through; the blur keeps whatever is behind it from showing through
+         its labels as readable text. */
+      background: color-mix(in srgb, var(--color-surface) 90%, transparent);
       box-shadow: 0 8px 24px var(--color-shadow);
+      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px);
       /* Its own snapshot, so it stays on top of the card during a page transition. */
       view-transition-name: nav-island;
+    }
+
+    /* Without the blur, text behind would show through the labels, so it stays opaque. */
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+      .main-nav {
+        background: var(--color-surface);
+      }
     }
 
     .main-nav ul {
