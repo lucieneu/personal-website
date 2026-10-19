@@ -1,9 +1,9 @@
 ---
-import type { Lang, UiKey } from '../../i18n/ui';
+import type { Lang } from '../../i18n/ui';
 import { localePath, useTranslations } from '../../i18n/utils';
 import Link from '../atoms/Link.astro';
-import List from '../atoms/List.astro';
 import LanguageSwitch from '../molecules/LanguageSwitch.astro';
+import MainNav from '../molecules/MainNav.astro';
 import ThemeToggle from '../molecules/ThemeToggle.astro';
 import SiteFooter from './SiteFooter.astro';
 
@@ -13,33 +13,8 @@ interface Props {
   languageTargets: Record<Lang, string>;
 }
 
-interface NavItem {
-  key: UiKey;
-  path: string;
-}
-
 const { lang, languageTargets } = Astro.props;
 const t = useTranslations(lang);
-
-// Blog follows in phase 2; Now, Uses and Lab become secondary links below these.
-const navItems: NavItem[] = [
-  { key: 'nav.home', path: '' },
-  { key: 'nav.projects', path: 'projects' },
-  { key: 'nav.about', path: 'about' },
-];
-
-const withoutTrailingSlash = (path: string) => path.replace(/\/+$/, '') || '/';
-const currentPath = withoutTrailingSlash(Astro.url.pathname);
-
-// The page itself gets aria-current="page"; on a page inside a section (a project), the
-// section's link gets aria-current="true", so it's marked as well.
-function currentState(href: string): 'page' | 'true' | undefined {
-  const target = withoutTrailingSlash(href);
-  if (target === currentPath) return 'page';
-  const isHome = target === withoutTrailingSlash(localePath(lang));
-  if (!isHome && currentPath.startsWith(`${target}/`)) return 'true';
-  return undefined;
-}
 ---
 
 {/* Replaced on every navigation (so the current link is right), but never animated. */}
@@ -51,24 +26,8 @@ function currentState(href: string): 'page' | 'true' | undefined {
     <p class="role">{t('site.role')}</p>
     <p class="intro">{t('site.intro')}</p>
 
-    {/* Desktop: a list in the sidebar. Mobile: an island fixed to the bottom of the screen. */}
-    <nav class="main-nav" aria-label={t('nav.label')}>
-      <List>
-        {navItems.map(({ key, path }) => {
-          const href = localePath(lang, path);
-          const state = currentState(href);
-          return (
-            <li>
-              <Link href={href} aria-current={state} underline={false}>
-                {/* The island's current-page marker; it slides to the new item on a navigation. */}
-                {state && <span class="marker" aria-hidden="true" />}
-                <span class="label">{t(key)}</span>
-              </Link>
-            </li>
-          );
-        })}
-      </List>
-    </nav>
+    {/* On mobile it's an island at the bottom of the screen, outside the header. */}
+    <MainNav class="nav" lang={lang} />
 
     <div class="controls">
       <LanguageSwitch lang={lang} targets={languageTargets} />
@@ -108,100 +67,12 @@ function currentState(href: string): 'page' | 'true' | undefined {
     gap: var(--space-3);
   }
 
-  ul {
-    margin: 0;
-  }
-
-  .main-nav a {
-    position: relative;
-    display: inline-block;
-    color: var(--color-text-muted);
-    font-weight: var(--font-weight-medium);
-    transition: color var(--duration-hover) ease-out;
-  }
-
-  .main-nav a:hover,
-  .main-nav a[aria-current] {
-    color: var(--color-accent);
-  }
-
-  .label {
-    position: relative;
-  }
-
   @media (max-width: 1023px) {
     /* An element with a view-transition-name is its own stacking context, which would trap the
        island's z-index below the card. On mobile the island has its own name instead, and the
        compact header simply switches with the rest of the page. */
     .sidebar {
       view-transition-name: none;
-    }
-
-    /* The island: a pill at the bottom of the screen, within thumb reach, that stays put while
-       the card changes (the mobile counterpart of the desktop sidebar). */
-    .main-nav {
-      position: fixed;
-      inset-inline: 0;
-      bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
-      z-index: 10;
-      width: max-content;
-      max-width: calc(100% - 2 * var(--space-4));
-      margin-inline: auto;
-      padding: var(--space-1);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-pill);
-      /* Partly see-through; the blur keeps whatever is behind it from showing through its
-         labels as readable text. */
-      /* 70% is about the limit: below it, a bright image behind the island in dark mode pulls
-         the labels under 4.5:1 contrast. */
-      background: color-mix(in srgb, var(--color-surface) 70%, transparent);
-      box-shadow: 0 8px 24px var(--color-shadow);
-      -webkit-backdrop-filter: blur(24px);
-      backdrop-filter: blur(24px);
-      /* Its own snapshot, so it stays on top of the card during a page transition. */
-      view-transition-name: nav-island;
-    }
-
-    /* Without the blur, text behind would show through the labels, so it stays opaque. */
-    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-      .main-nav {
-        background: var(--color-surface);
-      }
-    }
-
-    .main-nav ul {
-      display: flex;
-      gap: var(--space-1);
-    }
-
-    .main-nav a {
-      display: flex;
-      align-items: center;
-      min-height: var(--size-touch);
-      padding-inline: var(--space-4);
-      border-radius: var(--radius-pill);
-    }
-
-    /* Whatever shows through the island (a dark image, a bright one), the labels keep at least
-       4.5:1 contrast in the full text color; the muted gray and the accent don't. The marker
-       shows the current page. */
-    .main-nav a,
-    .main-nav a:hover,
-    .main-nav a[aria-current] {
-      color: var(--color-text);
-    }
-
-    .marker {
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      /* A lighter tint in dark mode, where it would otherwise brighten the label's background. */
-      background: light-dark(
-        color-mix(in srgb, var(--color-accent) 22%, transparent),
-        color-mix(in srgb, var(--color-accent) 16%, transparent)
-      );
-      /* Captured on its own, so it moves from the old item to the new one. */
-      view-transition-name: nav-marker;
     }
   }
 
@@ -245,44 +116,13 @@ function currentState(href: string): 'page' | 'true' | undefined {
       color: var(--color-text-muted);
     }
 
-    .main-nav {
+    .nav {
       margin-top: var(--space-12);
-    }
-
-    .main-nav ul {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: var(--space-2);
-    }
-
-    .main-nav a {
-      padding-block: var(--space-1);
-      /* An underline that grows from the left on hover, and stays on the current page. */
-      background: linear-gradient(currentColor, currentColor) no-repeat left bottom / 0 2px;
-      transition:
-        color var(--duration-hover) ease-out,
-        background-size var(--duration-hover) ease-out;
-    }
-
-    .main-nav a:hover,
-    .main-nav a[aria-current] {
-      background-size: 100% 2px;
-    }
-
-    .marker {
-      display: none;
     }
 
     .controls {
       margin-top: auto;
       padding-top: var(--space-8);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .main-nav a {
-      transition: none;
     }
   }
 </style>
