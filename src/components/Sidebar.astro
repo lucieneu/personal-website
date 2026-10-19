@@ -155,10 +155,12 @@ function currentState(href: string): 'page' | 'true' | undefined {
       border-radius: var(--radius-pill);
       /* Partly see-through; the blur keeps whatever is behind it from showing through its
          labels as readable text. */
-      background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+      /* 70% is about the limit: below it, a bright image behind the island in dark mode pulls
+         the labels under 4.5:1 contrast. */
+      background: color-mix(in srgb, var(--color-surface) 70%, transparent);
       box-shadow: 0 8px 24px var(--color-shadow);
-      -webkit-backdrop-filter: blur(20px);
-      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(24px);
+      backdrop-filter: blur(24px);
       /* Its own snapshot, so it stays on top of the card during a page transition. */
       view-transition-name: nav-island;
     }
@@ -196,7 +198,11 @@ function currentState(href: string): 'page' | 'true' | undefined {
       position: absolute;
       inset: 0;
       border-radius: inherit;
-      background: color-mix(in srgb, var(--color-accent) 22%, transparent);
+      /* A lighter tint in dark mode, where it would otherwise brighten the label's background. */
+      background: light-dark(
+        color-mix(in srgb, var(--color-accent) 22%, transparent),
+        color-mix(in srgb, var(--color-accent) 16%, transparent)
+      );
       /* Captured on its own, so it moves from the old item to the new one. */
       view-transition-name: nav-marker;
     }
