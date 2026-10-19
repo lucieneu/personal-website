@@ -1,0 +1,23 @@
+---
+// One fact in a MetaList: a muted label with the value (the children) below it.
+interface Props {
+  label: string;
+}
+---
+
+<div>
+  <dt>{Astro.props.label}</dt>
+  <dd>
+    <slot />
+  </dd>
+</div>
+
+<style>
+  dt {
+    color: var(--color-text-muted);
+  }
+
+  dd {
+    margin: 0;
+  }
+</style>
