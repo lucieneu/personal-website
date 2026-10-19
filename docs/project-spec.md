@@ -105,8 +105,8 @@ The 3D scene and the sidebar stay still during a page change; only the card's fr
 
 **Mobile (below 1024 px)**
 
-- The sidebar becomes a compact header with the name, the language switch and the theme toggle; it scrolls away with the page.
-- The navigation is a "nav island" (changed in phase 1, still to be confirmed by the owner): a pill fixed to the bottom of the screen, within thumb reach, clear of the iPhone home indicator (`env(safe-area-inset-bottom)`). It stays put during a page transition, like the desktop sidebar; only its current-page marker slides to the new item. Links are at least 44 px tall, and pages leave room at the bottom so the island never covers content.
+- The sidebar becomes a compact header with the name, the language switch and the theme toggle; it scrolls away with the page. (The owner decided in phase 1 to keep the language switch and theme toggle here rather than in the nav island, for now.)
+- The navigation is a "nav island" (changed in phase 1, at the owner's request): a partly see-through, blurred pill fixed to the bottom of the screen, within thumb reach, clear of the iPhone home indicator (`env(safe-area-inset-bottom)`). It stays put during a page transition, like the desktop sidebar; only its current-page marker slides to the new item. Links are at least 44 px tall, and pages leave room at the bottom so the island never covers content.
 - The footer sits below the card.
 - The card is full width with a 16 px margin on both sides and 24 px padding.
 - No horizontal scrolling, not even with long code blocks (those scroll within their own block).
