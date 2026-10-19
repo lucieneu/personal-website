@@ -1,8 +1,8 @@
 ---
-import { Picture } from 'astro:assets';
 import type { Lang } from '../../i18n/ui';
 import { localePath, useTranslations } from '../../i18n/utils';
 import { projectSlug, type Project } from '../../lib/projects';
+import CoverImage from '../atoms/CoverImage.astro';
 import DateTime from '../atoms/DateTime.astro';
 import Link from '../atoms/Link.astro';
 import Tags from './Tags.astro';
@@ -22,12 +22,10 @@ const href = localePath(lang, `projects/${projectSlug(project)}`);
 
 {/* The whole card is clickable through its title link; see .title a::after. */}
 <article class="project-card">
-  <Picture
+  <CoverImage
     class="cover"
     src={cover}
     alt={coverAlt}
-    formats={['avif']}
-    fallbackFormat="webp"
     widths={[320, 640]}
     sizes="(min-width: 640px) 160px, calc(100vw - 82px)"
   />
@@ -76,11 +74,8 @@ const href = localePath(lang, `projects/${projectSlug(project)}`);
   }
 
   .cover {
-    width: 100%;
-    height: auto;
     aspect-ratio: 16 / 9;
     object-fit: cover;
-    border-radius: var(--radius-sm);
   }
 
   .title {

@@ -1,10 +1,10 @@
 ---
 // One project in either language: cover, the body (problem, approach, result), stack and links.
-import { Picture } from 'astro:assets';
 import { render } from 'astro:content';
 import { getLang, localePath, useTranslations } from '../../i18n/utils';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import type { Project } from '../../lib/projects';
+import CoverImage from '../atoms/CoverImage.astro';
 import DateTime from '../atoms/DateTime.astro';
 import Link from '../atoms/Link.astro';
 import List from '../atoms/List.astro';
@@ -45,16 +45,12 @@ const { Content } = await render(project);
   </dl>
 
   {/* Above the fold, so it loads right away (it's often the largest element on the page). */}
-  <Picture
-    class="cover"
+  <CoverImage
     src={cover}
     alt={coverAlt}
-    formats={['avif']}
-    fallbackFormat="webp"
     widths={[640, 1280]}
     sizes="(min-width: 1024px) 640px, calc(100vw - 82px)"
     loading="eager"
-    fetchpriority="high"
   />
 
   <div class="body">
@@ -106,12 +102,6 @@ const { Content } = await render(project);
 
   dd {
     margin: 0;
-  }
-
-  .cover {
-    width: 100%;
-    height: auto;
-    border-radius: var(--radius-sm);
   }
 
   .body {
