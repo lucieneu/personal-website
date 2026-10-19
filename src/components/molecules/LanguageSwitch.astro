@@ -1,6 +1,7 @@
 ---
 import { languages, type Lang } from '../../i18n/ui';
 import { langs, useTranslations } from '../../i18n/utils';
+import Link from '../atoms/Link.astro';
 import List from '../atoms/List.astro';
 import VisuallyHidden from '../atoms/VisuallyHidden.astro';
 
@@ -24,10 +25,10 @@ const t = useTranslations(lang);
             <VisuallyHidden>{languages[code]}</VisuallyHidden>
           </span>
         ) : (
-          <a href={targets[code]} hreflang={code} lang={code}>
+          <Link href={targets[code]} hreflang={code} lang={code} tone="muted" underline={false}>
             <span aria-hidden="true">{code.toUpperCase()}</span>
             <VisuallyHidden>{languages[code]}</VisuallyHidden>
-          </a>
+          </Link>
         )}
       </li>
     ))}
@@ -55,15 +56,6 @@ const t = useTranslations(lang);
   .current {
     display: inline-block;
     padding: var(--space-2) var(--space-1);
-  }
-
-  a {
-    color: var(--color-text-muted);
-    text-decoration: none;
-  }
-
-  a:hover {
-    color: var(--color-accent);
   }
 
   .current {

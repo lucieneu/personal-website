@@ -1,6 +1,7 @@
 ---
 // One 404 page for both languages: static hosts serve a single page for every unknown path
 // (wrangler.jsonc: not_found_handling "404-page").
+import Link from '../components/atoms/Link.astro';
 import { languages } from '../i18n/ui';
 import { langs, localePath, useTranslations } from '../i18n/utils';
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -21,7 +22,7 @@ const [nl, en] = [useTranslations('nl'), useTranslations('en')];
         <Heading>{t('notFound.title')}</Heading>
         <p>{t('notFound.text')}</p>
         <p>
-          <a href={localePath(code)}>{t('notFound.home')}</a>
+          <Link href={localePath(code)}>{t('notFound.home')}</Link>
         </p>
       </section>
     );

@@ -1,6 +1,7 @@
 ---
 import { Font } from 'astro:assets';
 import { ClientRouter } from 'astro:transitions';
+import Link from '../components/atoms/Link.astro';
 import ContentCard from '../components/organisms/ContentCard.astro';
 import Seo from '../components/organisms/Seo.astro';
 import Sidebar from '../components/organisms/Sidebar.astro';
@@ -70,9 +71,9 @@ const isHome = !notFound && splitLocalePath(Astro.url.pathname)[1] === '';
     <ClientRouter />
   </head>
   <body>
-    <a class="skip-link" href="#content">
+    <Link class="skip-link" href="#content" underline={false}>
       {t('skip.link')}
-    </a>
+    </Link>
     <div class="layout">
       <Sidebar lang={lang} languageTargets={languageTargets} />
       <ContentCard>
@@ -103,7 +104,6 @@ const isHome = !notFound && splitLocalePath(Astro.url.pathname)[1] === '';
     background: var(--color-accent);
     color: var(--color-surface);
     font-weight: var(--font-weight-medium);
-    text-decoration: none;
     /* Off screen until it gets keyboard focus. */
     transform: translateY(calc(-100% - var(--space-4)));
   }

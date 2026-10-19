@@ -1,9 +1,10 @@
 ---
 import type { Lang, UiKey } from '../../i18n/ui';
 import { localePath, useTranslations } from '../../i18n/utils';
+import Link from '../atoms/Link.astro';
+import List from '../atoms/List.astro';
 import LanguageSwitch from '../molecules/LanguageSwitch.astro';
 import ThemeToggle from '../molecules/ThemeToggle.astro';
-import List from '../atoms/List.astro';
 import SiteFooter from './SiteFooter.astro';
 
 interface Props {
@@ -44,9 +45,9 @@ function currentState(href: string): 'page' | 'true' | undefined {
 {/* Replaced on every navigation (so the current link is right), but never animated. */}
 <div class="sidebar" transition:name="sidebar" transition:animate="none">
   <header class="masthead">
-    <a class="name" href={localePath(lang)}>
+    <Link class="name" href={localePath(lang)} tone="text" underline={false}>
       {t('site.name')}
-    </a>
+    </Link>
     <p class="role">{t('site.role')}</p>
     <p class="intro">{t('site.intro')}</p>
 
@@ -58,11 +59,11 @@ function currentState(href: string): 'page' | 'true' | undefined {
           const state = currentState(href);
           return (
             <li>
-              <a href={href} aria-current={state}>
+              <Link href={href} aria-current={state} underline={false}>
                 {/* The island's current-page marker; it slides to the new item on a navigation. */}
                 {state && <span class="marker" aria-hidden="true" />}
                 <span class="label">{t(key)}</span>
-              </a>
+              </Link>
             </li>
           );
         })}
@@ -90,11 +91,9 @@ function currentState(href: string): 'page' | 'true' | undefined {
   }
 
   .name {
-    color: var(--color-text);
     font-size: var(--font-size-h3);
     font-weight: var(--font-weight-heading);
     line-height: var(--line-height-heading);
-    text-decoration: none;
   }
 
   /* The compact mobile header only shows the name and the controls. */
@@ -118,7 +117,6 @@ function currentState(href: string): 'page' | 'true' | undefined {
     display: inline-block;
     color: var(--color-text-muted);
     font-weight: var(--font-weight-medium);
-    text-decoration: none;
     transition: color var(--duration-hover) ease-out;
   }
 

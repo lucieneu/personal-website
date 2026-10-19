@@ -6,6 +6,7 @@ import { getLang, localePath, useTranslations } from '../../i18n/utils';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import type { Project } from '../../lib/projects';
 import DateTime from '../atoms/DateTime.astro';
+import Link from '../atoms/Link.astro';
 import List from '../atoms/List.astro';
 import Tags from '../molecules/Tags.astro';
 
@@ -22,7 +23,9 @@ const { Content } = await render(project);
 
 <BaseLayout title={title} description={summary} ogType="article">
   <p class="back">
-    <a href={localePath(lang, 'projects')}>← {t('project.back')}</a>
+    <Link href={localePath(lang, 'projects')} arrow="back">
+      {t('project.back')}
+    </Link>
   </p>
 
   <h1>{title}</h1>
@@ -65,12 +68,12 @@ const { Content } = await render(project);
     <List inline class="links">
       {links.live && (
         <li>
-          <a href={links.live}>{t('project.live')}</a>
+          <Link href={links.live}>{t('project.live')}</Link>
         </li>
       )}
       {links.repo && (
         <li>
-          <a href={links.repo}>{t('project.repo')}</a>
+          <Link href={links.repo}>{t('project.repo')}</Link>
         </li>
       )}
     </List>

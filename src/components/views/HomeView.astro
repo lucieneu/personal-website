@@ -3,6 +3,7 @@
 import { getLang, localePath, useTranslations } from '../../i18n/utils';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getFeaturedProjects } from '../../lib/projects';
+import Link from '../atoms/Link.astro';
 import List from '../atoms/List.astro';
 import ProjectCard from '../molecules/ProjectCard.astro';
 
@@ -24,7 +25,9 @@ const projects = await getFeaturedProjects(lang);
       ))}
     </List>
     <p class="more">
-      <a href={localePath(lang, 'projects')}>{t('home.allProjects')} →</a>
+      <Link href={localePath(lang, 'projects')} arrow="forward">
+        {t('home.allProjects')}
+      </Link>
     </p>
   </section>
 </BaseLayout>
