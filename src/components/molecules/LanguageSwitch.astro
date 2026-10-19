@@ -1,6 +1,7 @@
 ---
 import { languages, type Lang } from '../../i18n/ui';
 import { langs, useTranslations } from '../../i18n/utils';
+import VisuallyHidden from '../atoms/VisuallyHidden.astro';
 
 interface Props {
   lang: Lang;
@@ -19,12 +20,12 @@ const t = useTranslations(lang);
         {code === lang ? (
           <span class="current" aria-current="true">
             <span aria-hidden="true">{code.toUpperCase()}</span>
-            <span class="visually-hidden">{languages[code]}</span>
+            <VisuallyHidden>{languages[code]}</VisuallyHidden>
           </span>
         ) : (
           <a href={targets[code]} hreflang={code} lang={code}>
             <span aria-hidden="true">{code.toUpperCase()}</span>
-            <span class="visually-hidden">{languages[code]}</span>
+            <VisuallyHidden>{languages[code]}</VisuallyHidden>
           </a>
         )}
       </li>
