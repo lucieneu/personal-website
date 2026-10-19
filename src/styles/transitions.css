@@ -3,6 +3,7 @@
  * On a navigation only the content card moves: its frame morphs to the new height in 300 ms
  * while its content crossfades (timing in src/lib/transitions.ts). The sidebar has
  * transition:animate="none", and the rest of the page (the root) switches without a crossfade.
+ * On mobile the nav island stays put too; only its current-page marker slides.
  */
 
 @keyframes content-out {
@@ -18,10 +19,12 @@
   }
 }
 
-/* The card's frame, its content and the footer below it move as one. */
+/* The card's frame, its content, the footer below it (mobile) and the nav island's marker
+   move as one. */
 ::view-transition-group(content-card),
 ::view-transition-group(content-body),
-::view-transition-group(site-footer) {
+::view-transition-group(site-footer),
+::view-transition-group(nav-marker) {
   animation-duration: 300ms;
   animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -39,6 +42,18 @@
 ::view-transition-new(root) {
   animation: none;
   mix-blend-mode: normal;
+}
+
+/* The mobile nav island stays put, like the desktop sidebar: the new state replaces the old one
+   without animation, while its marker slides to the new item (see above). */
+::view-transition-group(nav-island),
+::view-transition-new(nav-island) {
+  animation: none;
+}
+
+::view-transition-old(nav-island) {
+  animation: none;
+  opacity: 0;
 }
 
 /* During the theme switch the whole page is revealed at once, so no part of it gets its own

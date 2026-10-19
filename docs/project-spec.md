@@ -99,13 +99,15 @@ The 3D scene and the sidebar stay still during a page change; only the card's fr
 **Desktop (1024 px and up)**
 
 - Two columns. The sidebar is `position: sticky`, 100vh tall, at most 440 px wide.
-- The sidebar contains name, job title, a 1–2 sentence intro, navigation, social links, the language switch and the theme toggle.
+- The sidebar contains name, job title, a 1–2 sentence intro and navigation at the top; the language switch and theme toggle at the bottom, with the footer (social links, copyright, source code link) below them (changed in phase 1).
 - The content card sits on the right, at most 720 px wide, with 40 px padding and a 16 px radius.
 - The page scrolls as a whole; the card has no scrollbar of its own.
 
 **Mobile (below 1024 px)**
 
-- The sidebar becomes a compact header with name, navigation and the language switch.
+- The sidebar becomes a compact header with the name, the language switch and the theme toggle; it scrolls away with the page.
+- The navigation is a "nav island" (changed in phase 1, still to be confirmed by the owner): a pill fixed to the bottom of the screen, within thumb reach, clear of the iPhone home indicator (`env(safe-area-inset-bottom)`). It stays put during a page transition, like the desktop sidebar; only its current-page marker slides to the new item. Links are at least 44 px tall, and pages leave room at the bottom so the island never covers content.
+- The footer sits below the card.
 - The card is full width with a 16 px margin on both sides and 24 px padding.
 - No horizontal scrolling, not even with long code blocks (those scroll within their own block).
 
@@ -139,7 +141,7 @@ On every navigation the sidebar stays put, the card's frame morphs to the new he
 3. The card's frame (`<main>`) gets `transition:name="content-card"` with the browser's default morph. The frame itself contains no text, so it may stretch during the morph.
 4. The card's content gets its own `transition:name="content-body"` with a custom fade. Because the content is captured separately, the text doesn't distort during the morph.
 5. The 3D scene's container gets `transition:persist="scene"` plus its own `transition:name` with `transition:animate="none"`, so the canvas stays live.
-6. The footer below the card (added in phase 1 for the `<footer>` landmark) gets `transition:name="site-footer"`, and its group uses the card's timing, so it follows the card's bottom edge instead of jumping.
+6. On mobile (since phase 1): the nav island gets `view-transition-name: nav-island` with no animation, and its current-page marker gets `nav-marker`, which morphs from the old item to the new one with the card's timing. The footer below the card gets `site-footer` with the card's timing, so it follows the card's bottom edge. The sidebar's own name is turned off on mobile: an element with a view-transition-name is a stacking context, which would put the fixed island below the card.
 
 ```astro
 ---

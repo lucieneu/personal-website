@@ -5,15 +5,19 @@ import { repoUrl, socialLinks } from '../lib/site';
 
 interface Props {
   lang: Lang;
+  /**
+   * Where this copy sits: at the bottom of the sidebar (desktop) or below the card (mobile).
+   * Only one is shown at a time, so the order of the page matches what you see on both.
+   */
+  placement: 'sidebar' | 'page';
 }
 
-const t = useTranslations(Astro.props.lang);
+const { lang, placement } = Astro.props;
+const t = useTranslations(lang);
 const year = new Date().getFullYear();
 ---
 
-{/* Sits below the card, so it follows the card's bottom edge while the card morphs. */}
-<footer class="footer" transition:name="site-footer" transition:animate="initial">
-  {/* On desktop these links are in the sidebar; the compact mobile header has no room. */}
+<footer class="footer" data-placement={placement}>
   <ul class="social" aria-label={t('social.label')}>
     {socialLinks.map(({ label, href }) => (
       <li>
@@ -28,7 +32,6 @@ const year = new Date().getFullYear();
 
 <style>
   .footer {
-    padding: var(--space-6) var(--space-4) var(--space-8);
     color: var(--color-text-muted);
     font-size: var(--font-size-small);
   }
@@ -54,12 +57,25 @@ const year = new Date().getFullYear();
     color: var(--color-accent);
   }
 
+  [data-placement='sidebar'] {
+    display: none;
+    margin-top: var(--space-6);
+  }
+
+  /* Below the card it follows the card's bottom edge while the card morphs, and leaves room
+     for the nav island, so the island never covers it. */
+  [data-placement='page'] {
+    padding: var(--space-6) var(--space-4)
+      calc(var(--size-touch) + var(--space-16) + env(safe-area-inset-bottom));
+    view-transition-name: site-footer;
+  }
+
   @media (min-width: 1024px) {
-    .footer {
-      padding: var(--space-6) 0 var(--space-16);
+    [data-placement='sidebar'] {
+      display: block;
     }
 
-    .social {
+    [data-placement='page'] {
       display: none;
     }
   }

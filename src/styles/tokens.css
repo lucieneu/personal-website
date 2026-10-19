@@ -23,6 +23,8 @@
   --color-border: light-dark(#e3e4e0, #1f2737);
   /* Dividers that need to stand out a little more (decorative, no contrast requirement). */
   --color-border-strong: light-dark(#c9cbc4, #34405a);
+  /* Shadow under floating elements (the mobile nav island). */
+  --color-shadow: light-dark(rgb(26 29 36 / 0.12), rgb(0 0 0 / 0.45));
   /* TODO(decision): accent color not chosen yet; this is the proposed blue. */
   --color-accent: light-dark(#3b5bdb, #7c9cff);
 
@@ -39,6 +41,7 @@
   /* Radius */
   --radius-card: 16px;
   --radius-sm: 8px;
+  --radius-pill: 999px;
 
   /* Typography. The font families come from the `fonts` config in astro.config.mjs. */
   --font-sans: var(--font-inter);
@@ -60,6 +63,8 @@
 
   /* Controls such as the theme toggle: at least the 24px target size of WCAG 2.2. */
   --size-control: 40px;
+  /* Touch targets on mobile, such as the nav island's links. */
+  --size-touch: 44px;
 
   /* Layout. BaseLayout.astro splits the columns 11fr : 18fr, which is 440 : 720; update that
      ratio when you change either max width. */

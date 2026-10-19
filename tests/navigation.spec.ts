@@ -64,17 +64,21 @@ test('client-side navigation through every page in both languages', async ({ pag
 
   await page.goto('/');
   await markDocument(page);
-  const sidebar = page.locator('.sidebar');
-  const start = await sidebar.boundingBox();
+  // The navigation (the sidebar on desktop, the island on phones) stays put.
+  const nav = page.locator('.main-nav');
+  let previous = { lang: 'nl', box: await nav.boundingBox() };
 
   for (const href of [...walk(''), '/en/', ...walk('/en')]) {
     await clickLink(page, href);
     expect(await isSameDocument(page), `${href} loaded client-side`).toBe(true);
     await expect(page.locator('html')).toHaveAttribute('lang', langOf(href));
     await expect(page.locator('h1')).toBeVisible();
-    // The sidebar stays put (its size can change with the language, its position doesn't).
-    const box = await sidebar.boundingBox();
-    expect([box?.x, box?.y]).toEqual([start?.x, start?.y]);
+    // Within a language it doesn't move at all; across languages the centred island may get
+    // wider or narrower with its labels, but stays at the same height.
+    const box = await nav.boundingBox();
+    if (langOf(href) === previous.lang) expect(box).toEqual(previous.box);
+    else expect(box?.y).toBe(previous.box?.y);
+    previous = { lang: langOf(href), box };
     // Focus moves to the top of the new content, and the new page is announced.
     await expect(page.locator('#content')).toBeFocused();
     await expect(page.locator('.astro-route-announcer')).toHaveText(await page.title());
@@ -102,16 +106,51 @@ test('page transition: only the card animates, within 350 ms', async ({ page }) 
 test('Back plays the transition and restores the scroll position', async ({ page }) => {
   await page.goto('/projects/');
   await markDocument(page);
-  await page.evaluate(() => window.scrollTo(0, 200));
-  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(200);
+  // Halfway down; how far the page scrolls depends on the screen size.
+  const scrolled = await page.evaluate(() => {
+    window.scrollTo(0, Math.round((document.documentElement.scrollHeight - innerHeight) / 2));
+    return window.scrollY;
+  });
+  expect(scrolled).toBeGreaterThan(50);
 
-  await clickLink(page, '/projects/this-website/');
+  // Through the navigation, which is always on screen: clicking a link elsewhere would make
+  // Playwright scroll it into view first and change the position to restore.
+  await clickLink(page, '/about/');
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
 
   await page.goBack();
   await page.waitForURL('**/projects/');
   expect(await isSameDocument(page)).toBe(true);
-  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(200);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(scrolled);
+});
+
+test.describe('on a phone', () => {
+  test.beforeEach(({ isMobile }) => test.skip(!isMobile, 'the nav island is the mobile layout'));
+
+  test('the nav island stays on top of the content and never covers the footer', async ({
+    page,
+  }) => {
+    await page.goto('/projects/');
+    await markDocument(page);
+    const island = page.locator('.main-nav');
+    await expect(island).toBeInViewport();
+    expect(await island.evaluate((el) => getComputedStyle(el).position)).toBe('fixed');
+
+    // Halfway down the list a project card is under the island; a tap still reaches the island.
+    await page.evaluate(() => window.scrollTo(0, 400));
+    await clickLink(page, '/about/');
+    expect(await isSameDocument(page)).toBe(true);
+
+    // At the very bottom the footer stays clear of the island.
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    const footer = await page
+      .locator('footer[data-placement="page"]')
+      .getByRole('link')
+      .last()
+      .boundingBox();
+    const islandBox = await island.boundingBox();
+    expect(footer!.y + footer!.height).toBeLessThan(islandBox!.y);
+  });
 });
 
 test.describe('with prefers-reduced-motion: reduce', () => {
