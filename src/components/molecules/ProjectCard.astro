@@ -1,8 +1,9 @@
 ---
 import { Picture } from 'astro:assets';
 import type { Lang } from '../../i18n/ui';
-import { formatDate, localePath, useTranslations } from '../../i18n/utils';
+import { localePath, useTranslations } from '../../i18n/utils';
 import { projectSlug, type Project } from '../../lib/projects';
+import DateTime from '../atoms/DateTime.astro';
 import Tags from './Tags.astro';
 
 interface Props {
@@ -35,7 +36,7 @@ const href = localePath(lang, `projects/${projectSlug(project)}`);
     </Heading>
     <p class="summary">{summary}</p>
     <p class="date">
-      <time datetime={date.toISOString().slice(0, 10)}>{formatDate(date, lang)}</time>
+      <DateTime date={date} lang={lang} />
     </p>
     <Tags items={stack} label={t('project.stack')} />
   </div>

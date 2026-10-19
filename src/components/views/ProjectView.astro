@@ -2,9 +2,10 @@
 // One project in either language: cover, the body (problem, approach, result), stack and links.
 import { Picture } from 'astro:assets';
 import { render } from 'astro:content';
-import { formatDate, getLang, localePath, useTranslations } from '../../i18n/utils';
+import { getLang, localePath, useTranslations } from '../../i18n/utils';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import type { Project } from '../../lib/projects';
+import DateTime from '../atoms/DateTime.astro';
 import Tags from '../molecules/Tags.astro';
 
 interface Props {
@@ -30,7 +31,7 @@ const { Content } = await render(project);
     <div>
       <dt>{t('project.date')}</dt>
       <dd>
-        <time datetime={date.toISOString().slice(0, 10)}>{formatDate(date, lang)}</time>
+        <DateTime date={date} lang={lang} />
       </dd>
     </div>
     <div>

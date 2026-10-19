@@ -2,8 +2,9 @@
 // The about page in either language. The page file passes the bio (default slot) and the
 // skills (`skills` slot); the work experience comes from src/content/experience.json.
 import { getCollection } from 'astro:content';
-import { formatDate, getLang, useTranslations } from '../../i18n/utils';
+import { getLang, useTranslations } from '../../i18n/utils';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import DateTime from '../atoms/DateTime.astro';
 import Tags from '../molecules/Tags.astro';
 
 const lang = getLang(Astro.currentLocale);
@@ -11,7 +12,6 @@ const t = useTranslations(lang);
 const jobs = (await getCollection('experience')).sort(
   (a, b) => b.data.start.getTime() - a.data.start.getTime(),
 );
-const isoMonth = (date: Date) => date.toISOString().slice(0, 7);
 ---
 
 <BaseLayout title={t('about.title')} description={t('about.description')}>
@@ -23,8 +23,8 @@ const isoMonth = (date: Date) => date.toISOString().slice(0, 7);
     {jobs.map(({ data: { company, role, start, end, summary, stack } }) => (
       <li>
         <p class="period">
-          <time datetime={isoMonth(start)}>{formatDate(start, lang)}</time> –{' '}
-          {end ? <time datetime={isoMonth(end)}>{formatDate(end, lang)}</time> : t('about.present')}
+          <DateTime date={start} lang={lang} precision="month" /> –{' '}
+          {end ? <DateTime date={end} lang={lang} precision="month" /> : t('about.present')}
         </p>
         <h3>
           {role[lang]} · {company}
