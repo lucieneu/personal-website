@@ -479,15 +479,29 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │   │   └── check-translations.ts # fails the build on a page in only one language
 │   ├── layouts/
 │   │   └── BaseLayout.astro      # ClientRouter, scene, sidebar, card, footer
-│   ├── components/
-│   │   ├── Sidebar.astro
-│   │   ├── ContentCard.astro
-│   │   ├── ProjectCard.astro
-│   │   ├── LanguageSwitch.astro  # same page in the other language
-│   │   ├── ThemeScript.astro     # inline in <head>: stored theme before first paint
-│   │   ├── ThemeToggle.astro     # vanilla script, no React
-│   │   ├── SiteFooter.astro
-│   │   ├── Seo.astro             # meta, canonical, hreflang, OG, JSON-LD
+│   ├── components/               # atomic design: atoms → molecules → organisms → views
+│   │   ├── atoms/                # the smallest pieces
+│   │   │   ├── Link.astro        # tone, underline, ← back / → forward arrow
+│   │   │   ├── List.astro        # a list without bullets, optionally in a row
+│   │   │   ├── Icon.astro
+│   │   │   ├── IconButton.astro
+│   │   │   ├── DateTime.astro    # <time> with the date for the page's language
+│   │   │   ├── CoverImage.astro  # AVIF + WebP, lazy or eager
+│   │   │   └── VisuallyHidden.astro
+│   │   ├── molecules/            # small groups of atoms
+│   │   │   ├── ProjectCard.astro
+│   │   │   ├── Tags.astro
+│   │   │   ├── MetaList.astro    # label/value pairs, with MetaItem.astro
+│   │   │   ├── MainNav.astro     # sidebar list on desktop, island on mobile
+│   │   │   ├── LanguageSwitch.astro # same page in the other language
+│   │   │   └── ThemeToggle.astro # vanilla script, no React
+│   │   ├── organisms/            # whole parts of the page
+│   │   │   ├── Sidebar.astro
+│   │   │   ├── ContentCard.astro
+│   │   │   ├── SiteFooter.astro
+│   │   │   ├── ProjectList.astro
+│   │   │   ├── ThemeScript.astro # inline in <head>: stored theme before first paint
+│   │   │   └── Seo.astro         # meta, canonical, hreflang, OG, JSON-LD
 │   │   └── views/                # one view per page, shared by both languages
 │   ├── islands/                  # React only, only what's interactive
 │   │   ├── CommandPalette.tsx
@@ -535,6 +549,7 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 - Interface text always comes from `src/i18n/ui.ts`; no hard-coded text in components.
 - Dutch and English pages share their layout and components; a page file only picks the language and the content.
 - Components are small and do one thing; props are typed with a `Props` interface.
+- Build from atoms: reuse a component from `src/components/atoms/` (or a molecule or organism), or add one, instead of repeating markup or CSS; the parent sets the margins around it through `class`.
 - Commits follow Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`).
 
 ## Build phases

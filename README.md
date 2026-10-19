@@ -37,8 +37,18 @@ on your machine. It checks the files on disk, uncommitted changes included. To s
 
 - `src/layouts/BaseLayout.astro`: the page shell (sidebar, content card, footer, SEO tags and the
   view transitions).
-- `src/components/`: static components. `src/components/views/` holds one view per page, shared by
-  the Dutch and English page files. React islands will go in `src/islands/` from phase 2.
+- `src/components/`: static components, built up from small to large (atomic design). Reuse these,
+  or add a small one, rather than repeating markup or CSS. A component leaves the space around it
+  to the one that places it: the parent passes a `class` for margins, and the component puts that
+  `class` (with any other attributes) on its root element. React islands will go in
+  `src/islands/` from phase 2.
+  - `atoms/`: the smallest pieces: `Link`, `List`, `Icon`, `IconButton`, `DateTime`,
+    `CoverImage`, `VisuallyHidden`.
+  - `molecules/`: small groups of atoms: `ProjectCard`, `Tags`, `MetaList` and `MetaItem`,
+    `MainNav`, `LanguageSwitch`, `ThemeToggle`.
+  - `organisms/`: whole parts of the page: `Sidebar`, `ContentCard`, `SiteFooter`,
+    `ProjectList`, and the `<head>` parts `Seo` and `ThemeScript`.
+  - `views/`: one view per page, shared by the Dutch and English page files.
 - `src/content/`: projects (`projects/nl/` and `projects/en/`, one MDX file per language) and work
   experience (`experience.json`). The schemas are in `src/content.config.ts`.
 - `src/styles/`: `tokens.css` (colors, spacing and typography for both themes), `global.css` and
