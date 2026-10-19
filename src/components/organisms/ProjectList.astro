@@ -1,0 +1,32 @@
+---
+// Project cards stacked in a list, such as the featured projects or all of them.
+import type { HTMLAttributes } from 'astro/types';
+import type { Lang } from '../../i18n/ui';
+import type { Project } from '../../lib/projects';
+import List from '../atoms/List.astro';
+import ProjectCard from '../molecules/ProjectCard.astro';
+
+interface Props extends HTMLAttributes<'ul'> {
+  projects: Project[];
+  lang: Lang;
+  /** The heading level of each card's title, one below the heading of the list. */
+  headingLevel: 'h2' | 'h3';
+}
+
+const { projects, lang, headingLevel, class: className, ...rest } = Astro.props;
+---
+
+<List class:list={['project-list', className]} {...rest}>
+  {projects.map((project) => (
+    <li>
+      <ProjectCard project={project} lang={lang} headingLevel={headingLevel} />
+    </li>
+  ))}
+</List>
+
+<style>
+  .project-list {
+    display: grid;
+    gap: var(--space-4);
+  }
+</style>
