@@ -89,5 +89,21 @@ production, and every other branch gets its own preview URL. One-time setup in t
    in `wrangler.jsonc` does the same, but only takes effect on a production deploy
    (`wrangler deploy`), so without this switch previews have no URL until `main` has deployed once.
 
-A branch preview is at `https://<branch>-personal-website.lucien-hilversum.workers.dev`. Previews
-are public but send `X-Robots-Tag: noindex`, so search engines skip them.
+Production is [reller.nl](https://reller.nl), a Worker custom domain set in `wrangler.jsonc`
+(`routes`), so `wrangler deploy` attaches it. It's also at
+`https://personal-website.lucien-hilversum.workers.dev`, which CI tests and whose canonical URLs
+point to reller.nl. A branch preview is at
+`https://<branch>-personal-website.lucien-hilversum.workers.dev`. Previews are public but send
+`X-Robots-Tag: noindex`, so search engines skip them.
+
+One-time domain setup. The reller.nl zone's DNS is on Cloudflare; it has to be in the same
+account as the Worker.
+
+1. **DNS → Records**: delete the `A` and `AAAA` records for `reller.nl` (they pointed to the
+   registrar's parking page), so the custom domain can create its own record without a conflict.
+   Keep the `www` record, proxied.
+2. Deploy `main` (or, in the Worker's **Domains** tab, add `reller.nl` as a custom domain).
+   Cloudflare creates the DNS record and the certificate.
+3. **Rules → Redirect Rules**: create one from the template _Redirect from WWW to root_, so
+   `www.reller.nl` redirects to `https://reller.nl` (301, keeping the path).
+4. **SSL/TLS → Edge Certificates**: turn on **Always Use HTTPS**.

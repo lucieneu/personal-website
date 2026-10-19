@@ -609,8 +609,8 @@ Proposal (in use since phase 0, still a `TODO(decision)`): host the static build
 **How it's set up (since phase 0)**
 
 - Cloudflare Workers with static assets only: `wrangler.jsonc` serves `dist/`, with no Worker script. Workers Builds is connected to the GitHub repo; the one-time dashboard setup is in the README.
-- `main` deploys to production at `https://personal-website.lucien-hilversum.workers.dev` until the domain is decided. Every other branch gets a preview at `https://<branch>-personal-website.lucien-hilversum.workers.dev`.
-- Previews are public but send `X-Robots-Tag: noindex`. The production workers.dev address doesn't, so it can be indexed until the domain is live.
+- `main` deploys to production at `https://reller.nl` (since phase 1): a Worker custom domain in `wrangler.jsonc`, so every `wrangler deploy` keeps it attached. The zone's DNS is on Cloudflare; `www.reller.nl` redirects to it through a redirect rule. Production is also at `https://personal-website.lucien-hilversum.workers.dev` (`workers_dev: true`, needed because routes turn it off by default), where CI tests `main`; its canonical URLs point to reller.nl. Every other branch gets a preview at `https://<branch>-personal-website.lucien-hilversum.workers.dev`.
+- Previews are public but send `X-Robots-Tag: noindex`.
 
 **Pipeline on every push**
 
@@ -628,7 +628,7 @@ Proposal (in use since phase 0, still a `TODO(decision)`): host the static build
 Unchecked items are still open; the first four items are needed before phase 1, the rest can wait.
 
 - [x] **Language:** Dutch and English, both from phase 1. Dutch at `/`, English under `/en/` (decided Oct 18, 2026).
-- [ ] **Domain:** which domain or subdomain will the site live on?
+- [x] **Domain:** reller.nl, with www.reller.nl redirecting to it (decided Oct 19, 2026).
 - [ ] **Font:** which sans and which mono? Proposal: Inter Variable and JetBrains Mono, or Geist and Geist Mono. (Inter + JetBrains Mono are used temporarily since phase 0.)
 - [ ] **Accent color:** keep the proposed blue, or a color of your own? (The proposed blue is used temporarily since phase 0.)
 - [ ] **Projects:** which 3 projects go on the site in phase 1?

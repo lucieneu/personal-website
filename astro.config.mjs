@@ -10,8 +10,8 @@ export default defineConfig({
   output: 'static',
 
   // The production URL, used for canonical URLs, hreflang links, Open Graph and the sitemap.
-  // TODO(decision): the domain isn't chosen yet; until then production is the workers.dev address.
-  site: 'https://personal-website.lucien-hilversum.workers.dev',
+  // The custom domain is set in wrangler.jsonc.
+  site: 'https://reller.nl',
 
   integrations: [
     mdx(),

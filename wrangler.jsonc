@@ -12,4 +12,10 @@
   // production settings, but a static site has nothing preview-specific, so it stays empty.
   "previews": {},
   "preview_urls": true,
+  // Production: reller.nl, as a Worker custom domain. `wrangler deploy` (main) attaches it; the
+  // zone's DNS is on Cloudflare. www.reller.nl redirects here through a redirect rule (README).
+  "routes": [{ "pattern": "reller.nl", "custom_domain": true }],
+  // With routes set, the workers.dev address would switch off by default. It stays on: CI tests
+  // main there, and the canonical URLs point search engines to reller.nl anyway.
+  "workers_dev": true,
 }
