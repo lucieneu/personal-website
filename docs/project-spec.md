@@ -593,6 +593,7 @@ Done on Oct 18, 2026 in [PR #6](https://github.com/lucieneu/personal-website/pul
 - [ ] Generated OG images per post.
 - [ ] Optional: live-data widget, once the owner has chosen the source.
 - [ ] Optional: evaluate whether small islands can move to Preact (not the 3D scene).
+- [ ] Optional (idea from phase 1): morph between the desktop and mobile layouts when the window crosses 1024 px, with the sidebar's navigation folding into the nav island. The layout switch is instant until then. This needs a small script to switch the layout (an attribute on `<html>`, with the media queries kept as the fallback without JavaScript), because by the time the breakpoint change is reported the new layout is already in place. It won't play while a window edge is being dragged (browsers cancel a view transition while the viewport keeps resizing), only on an iPad rotation, a window snap or a zoom change.
 - [ ] **Gate:** budgets met, all new parts keyboard operable.
 
 ## Deployment and hosting
