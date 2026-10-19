@@ -3,7 +3,7 @@
 import { getLang, localePath, useTranslations } from '../../i18n/utils';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getFeaturedProjects } from '../../lib/projects';
-import ProjectCard from '../ProjectCard.astro';
+import ProjectCard from '../molecules/ProjectCard.astro';
 
 const lang = getLang(Astro.currentLocale);
 const t = useTranslations(lang);

@@ -4,7 +4,7 @@
 import { getCollection } from 'astro:content';
 import { formatDate, getLang, useTranslations } from '../../i18n/utils';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import Tags from '../Tags.astro';
+import Tags from '../molecules/Tags.astro';
 
 const lang = getLang(Astro.currentLocale);
 const t = useTranslations(lang);

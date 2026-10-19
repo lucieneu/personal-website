@@ -1,9 +1,9 @@
 ---
-import type { Lang, UiKey } from '../i18n/ui';
-import { localePath, useTranslations } from '../i18n/utils';
-import LanguageSwitch from './LanguageSwitch.astro';
+import type { Lang, UiKey } from '../../i18n/ui';
+import { localePath, useTranslations } from '../../i18n/utils';
+import LanguageSwitch from '../molecules/LanguageSwitch.astro';
+import ThemeToggle from '../molecules/ThemeToggle.astro';
 import SiteFooter from './SiteFooter.astro';
-import ThemeToggle from './ThemeToggle.astro';
 
 interface Props {
   lang: Lang;
