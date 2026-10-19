@@ -6,6 +6,7 @@ import { getLang, localePath, useTranslations } from '../../i18n/utils';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import type { Project } from '../../lib/projects';
 import DateTime from '../atoms/DateTime.astro';
+import List from '../atoms/List.astro';
 import Tags from '../molecules/Tags.astro';
 
 interface Props {
@@ -61,7 +62,7 @@ const { Content } = await render(project);
   <Tags items={stack} />
 
   {(links.live || links.repo) && (
-    <ul class="links">
+    <List inline class="links">
       {links.live && (
         <li>
           <a href={links.live}>{t('project.live')}</a>
@@ -72,7 +73,7 @@ const { Content } = await render(project);
           <a href={links.repo}>{t('project.repo')}</a>
         </li>
       )}
-    </ul>
+    </List>
   )}
 </BaseLayout>
 
@@ -115,11 +116,7 @@ const { Content } = await render(project);
   }
 
   .links {
-    display: flex;
-    flex-wrap: wrap;
     gap: var(--space-2) var(--space-6);
     margin-top: var(--space-8);
-    padding: 0;
-    list-style: none;
   }
 </style>

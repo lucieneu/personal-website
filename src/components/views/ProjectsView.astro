@@ -3,6 +3,7 @@
 import { getLang, useTranslations } from '../../i18n/utils';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getProjects } from '../../lib/projects';
+import List from '../atoms/List.astro';
 import ProjectCard from '../molecules/ProjectCard.astro';
 
 const lang = getLang(Astro.currentLocale);
@@ -13,13 +14,13 @@ const projects = await getProjects(lang);
 <BaseLayout title={t('projects.title')} description={t('projects.description')}>
   <h1>{t('projects.title')}</h1>
   <slot />
-  <ul class="projects">
+  <List class="projects">
     {projects.map((project) => (
       <li>
         <ProjectCard project={project} lang={lang} headingLevel="h2" />
       </li>
     ))}
-  </ul>
+  </List>
 </BaseLayout>
 
 <style>
@@ -27,7 +28,5 @@ const projects = await getProjects(lang);
     display: grid;
     gap: var(--space-4);
     margin-top: var(--space-8);
-    padding: 0;
-    list-style: none;
   }
 </style>

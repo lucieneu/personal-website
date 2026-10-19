@@ -3,6 +3,7 @@ import type { Lang, UiKey } from '../../i18n/ui';
 import { localePath, useTranslations } from '../../i18n/utils';
 import LanguageSwitch from '../molecules/LanguageSwitch.astro';
 import ThemeToggle from '../molecules/ThemeToggle.astro';
+import List from '../atoms/List.astro';
 import SiteFooter from './SiteFooter.astro';
 
 interface Props {
@@ -51,7 +52,7 @@ function currentState(href: string): 'page' | 'true' | undefined {
 
     {/* Desktop: a list in the sidebar. Mobile: an island fixed to the bottom of the screen. */}
     <nav class="main-nav" aria-label={t('nav.label')}>
-      <ul>
+      <List>
         {navItems.map(({ key, path }) => {
           const href = localePath(lang, path);
           const state = currentState(href);
@@ -65,7 +66,7 @@ function currentState(href: string): 'page' | 'true' | undefined {
             </li>
           );
         })}
-      </ul>
+      </List>
     </nav>
 
     <div class="controls">
@@ -110,8 +111,6 @@ function currentState(href: string): 'page' | 'true' | undefined {
 
   ul {
     margin: 0;
-    padding: 0;
-    list-style: none;
   }
 
   .main-nav a {

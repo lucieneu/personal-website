@@ -1,6 +1,7 @@
 ---
 import { languages, type Lang } from '../../i18n/ui';
 import { langs, useTranslations } from '../../i18n/utils';
+import List from '../atoms/List.astro';
 import VisuallyHidden from '../atoms/VisuallyHidden.astro';
 
 interface Props {
@@ -14,7 +15,7 @@ const t = useTranslations(lang);
 ---
 
 <nav class="lang-switch" aria-label={t('lang.label')}>
-  <ul>
+  <List class="languages">
     {langs.map((code) => (
       <li>
         {code === lang ? (
@@ -30,16 +31,14 @@ const t = useTranslations(lang);
         )}
       </li>
     ))}
-  </ul>
+  </List>
 </nav>
 
 <style>
-  ul {
+  .languages {
     display: flex;
     align-items: center;
     margin: 0;
-    padding: 0;
-    list-style: none;
     font-size: var(--font-size-small);
     font-weight: var(--font-weight-medium);
     letter-spacing: 0.04em;

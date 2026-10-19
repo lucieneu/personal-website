@@ -5,6 +5,7 @@ import { getCollection } from 'astro:content';
 import { getLang, useTranslations } from '../../i18n/utils';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import DateTime from '../atoms/DateTime.astro';
+import List from '../atoms/List.astro';
 import Tags from '../molecules/Tags.astro';
 
 const lang = getLang(Astro.currentLocale);
@@ -19,7 +20,7 @@ const jobs = (await getCollection('experience')).sort(
   <slot />
 
   <h2>{t('about.experience')}</h2>
-  <ol class="timeline">
+  <List as="ol" class="timeline">
     {jobs.map(({ data: { company, role, start, end, summary, stack } }) => (
       <li>
         <p class="period">
@@ -33,18 +34,13 @@ const jobs = (await getCollection('experience')).sort(
         <Tags items={stack} label={t('project.stack')} />
       </li>
     ))}
-  </ol>
+  </List>
 
   <h2>{t('about.skills')}</h2>
   <slot name="skills" />
 </BaseLayout>
 
 <style>
-  .timeline {
-    padding: 0;
-    list-style: none;
-  }
-
   /* A line down the left with a dot per job. */
   .timeline li {
     position: relative;

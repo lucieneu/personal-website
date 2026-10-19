@@ -1,5 +1,7 @@
 ---
 // A small list of tags, such as the stack of a project or a job.
+import List from '../atoms/List.astro';
+
 interface Props {
   items: string[];
   /** Accessible name for the list, e.g. "Stack". */
@@ -9,20 +11,16 @@ interface Props {
 const { items, label } = Astro.props;
 ---
 
-<ul class="tags" aria-label={label}>
+<List inline class="tags" aria-label={label}>
   {items.map((item) => (
     <li>{item}</li>
   ))}
-</ul>
+</List>
 
 <style>
   .tags {
-    display: flex;
-    flex-wrap: wrap;
     gap: var(--space-2);
     margin: 0;
-    padding: 0;
-    list-style: none;
   }
 
   li {

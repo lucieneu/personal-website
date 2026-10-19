@@ -3,6 +3,7 @@
 import { getLang, localePath, useTranslations } from '../../i18n/utils';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getFeaturedProjects } from '../../lib/projects';
+import List from '../atoms/List.astro';
 import ProjectCard from '../molecules/ProjectCard.astro';
 
 const lang = getLang(Astro.currentLocale);
@@ -15,13 +16,13 @@ const projects = await getFeaturedProjects(lang);
 
   <section aria-labelledby="featured">
     <h2 id="featured">{t('home.featured')}</h2>
-    <ul class="projects">
+    <List class="projects">
       {projects.map((project) => (
         <li>
           <ProjectCard project={project} lang={lang} headingLevel="h3" />
         </li>
       ))}
-    </ul>
+    </List>
     <p class="more">
       <a href={localePath(lang, 'projects')}>{t('home.allProjects')} →</a>
     </p>
@@ -32,8 +33,6 @@ const projects = await getFeaturedProjects(lang);
   .projects {
     display: grid;
     gap: var(--space-4);
-    padding: 0;
-    list-style: none;
   }
 
   .more {

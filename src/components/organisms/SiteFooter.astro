@@ -2,6 +2,7 @@
 import type { Lang } from '../../i18n/ui';
 import { useTranslations } from '../../i18n/utils';
 import { repoUrl, socialLinks } from '../../lib/site';
+import List from '../atoms/List.astro';
 
 interface Props {
   lang: Lang;
@@ -18,13 +19,13 @@ const year = new Date().getFullYear();
 ---
 
 <footer class="footer" data-placement={placement}>
-  <ul class="social" aria-label={t('social.label')}>
+  <List inline class="social" aria-label={t('social.label')}>
     {socialLinks.map(({ label, href }) => (
       <li>
         <a href={href}>{label}</a>
       </li>
     ))}
-  </ul>
+  </List>
   <p>
     {`© ${year} ${t('site.name')}`} · <a href={repoUrl}>{t('footer.source')}</a>
   </p>
@@ -37,12 +38,8 @@ const year = new Date().getFullYear();
   }
 
   .social {
-    display: flex;
-    flex-wrap: wrap;
     gap: var(--space-4);
     margin: 0 0 var(--space-2);
-    padding: 0;
-    list-style: none;
   }
 
   p {
