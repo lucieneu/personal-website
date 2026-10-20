@@ -1,7 +1,7 @@
-/* A 20px line icon in the current text color. */
+/* A line icon in the current text color. */
 .icon {
-  width: 20px;
-  height: 20px;
+  width: var(--size-icon);
+  height: var(--size-icon);
   fill: none;
   stroke: currentColor;
   stroke-width: 2;

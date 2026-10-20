@@ -1,3 +1,8 @@
+/* "NL / EN" stays on one line, also with large text. */
+.option {
+  white-space: nowrap;
+}
+
 /* A slash between the languages: NL / EN */
 .option + .option::before {
   content: '/';

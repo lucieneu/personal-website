@@ -25,7 +25,7 @@
   gap: var(--space-3);
 }
 
-@media (max-width: 1023px) {
+@media (width < 64em) {
   /* An element with a view-transition-name is its own stacking context, which would trap the
      island's z-index below the card. On mobile the island has its own name instead, and the
      compact header simply switches with the rest of the page. The attribute selector outranks
@@ -35,7 +35,7 @@
   }
 }
 
-@media (min-width: 1024px) {
+@media (width >= 64em) {
   /* Desktop: name, intro and navigation at the top; controls and footer at the bottom. */
   .sidebar {
     position: sticky;

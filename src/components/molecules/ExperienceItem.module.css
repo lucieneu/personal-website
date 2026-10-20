@@ -2,7 +2,7 @@
 .item {
   position: relative;
   padding: 0 0 var(--space-8) var(--space-6);
-  border-left: 2px solid var(--color-border);
+  border-left: var(--line-timeline) solid var(--color-border);
 }
 
 .item:last-child {
@@ -13,9 +13,10 @@
   content: '';
   position: absolute;
   top: 0.45em;
-  left: -7px;
-  width: 12px;
-  height: 12px;
+  /* Centred on the line. */
+  left: calc((var(--size-timeline-dot) + var(--line-timeline)) / -2);
+  width: var(--size-timeline-dot);
+  height: var(--size-timeline-dot);
   border: 2px solid var(--color-accent);
   border-radius: 50%;
   background: var(--color-surface);

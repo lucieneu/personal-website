@@ -20,7 +20,7 @@
   margin-bottom: 0;
 }
 
-@media (min-width: 1024px) {
+@media (width >= 64em) {
   .card {
     margin: var(--space-16) 0 0;
     padding: var(--card-padding);

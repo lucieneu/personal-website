@@ -10,11 +10,11 @@
     border-color var(--duration-hover) ease-out;
 }
 
-/* Rises 2px and gets an accent border on hover and keyboard focus. */
+/* Rises a little and gets an accent border on hover and keyboard focus. */
 .projectCard:hover,
 .projectCard:has(a:focus-visible) {
   border-color: var(--color-accent);
-  transform: translateY(-2px);
+  transform: translateY(calc(-1 * var(--hover-lift)));
 }
 
 /* The card's border shows the focus, so the link inside needs no outline of its own. */
@@ -58,9 +58,9 @@
   font-size: var(--font-size-small);
 }
 
-@media (min-width: 640px) {
+@media (width >= 40em) {
   .projectCard {
-    grid-template-columns: 160px minmax(0, 1fr);
+    grid-template-columns: var(--size-card-thumb) minmax(0, 1fr);
     align-items: start;
   }
 }

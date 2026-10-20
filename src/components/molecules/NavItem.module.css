@@ -16,7 +16,7 @@
   position: relative;
 }
 
-@media (max-width: 1023px) {
+@media (width < 64em) {
   /* In the nav island: pill-shaped touch targets. */
   .link {
     display: flex;
@@ -24,6 +24,7 @@
     min-height: var(--size-touch);
     padding-inline: var(--space-4);
     border-radius: var(--radius-pill);
+    white-space: nowrap;
   }
 
   /* Whatever shows through the island (a dark image, a bright one), the labels keep at least
@@ -49,7 +50,15 @@
   }
 }
 
-@media (min-width: 1024px) {
+/* Narrow screens with large text (below 24em: 384px at the default font size, 576px at 150%):
+   the smallest padding, so the island's links still fit on one row. */
+@media (width < 24em) {
+  .link {
+    padding-inline: var(--space-1);
+  }
+}
+
+@media (width >= 64em) {
   .link {
     padding-block: var(--space-1);
     /* An underline that grows from the left on hover, and stays on the current page. */

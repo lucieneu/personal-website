@@ -2,7 +2,7 @@
   margin: 0;
 }
 
-@media (max-width: 1023px) {
+@media (width < 64em) {
   /* The island: a pill at the bottom of the screen, within thumb reach, that stays put while
      the card changes (the mobile counterpart of the desktop sidebar). */
   .mainNav {
@@ -20,7 +20,7 @@
        labels as readable text. 70% is about the limit: below it, a bright image behind the
        island in dark mode pulls the labels under 4.5:1 contrast. */
     background: color-mix(in srgb, var(--color-surface) 70%, transparent);
-    box-shadow: 0 8px 24px var(--color-shadow);
+    box-shadow: var(--shadow-float);
     -webkit-backdrop-filter: blur(24px);
     backdrop-filter: blur(24px);
     /* Its own snapshot, so it stays on top of the card during a page transition. */
@@ -34,13 +34,23 @@
     }
   }
 
+  /* With very large text the links wrap onto a second row instead of running off the screen. */
   .items {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: var(--space-1);
   }
 }
 
-@media (min-width: 1024px) {
+/* Narrow screens with large text (see NavItem): a smaller margin beside the island, too. */
+@media (width < 24em) {
+  .mainNav {
+    max-width: calc(100% - 2 * var(--space-2));
+  }
+}
+
+@media (width >= 64em) {
   .items {
     display: flex;
     flex-direction: column;

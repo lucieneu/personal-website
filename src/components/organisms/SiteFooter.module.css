@@ -24,7 +24,7 @@
   view-transition-name: site-footer;
 }
 
-@media (min-width: 1024px) {
+@media (width >= 64em) {
   .placementSidebar {
     display: block;
   }
