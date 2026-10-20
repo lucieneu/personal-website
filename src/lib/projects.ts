@@ -1,5 +1,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import type { Lang } from '../i18n/ui';
+import { localePath, useTranslations } from '../i18n/utils';
+import { newestFirst } from './date';
 
 export type Project = CollectionEntry<'projects'>;
 
@@ -23,7 +25,7 @@ export async function getProjects(lang: Lang): Promise<Project[]> {
     'projects',
     (project) => splitId(project).lang === lang && (import.meta.env.DEV || !project.data.draft),
   );
-  return projects.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+  return newestFirst(projects, (project) => project.data.date);
 }
 
 /** At most 3 projects with `featured: true`, for the home page. */
@@ -37,4 +39,19 @@ export async function projectPaths(lang: Lang) {
     params: { slug: projectSlug(project) },
     props: { project },
   }));
+}
+
+/** The page of a project in a language: /projects/my-project/ or /en/projects/my-project/. */
+export function projectPath(project: Project, lang: Lang): string {
+  return localePath(lang, `projects/${projectSlug(project)}`);
+}
+
+/** The links a project has (its live site, its code), with their labels in `lang`. */
+export function projectLinks(project: Project, lang: Lang): { href: string; label: string }[] {
+  const t = useTranslations(lang);
+  const { live, repo } = project.data.links;
+  return [
+    { href: live, label: t('project.live') },
+    { href: repo, label: t('project.repo') },
+  ].filter((link): link is { href: string; label: string } => link.href !== undefined);
 }

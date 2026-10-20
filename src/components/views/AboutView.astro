@@ -1,14 +1,14 @@
 ---
 // The about page in either language. The page file passes the bio (default slot) and the
 // skills (`skills` slot); the work experience comes from src/content/experience.json.
-import { getCollection } from 'astro:content';
 import { getLang, useTranslations } from '../../i18n/utils';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getExperience } from '../../lib/experience';
 import ExperienceTimeline from '../organisms/ExperienceTimeline.astro';
 
 const lang = getLang(Astro.currentLocale);
 const t = useTranslations(lang);
-const jobs = await getCollection('experience');
+const jobs = await getExperience();
 ---
 
 <BaseLayout title={t('about.title')} description={t('about.description')}>

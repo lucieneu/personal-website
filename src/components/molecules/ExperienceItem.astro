@@ -1,14 +1,14 @@
 ---
 // One job in the ExperienceTimeline: the period, role and employer, a summary and the stack.
-import type { CollectionEntry } from 'astro:content';
 import type { Lang } from '../../i18n/ui';
+import type { Job } from '../../lib/experience';
 import { useTranslations } from '../../i18n/utils';
 import DateTime from '../atoms/DateTime.astro';
 import styles from './ExperienceItem.module.css';
 import Tags from './Tags.astro';
 
 interface Props {
-  job: CollectionEntry<'experience'>;
+  job: Job;
   lang: Lang;
 }
 

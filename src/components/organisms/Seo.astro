@@ -3,8 +3,8 @@
 // canonical URL, the language alternates, Open Graph / Twitter meta and, on the home pages,
 // JSON-LD about me.
 import { ogLocales, type Lang } from '../../i18n/ui';
-import { langs, useTranslations } from '../../i18n/utils';
-import { socialLinks } from '../../lib/site';
+import { otherLangs, useTranslations } from '../../i18n/utils';
+import { absoluteUrl, alternateLinks, canonicalUrl, personJsonLd } from '../../lib/seo';
 
 interface Props {
   lang: Lang;
@@ -31,27 +31,17 @@ const {
 const t = useTranslations(lang);
 
 // `site` is set in astro.config.mjs; every URL here is absolute, as crawlers expect.
-const absolute = (path: string) => new URL(path, Astro.site).href;
-const canonical = alternates ? absolute(alternates[lang]) : undefined;
-const ogImage = absolute('/og-default.png');
-
-const personSchema = person && {
-  '@context': 'https://schema.org',
-  '@type': 'Person',
-  name: t('site.name'),
-  jobTitle: t('site.role'),
-  url: canonical,
-  sameAs: socialLinks.map((link) => link.href),
-};
+const canonical = canonicalUrl(alternates, lang, Astro.site);
+const ogImage = absoluteUrl('/og-default.png', Astro.site);
 ---
 
 <title>{title}</title>
 <meta name="description" content={description} />
 {noindex && <meta name="robots" content="noindex" />}
 {canonical && <link rel="canonical" href={canonical} />}
-{alternates &&
-  langs.map((code) => <link rel="alternate" hreflang={code} href={absolute(alternates[code])} />)}
-{alternates && <link rel="alternate" hreflang="x-default" href={absolute(alternates.nl)} />}
+{alternateLinks(alternates, Astro.site).map(({ hreflang, href }) => (
+  <link rel="alternate" hreflang={hreflang} href={href} />
+))}
 
 <meta property="og:type" content={ogType} />
 <meta property="og:site_name" content={t('site.name')} />
@@ -63,16 +53,12 @@ const personSchema = person && {
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content={t('site.name')} />
 <meta property="og:locale" content={ogLocales[lang]} />
-{langs
-  .filter((code) => code !== lang)
-  .map((code) => (
-    <meta property="og:locale:alternate" content={ogLocales[code]} />
-  ))}
+{otherLangs(lang).map((code) => (
+  <meta property="og:locale:alternate" content={ogLocales[code]} />
+))}
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={title} />
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={ogImage} />
 
-{personSchema && (
-  <script is:inline type="application/ld+json" set:html={JSON.stringify(personSchema)} />
-)}
+{person && <script is:inline type="application/ld+json" set:html={personJsonLd(lang, canonical)} />}

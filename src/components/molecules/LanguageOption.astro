@@ -3,6 +3,7 @@
 // screen readers. The current language is plain text; the other one links to the same page in
 // that language.
 import { languages, type Lang } from '../../i18n/ui';
+import { langCode } from '../../i18n/utils';
 import Link from '../atoms/Link.astro';
 import VisuallyHidden from '../atoms/VisuallyHidden.astro';
 import styles from './LanguageOption.module.css';
@@ -20,7 +21,7 @@ const { code, href, current } = Astro.props;
 <li class={styles.option}>
   {current ? (
     <span class:list={[styles.target, styles.current]} aria-current="true">
-      <span aria-hidden="true">{code.toUpperCase()}</span>
+      <span aria-hidden="true">{langCode(code)}</span>
       <VisuallyHidden>{languages[code]}</VisuallyHidden>
     </span>
   ) : (
@@ -32,7 +33,7 @@ const { code, href, current } = Astro.props;
       tone="muted"
       underline={false}
     >
-      <span aria-hidden="true">{code.toUpperCase()}</span>
+      <span aria-hidden="true">{langCode(code)}</span>
       <VisuallyHidden>{languages[code]}</VisuallyHidden>
     </Link>
   )}

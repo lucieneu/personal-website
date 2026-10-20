@@ -7,15 +7,8 @@ import Seo from '../components/organisms/Seo.astro';
 import Sidebar from '../components/organisms/Sidebar.astro';
 import SiteFooter from '../components/organisms/SiteFooter.astro';
 import ThemeScript from '../components/organisms/ThemeScript.astro';
-import type { Lang } from '../i18n/ui';
-import {
-  getLang,
-  langs,
-  localePath,
-  splitLocalePath,
-  translatePath,
-  useTranslations,
-} from '../i18n/utils';
+import { getLang, isHomePath, languagePaths, useTranslations } from '../i18n/utils';
+import { pageTitle } from '../lib/seo';
 import '../styles/tokens.css';
 import '../styles/global.css';
 import '../styles/transitions.css';
@@ -33,18 +26,10 @@ interface Props {
 const { title, description, ogType, notFound = false } = Astro.props;
 const lang = getLang(Astro.currentLocale);
 const t = useTranslations(lang);
-const pageTitle = title ? `${title} · ${t('site.name')}` : t('site.name');
 
 // Every page exists in both languages under the same path, so the language switch and the
 // hreflang links point to the same path in the other language. The 404 page links to both homes.
-const pathIn = (code: Lang) => translatePath(Astro.url.pathname, code);
-const alternates = notFound
-  ? undefined
-  : (Object.fromEntries(langs.map((code) => [code, pathIn(code)])) as Record<Lang, string>);
-const languageTargets =
-  alternates ??
-  (Object.fromEntries(langs.map((code) => [code, localePath(code)])) as Record<Lang, string>);
-const isHome = !notFound && splitLocalePath(Astro.url.pathname)[1] === '';
+const { alternates, targets } = languagePaths(Astro.url.pathname, !notFound);
 ---
 
 <!doctype html>
@@ -57,12 +42,12 @@ const isHome = !notFound && splitLocalePath(Astro.url.pathname)[1] === '';
     <ThemeScript />
     <Seo
       lang={lang}
-      title={pageTitle}
+      title={pageTitle(title, t('site.name'))}
       description={description}
       alternates={alternates}
       noindex={notFound}
       ogType={ogType}
-      person={isHome}
+      person={isHomePath(Astro.url.pathname)}
     />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     {/* Only the sans font is preloaded: it's used above the fold on every page. */}
@@ -76,7 +61,7 @@ const isHome = !notFound && splitLocalePath(Astro.url.pathname)[1] === '';
       {t('skip.link')}
     </Link>
     <div class={styles.layout}>
-      <Sidebar lang={lang} languageTargets={languageTargets} />
+      <Sidebar lang={lang} languageTargets={targets} />
       <ContentCard>
         <slot />
       </ContentCard>
@@ -86,10 +71,7 @@ const isHome = !notFound && splitLocalePath(Astro.url.pathname)[1] === '';
 </html>
 
 <script>
-  // After a client-side navigation, focus moves to the new content, so keyboard and screen
-  // reader users start at the top of the page they asked for. (ClientRouter announces the new
-  // page title on its own.) preventScroll keeps the restored scroll position on Back.
-  document.addEventListener('astro:after-swap', () => {
-    document.getElementById('content')?.focus({ preventScroll: true });
-  });
+  import { focusContentAfterNavigation } from '../lib/transitions';
+
+  focusContentAfterNavigation();
 </script>

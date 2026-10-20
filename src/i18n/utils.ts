@@ -43,14 +43,37 @@ export function translatePath(pathname: string, lang: Lang): string {
   return localePath(lang, splitLocalePath(pathname)[1]);
 }
 
+/** The languages other than `lang`. */
+export function otherLangs(lang: Lang): Lang[] {
+  return langs.filter((code) => code !== lang);
+}
+
+/** One value per language, e.g. `perLang((code) => localePath(code))` for both home pages. */
+export function perLang<T>(make: (lang: Lang) => T): Record<Lang, T> {
+  return Object.fromEntries(langs.map((code) => [code, make(code)])) as Record<Lang, T>;
+}
+
+/** One piece of interface text in every language, the default language first. */
+export function inEveryLang(key: UiKey): string[] {
+  return langs.map((code) => ui[code][key]);
+}
+
+/** The short code the language switch shows: 'NL', 'EN'. */
+export function langCode(lang: Lang): string {
+  return lang.toUpperCase();
+}
+
+/** Whether a path is one of the home pages (`/` or `/en/`). */
+export function isHomePath(pathname: string): boolean {
+  return splitLocalePath(pathname)[1] === '';
+}
+
 /**
- * Formats a date for the page's language, by default as month and year ("oktober 2026").
- * Dates from the content are midnight UTC, so they're formatted in UTC to keep the same day.
+ * Where the language versions of a page are. `alternates` is the page in each language (for
+ * the hreflang links); the language switch links there too. A page without a translation (the
+ * 404 page) has no alternates, and its language switch links to the home pages.
  */
-export function formatDate(
-  date: Date,
-  lang: Lang,
-  options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long' },
-): string {
-  return new Intl.DateTimeFormat(lang, { ...options, timeZone: 'UTC' }).format(date);
+export function languagePaths(pathname: string, translated: boolean) {
+  const alternates = translated ? perLang((code) => translatePath(pathname, code)) : undefined;
+  return { alternates, targets: alternates ?? perLang((code) => localePath(code)) };
 }

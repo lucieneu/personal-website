@@ -1,7 +1,7 @@
 ---
 import type { Lang } from '../../i18n/ui';
-import { localePath, useTranslations } from '../../i18n/utils';
-import { projectSlug, type Project } from '../../lib/projects';
+import { useTranslations } from '../../i18n/utils';
+import { projectPath, type Project } from '../../lib/projects';
 import CoverImage from '../atoms/CoverImage.astro';
 import DateTime from '../atoms/DateTime.astro';
 import Link from '../atoms/Link.astro';
@@ -18,7 +18,6 @@ interface Props {
 const { project, lang, headingLevel: Heading } = Astro.props;
 const { title, summary, date, stack, cover, coverAlt } = project.data;
 const t = useTranslations(lang);
-const href = localePath(lang, `projects/${projectSlug(project)}`);
 ---
 
 {/* The whole card is clickable through its title link (see .title a::after). */}
@@ -32,7 +31,7 @@ const href = localePath(lang, `projects/${projectSlug(project)}`);
   />
   <div>
     <Heading class={styles.title}>
-      <Link href={href} tone="text" underline={false}>
+      <Link href={projectPath(project, lang)} tone="text" underline={false}>
         {title}
       </Link>
     </Heading>

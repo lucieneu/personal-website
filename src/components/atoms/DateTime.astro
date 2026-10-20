@@ -1,7 +1,7 @@
 ---
 // A date written out for the page's language ("oktober 2026"), in a <time> element.
 import type { Lang } from '../../i18n/ui';
-import { formatDate } from '../../i18n/utils';
+import { formatDate, isoDate } from '../../lib/date';
 
 interface Props {
   date: Date;
@@ -10,8 +10,7 @@ interface Props {
   precision?: 'day' | 'month';
 }
 
-const { date, lang, precision = 'day' } = Astro.props;
-const datetime = date.toISOString().slice(0, precision === 'day' ? 10 : 7);
+const { date, lang, precision } = Astro.props;
 ---
 
-<time datetime={datetime}>{formatDate(date, lang)}</time>
+<time datetime={isoDate(date, precision)}>{formatDate(date, lang)}</time>

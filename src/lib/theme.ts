@@ -58,3 +58,25 @@ export function toggleTheme(event: MouseEvent) {
   });
   transition.finished.finally(() => root.classList.remove('theme-transition'));
 }
+
+const TOGGLE = '[data-theme-toggle]';
+
+function syncToggles() {
+  const pressed = String(currentTheme() === 'dark');
+  for (const button of document.querySelectorAll(TOGGLE))
+    button.setAttribute('aria-pressed', pressed);
+}
+
+/**
+ * Wires up the theme toggle (ThemeToggle.astro): a click switches the theme, and aria-pressed
+ * follows the theme, also when the OS preference changes. Call it once. The sidebar is replaced
+ * on every navigation, so it attaches to the new button after each one.
+ */
+export function initThemeToggle() {
+  document.addEventListener('astro:page-load', () => {
+    syncToggles();
+    document.querySelector<HTMLButtonElement>(TOGGLE)?.addEventListener('click', toggleTheme);
+  });
+  document.addEventListener('theme-change', syncToggles);
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncToggles);
+}

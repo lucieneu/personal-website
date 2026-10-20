@@ -3,7 +3,7 @@
 import { render } from 'astro:content';
 import { getLang, localePath, useTranslations } from '../../i18n/utils';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import type { Project } from '../../lib/projects';
+import { projectLinks, type Project } from '../../lib/projects';
 import CoverImage from '../atoms/CoverImage.astro';
 import DateTime from '../atoms/DateTime.astro';
 import Link from '../atoms/Link.astro';
@@ -19,16 +19,11 @@ interface Props {
 }
 
 const { project } = Astro.props;
-const { title, summary, date, role, stack, cover, coverAlt, links } = project.data;
+const { title, summary, date, role, stack, cover, coverAlt } = project.data;
 const lang = getLang(Astro.currentLocale);
 const t = useTranslations(lang);
 const { Content } = await render(project);
-
-// The links the project has: the live site and the code, when they exist.
-const projectLinks = [
-  { href: links.live, label: t('project.live') },
-  { href: links.repo, label: t('project.repo') },
-].filter((link): link is { href: string; label: string } => link.href !== undefined);
+const links = projectLinks(project, lang);
 ---
 
 <BaseLayout title={title} description={summary} ogType="article">
@@ -64,9 +59,9 @@ const projectLinks = [
   <h2>{t('project.stack')}</h2>
   <Tags items={stack} />
 
-  {projectLinks.length > 0 && (
+  {links.length > 0 && (
     <List inline class={styles.links}>
-      {projectLinks.map(({ href, label }) => (
+      {links.map(({ href, label }) => (
         <LinkItem href={href}>{label}</LinkItem>
       ))}
     </List>
