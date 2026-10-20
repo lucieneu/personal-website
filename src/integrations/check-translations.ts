@@ -3,26 +3,11 @@
 // each Dutch path needs an English twin under /en/, and the other way around.
 // Drafts aren't built in production, so a draft without a translation passes.
 import type { AstroIntegration } from 'astro';
-import { defaultLang, languages, type Lang } from '../i18n/ui';
-
-const langs = Object.keys(languages) as Lang[];
+import { joinLocalePath, langs, splitLocalePath } from '../i18n/paths';
+import type { Lang } from '../i18n/ui';
 
 // Pages that exist once for both languages.
 const shared = new Set(['404']);
-
-/** '/en/projects/x/' → ['en', 'projects/x'] and 'projects/x/' → ['nl', 'projects/x'] */
-function split(pathname: string): [Lang, string] {
-  const path = pathname.replace(/^\/+|\/+$/g, '');
-  const [first = '', ...rest] = path.split('/');
-  const lang = langs.find((code) => code !== defaultLang && code === first);
-  return lang ? [lang, rest.join('/')] : [defaultLang, path];
-}
-
-/** ['en', 'projects/x'] → '/en/projects/x/' and ['nl', ''] → '/' */
-function join(lang: Lang, path: string): string {
-  const parts = [lang === defaultLang ? '' : lang, path].filter(Boolean);
-  return `/${parts.map((part) => `${part}/`).join('')}`;
-}
 
 export default function checkTranslations(): AstroIntegration {
   return {
@@ -33,13 +18,16 @@ export default function checkTranslations(): AstroIntegration {
         for (const { pathname } of pages) {
           // Endpoints such as robots.txt have a file extension; pages don't.
           if (/\.\w+\/?$/.test(pathname)) continue;
-          const [lang, path] = split(pathname);
+          const [lang, pagePath] = splitLocalePath(pathname);
+          const path = pagePath.replace(/\/+$/, '');
           if (shared.has(path)) continue;
           found.set(path, (found.get(path) ?? new Set()).add(lang));
         }
 
         const missing = [...found].flatMap(([path, present]) =>
-          langs.filter((code) => !present.has(code)).map((code) => `  ${join(code, path)}`),
+          langs
+            .filter((code) => !present.has(code))
+            .map((code) => `  ${joinLocalePath(code, path)}`),
         );
         if (missing.length > 0) {
           throw new Error(
