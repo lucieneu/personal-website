@@ -96,14 +96,14 @@ A fixed sidebar on the left and one content card on the right, with the 3D scene
 
 The 3D scene and the sidebar stay still during a page change; only the card's frame and content move.
 
-**Desktop (1024 px and up)**
+**Desktop (64em and up: 1024 px at the default font size)**
 
 - Two columns. The sidebar is `position: sticky`, 100vh tall, at most 440 px wide.
 - The sidebar contains name, job title, a 1–2 sentence intro and navigation at the top; the language switch and theme toggle at the bottom, with the footer (social links, copyright, source code link) below them (changed in phase 1).
 - The content card sits on the right, at most 720 px wide, with 40 px padding and a 16 px radius.
 - The page scrolls as a whole; the card has no scrollbar of its own.
 
-**Mobile (below 1024 px)**
+**Mobile (below 64em)**
 
 - The sidebar becomes a compact header with the name, the language switch and the theme toggle; it scrolls away with the page. (The owner decided in phase 1 to keep the language switch and theme toggle here rather than in the nav island, for now.)
 - The navigation is a "nav island" (changed in phase 1, at the owner's request): a partly see-through, blurred pill fixed to the bottom of the screen, within thumb reach, clear of the iPhone home indicator (`env(safe-area-inset-bottom)`). It stays put during a page transition, like the desktop sidebar; only its current-page marker slides to the new item. Links are at least 44 px tall, and pages leave room at the bottom so the island never covers content.
@@ -124,8 +124,9 @@ The 3D scene and the sidebar stay still during a page change; only the card's fr
 | `--color-border` | `#1F2737` | `#E3E4E0` | Card borders and dividers |
 | `--color-accent` | `#7C9CFF` | `#3B5BDB` | Links, active navigation, 3D accent |
 
-- **Spacing:** a scale based on 4 px (4, 8, 12, 16, 24, 32, 48, 64).
+- **Spacing:** a scale based on 4 px (4, 8, 12, 16, 24, 32, 48, 64), plus a 2 px half step.
 - **Radius:** 16 px for the card, 8 px for smaller elements.
+- **Units (since phase 1):** every size in this document is the value at the browser's default font size (16 px). In `tokens.css` sizes and spacing are in rem (`--space-4: 1rem`, `--size-icon: 1.25rem`) and the breakpoint is in em (`64em`), so the whole layout grows with a visitor's font-size setting, not only the text; with large text the one-column layout starts at a wider window. Only hairlines stay in px: 1 px borders, 2 px focus rings and underlines, and shadow offsets and blurs. A Playwright test checks the pages at a 150% default font size.
 - **Typography:** one sans variable font for everything and one mono font for code. Body 17 px with a 1.6 line height; headings 22, 28 and 40 px with a 1.2 line height.
 
 **Dark mode:** by default the site follows `prefers-color-scheme`. The theme toggle overrides that and stores the choice in `localStorage`. An inline script in `<head>` sets `data-theme` before the first paint, so there is no flash of the wrong theme. In `tokens.css` every color is a `light-dark(<light>, <dark>)` value, so `data-theme` only has to switch `color-scheme` (done since phase 0).
@@ -616,6 +617,7 @@ Done on Oct 18, 2026 in [PR #6](https://github.com/lucieneu/personal-website/pul
 - [ ] Blog: `posts` collection, `/blog`, `/blog/[slug]`, and an RSS feed per language.
 - [ ] Pages `/now` and `/uses` in both languages.
 - [ ] The homepage shows the latest 3 posts.
+- [ ] Absolute imports, at the owner's request (Oct 20, 2026): a path alias in `tsconfig.json` (for example `@/components/atoms/Link.astro` and `@/i18n/utils`) instead of relative imports such as `../../i18n/utils`. Astro and Vite read the aliases from `tsconfig.json`. Change every import at once, in its own PR.
 - [ ] **Gate:** budgets still met with 3D; LCP with and without 3D differs by less than 100 ms.
 
 ### Phase 3: Extras
