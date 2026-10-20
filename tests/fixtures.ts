@@ -1,4 +1,5 @@
 import { test as base, expect, type Page } from '@playwright/test';
+import { ui, type UiKey } from '../src/i18n/ui';
 
 /**
  * `test` with one addition: every test fails when the page logs a console error or throws.
@@ -105,3 +106,16 @@ export async function recordViewTransition(
           .__vtAnimations,
     );
 }
+
+// Parts of the page, found by role and accessible name (in either language), not by class:
+// class names are hashed by CSS Modules.
+const inEitherLanguage = (key: UiKey) => new RegExp(`^(${ui.nl[key]}|${ui.en[key]})$`);
+
+export const mainNav = (page: Page) =>
+  page.getByRole('navigation', { name: inEitherLanguage('nav.label') });
+
+export const languageSwitch = (page: Page) =>
+  page.getByRole('navigation', { name: inEitherLanguage('lang.label') });
+
+export const skipLink = (page: Page) =>
+  page.getByRole('link', { name: inEitherLanguage('skip.link') });

@@ -5,9 +5,12 @@ import {
   expect,
   isSameDocument,
   langOf,
+  languageSwitch,
+  mainNav,
   markDocument,
   recordViewTransition,
   sitePaths,
+  skipLink,
   test,
 } from './fixtures';
 
@@ -28,7 +31,7 @@ test('every page loads in both languages, with its translation linked', async ({
     await expect(page.locator('h1')).toBeVisible();
 
     // The language switch, hreflang and canonical all point to existing pages.
-    const switchLink = page.locator(`.lang-switch a[hreflang="${other}"]`);
+    const switchLink = languageSwitch(page).locator(`a[hreflang="${other}"]`);
     await expect(switchLink).toHaveAttribute('lang', other);
     const translation = await switchLink.getAttribute('href');
     expect((await page.request.get(translation!)).status(), `${path} → ${translation}`).toBe(200);
@@ -42,7 +45,7 @@ test('every page loads in both languages, with its translation linked', async ({
     );
 
     // The current page is marked in the navigation.
-    const current = page.locator('.main-nav a[aria-current="page"]');
+    const current = mainNav(page).locator('a[aria-current="page"]');
     if (!path.includes('/projects/') || path.endsWith('/projects/'))
       await expect(current).toHaveCount(1);
   }
@@ -65,7 +68,7 @@ test('client-side navigation through every page in both languages', async ({ pag
   await page.goto('/');
   await markDocument(page);
   // The navigation (the sidebar on desktop, the island on phones) stays put.
-  const nav = page.locator('.main-nav');
+  const nav = mainNav(page);
   let previous = { lang: 'nl', box: await nav.boundingBox() };
 
   for (const href of [...walk(''), '/en/', ...walk('/en')]) {
@@ -132,7 +135,7 @@ test.describe('on a phone', () => {
   }) => {
     await page.goto('/projects/');
     await markDocument(page);
-    const island = page.locator('.main-nav');
+    const island = mainNav(page);
     await expect(island).toBeInViewport();
     expect(await island.evaluate((el) => getComputedStyle(el).position)).toBe('fixed');
 
@@ -143,11 +146,7 @@ test.describe('on a phone', () => {
 
     // At the very bottom the footer stays clear of the island.
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-    const footer = await page
-      .locator('footer[data-placement="page"]')
-      .getByRole('link')
-      .last()
-      .boundingBox();
+    const footer = await page.getByRole('contentinfo').getByRole('link').last().boundingBox();
     const islandBox = await island.boundingBox();
     expect(footer!.y + footer!.height).toBeLessThan(islandBox!.y);
   });
@@ -196,10 +195,10 @@ test.describe('without JavaScript', () => {
   test('links load pages normally and the theme toggle is hidden', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('[data-theme-toggle]')).toBeHidden();
-    await page.locator('.main-nav a[href="/projects/"]').click();
+    await mainNav(page).locator('a[href="/projects/"]').click();
     await page.waitForURL('**/projects/');
     await expect(page.locator('h1')).toHaveText('Projecten');
-    await page.locator('.lang-switch a[hreflang="en"]').click();
+    await languageSwitch(page).locator('a[hreflang="en"]').click();
     await page.waitForURL('**/en/projects/');
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   });
@@ -216,9 +215,8 @@ test('the skip link is the first focusable element and jumps to the content', as
   );
   await page.goto('/');
   await page.keyboard.press('Tab');
-  const skipLink = page.locator('.skip-link');
-  await expect(skipLink).toBeFocused();
-  await expect(skipLink).toBeInViewport();
+  await expect(skipLink(page)).toBeFocused();
+  await expect(skipLink(page)).toBeInViewport();
   await page.keyboard.press('Enter');
   await expect(page.locator('#content')).toBeFocused();
 });
