@@ -58,7 +58,10 @@ on your machine. It checks the files on disk, uncommitted changes included. To s
   experience (`experience.json`). The schemas are in `src/content.config.ts`.
 - `src/styles/`: `tokens.css` (colors, spacing and typography for both themes), `global.css` and
   `transitions.css` (page transitions and the theme switch).
-- `src/i18n/ui.ts`: all interface text, per language. Components read it through `t()` from `src/i18n/utils.ts`.
+- `src/i18n/ui.ts`: all interface text, per language. A component gets the page's language and
+  `t()` with `const { lang, t } = pageLang(Astro.currentLocale)` from `src/i18n/utils.ts`, rather
+  than a `lang` prop. The helpers that don't need Astro are in `src/i18n/paths.ts`, which the
+  build check uses too.
 - `src/pages/`: Dutch pages; `src/pages/en/`: the same routes in English. `404.astro` is one page
   for both languages.
 - `src/integrations/check-translations.ts`: fails the build when a page or project exists in only one

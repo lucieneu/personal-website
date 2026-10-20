@@ -474,7 +474,8 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │   │   └── experience.json
 │   ├── i18n/
 │   │   ├── ui.ts                 # interface text per language
-│   │   └── utils.ts              # t() and locale helpers
+│   │   ├── paths.ts              # language helpers without Astro (also used by the build check)
+│   │   └── utils.ts              # t(), pageLang() and locale helpers
 │   ├── integrations/
 │   │   └── check-translations.ts # fails the build on a page in only one language
 │   ├── layouts/
@@ -558,6 +559,7 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 - Every `client:*` directive gets a short comment on why it's needed and why this strategy.
 - Colors, spacing and font sizes always come from `tokens.css`; no loose hex values in components.
 - Interface text always comes from `src/i18n/ui.ts`; no hard-coded text in components.
+- Components get the page's language themselves, with `const { lang, t } = pageLang(Astro.currentLocale)`, instead of a `lang` prop passed down the tree. Only a component that shows another language than the page's takes one (`NotFoundMessage`, which the 404 page shows in both languages).
 - Dutch and English pages share their layout and components; a page file only picks the language and the content.
 - Components are small and do one thing; props are typed with a `Props` interface.
 - Build from atoms: reuse a component from `src/components/atoms/` (or a molecule or organism), or add one, instead of repeating markup or CSS; the parent sets the margins around it through `class`.
