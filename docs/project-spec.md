@@ -483,7 +483,8 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │   │   ├── atoms/                # the smallest pieces; each with a .module.css next to it
 │   │   │   ├── Link.astro        # tone, underline, ← back / → forward arrow
 │   │   │   ├── List.astro        # a list without bullets, optionally in a row
-│   │   │   ├── Icon.astro
+│   │   │   ├── Icon.astro        # the base <svg> of every icon
+│   │   │   ├── icons/            # one component per icon: MoonIcon.astro, SunIcon.astro
 │   │   │   ├── IconButton.astro
 │   │   │   ├── DateTime.astro    # <time> with the date for the page's language
 │   │   │   ├── CoverImage.astro  # AVIF + WebP, lazy or eager
@@ -513,11 +514,16 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │   │   └── scene/
 │   │       ├── SceneLoader.tsx   # waits for idle, lazy import
 │   │       └── SceneCanvas.tsx   # R3F Canvas and objects
-│   ├── lib/
-│   │   ├── projects.ts           # projects per language, sorted, drafts filtered
-│   │   ├── site.ts               # social links
-│   │   ├── transitions.ts        # custom transition animations
-│   │   └── theme.ts
+│   ├── lib/                      # the logic: components only pass props and render
+│   │   ├── date.ts               # formatDate, isoDate, newestFirst
+│   │   ├── experience.ts         # work experience, newest first
+│   │   ├── images.ts             # loading attributes
+│   │   ├── navigation.ts         # nav links and which one is current
+│   │   ├── projects.ts           # projects per language, sorted, drafts filtered; paths, links
+│   │   ├── seo.ts                # titles, absolute URLs, alternates, JSON-LD
+│   │   ├── site.ts               # social links, copyright line
+│   │   ├── transitions.ts        # custom transition animations; focus after navigation
+│   │   └── theme.ts              # theme switch and toggle
 │   ├── pages/                    # Dutch (default, no prefix)
 │   │   ├── index.astro
 │   │   ├── about.astro
@@ -555,6 +561,8 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 - Dutch and English pages share their layout and components; a page file only picks the language and the content.
 - Components are small and do one thing; props are typed with a `Props` interface.
 - Build from atoms: reuse a component from `src/components/atoms/` (or a molecule or organism), or add one, instead of repeating markup or CSS; the parent sets the margins around it through `class`.
+- Logic (formatting, calculations, sorting, building URLs and data) lives in utils: `src/lib/` and `src/i18n/utils.ts`. Components only pass props and render, and their `<script>` calls a function from `src/lib/`.
+- One component per icon, in `src/components/atoms/icons/`, built on the shared `Icon` base; no icon component that switches on a name.
 - What a loop renders for each item is its own component (`{items.map((item) => <Item … />)}`), not markup written inside the loop.
 - Styles live in a CSS Module next to the component (`Link.astro` + `Link.module.css`), used as `class={styles.name}`; no `<style>` blocks in components. Class names are camelCase, and every selector starts from a class: in a CSS Module a bare element selector (`li`, `h2`) isn't scoped and would style the whole site. Only `src/styles/` (tokens, global element styles, transitions) is global. Tests find elements by role and accessible name, not by class, because the class names are hashed.
 - Commits follow Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`).

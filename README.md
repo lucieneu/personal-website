@@ -43,7 +43,8 @@ on your machine. It checks the files on disk, uncommitted changes included. To s
   `class` (with any other attributes) on its root element. React islands will go in
   `src/islands/` from phase 2. Each component's styles are in a CSS Module next to it
   (`Link.module.css`), and what a loop renders per item is a component of its own.
-  - `atoms/`: the smallest pieces: `Link`, `List`, `Icon`, `IconButton`, `DateTime`,
+  - `atoms/`: the smallest pieces: `Link`, `List`, `Icon` (the base of the icons in
+    `atoms/icons/`, one component per icon), `IconButton`, `DateTime`,
     `CoverImage`, `Tag`, `VisuallyHidden`.
   - `molecules/`: small groups of atoms: `ProjectCard`, `Tags`, `MetaList` and `MetaItem`,
     `MainNav` and `NavItem`, `LanguageSwitch` and `LanguageOption`, `ThemeToggle`,
@@ -51,6 +52,8 @@ on your machine. It checks the files on disk, uncommitted changes included. To s
   - `organisms/`: whole parts of the page: `Sidebar`, `ContentCard`, `SiteFooter`,
     `ProjectList`, `ExperienceTimeline`, and the `<head>` parts `Seo` and `ThemeScript`.
   - `views/`: one view per page, shared by the Dutch and English page files.
+- `src/lib/`: the logic (dates, navigation, projects, experience, SEO, the theme switch);
+  `src/i18n/utils.ts` has the language helpers. Components only pass props and render.
 - `src/content/`: projects (`projects/nl/` and `projects/en/`, one MDX file per language) and work
   experience (`experience.json`). The schemas are in `src/content.config.ts`.
 - `src/styles/`: `tokens.css` (colors, spacing and typography for both themes), `global.css` and
