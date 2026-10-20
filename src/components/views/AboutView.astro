@@ -1,0 +1,22 @@
+---
+// The about page in either language. The page file passes the bio (default slot) and the
+// skills (`skills` slot); the work experience comes from src/content/experience.json.
+import { pageLang } from '../../i18n/utils';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getExperience } from '../../lib/experience';
+import ExperienceTimeline from '../organisms/ExperienceTimeline.astro';
+
+const { t } = pageLang(Astro.currentLocale);
+const jobs = await getExperience();
+---
+
+<BaseLayout title={t('about.title')} description={t('about.description')}>
+  <h1>{t('about.title')}</h1>
+  <slot />
+
+  <h2>{t('about.experience')}</h2>
+  <ExperienceTimeline jobs={jobs} />
+
+  <h2>{t('about.skills')}</h2>
+  <slot name="skills" />
+</BaseLayout>

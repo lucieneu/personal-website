@@ -1,0 +1,13 @@
+---
+// Short facts side by side, such as a project's date and role. Fill it with MetaItems.
+import type { HTMLAttributes } from 'astro/types';
+import styles from './MetaList.module.css';
+
+type Props = HTMLAttributes<'dl'>;
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<dl class:list={[styles.metaList, className]} {...rest}>
+  <slot />
+</dl>

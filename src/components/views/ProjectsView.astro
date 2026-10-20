@@ -1,0 +1,17 @@
+---
+// The list of all projects in either language. The page file may pass an intro.
+import { pageLang } from '../../i18n/utils';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getProjects } from '../../lib/projects';
+import ProjectList from '../organisms/ProjectList.astro';
+import styles from './ProjectsView.module.css';
+
+const { lang, t } = pageLang(Astro.currentLocale);
+const projects = await getProjects(lang);
+---
+
+<BaseLayout title={t('projects.title')} description={t('projects.description')}>
+  <h1>{t('projects.title')}</h1>
+  <slot />
+  <ProjectList class={styles.projects} projects={projects} headingLevel="h2" />
+</BaseLayout>

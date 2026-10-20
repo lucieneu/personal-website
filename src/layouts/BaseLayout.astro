@@ -1,60 +1,75 @@
 ---
 import { Font } from 'astro:assets';
-import ContentCard from '../components/ContentCard.astro';
-import Sidebar from '../components/Sidebar.astro';
-import { getLang, useTranslations } from '../i18n/utils';
+import { ClientRouter } from 'astro:transitions';
+import Link from '../components/atoms/Link.astro';
+import ContentCard from '../components/organisms/ContentCard.astro';
+import Seo from '../components/organisms/Seo.astro';
+import Sidebar from '../components/organisms/Sidebar.astro';
+import SiteFooter from '../components/organisms/SiteFooter.astro';
+import ThemeScript from '../components/organisms/ThemeScript.astro';
+import { isHomePath, languagePaths, pageLang } from '../i18n/utils';
+import { pageTitle } from '../lib/seo';
 import '../styles/tokens.css';
 import '../styles/global.css';
+import '../styles/transitions.css';
+import styles from './BaseLayout.module.css';
 
 interface Props {
   /** Page title; the site name is appended. Leave out on the home page. */
   title?: string;
-  description?: string;
+  description: string;
+  ogType?: 'website' | 'article';
+  /** The 404 page: one page for both languages, so it has no translation and isn't indexed. */
+  notFound?: boolean;
 }
 
-const { title, description } = Astro.props;
-const lang = getLang(Astro.currentLocale);
-const t = useTranslations(lang);
-const pageTitle = title ? `${title} · ${t('site.name')}` : t('site.name');
+const { title, description, ogType, notFound = false } = Astro.props;
+const { lang, t } = pageLang(Astro.currentLocale);
+
+// Every page exists in both languages under the same path, so the language switch and the
+// hreflang links point to the same path in the other language. The 404 page links to both homes.
+const { alternates, targets } = languagePaths(Astro.url.pathname, !notFound);
 ---
 
 <!doctype html>
 <html lang={lang}>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {/* viewport-fit=cover: the nav island uses env(safe-area-inset-bottom) to clear the iPhone's home indicator. */}
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
-    <title>{pageTitle}</title>
-    {description && <meta name="description" content={description} />}
+    <ThemeScript />
+    <Seo
+      title={pageTitle(title, t('site.name'))}
+      description={description}
+      alternates={alternates}
+      noindex={notFound}
+      ogType={ogType}
+      person={isHomePath(Astro.url.pathname)}
+    />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     {/* Only the sans font is preloaded: it's used above the fold on every page. */}
     <Font cssVariable="--font-inter" preload />
     <Font cssVariable="--font-jetbrains-mono" />
+    {/* Client-side navigation with view transitions; without JavaScript, links just load pages. */}
+    <ClientRouter />
   </head>
   <body>
-    <div class="layout">
-      <Sidebar lang={lang} />
+    <Link class={styles.skipLink} href="#content" underline={false}>
+      {t('skip.link')}
+    </Link>
+    <div class={styles.layout}>
+      <Sidebar languageTargets={targets} />
       <ContentCard>
         <slot />
       </ContentCard>
+      <SiteFooter placement="page" />
     </div>
   </body>
 </html>
 
-<style>
-  @media (min-width: 1024px) {
-    /* 11fr : 18fr is the 440 : 720 ratio of the two max widths, so on narrower screens both
-       columns shrink together and reach their max widths at the same time. */
-    .layout {
-      display: grid;
-      grid-template-columns: minmax(0, 11fr) minmax(0, 18fr);
-      align-items: start;
-      column-gap: var(--space-16);
-      max-width: calc(
-        var(--sidebar-max-width) + var(--card-max-width) + var(--space-16) + 2 * var(--space-12)
-      );
-      margin-inline: auto;
-      padding-inline: var(--space-12);
-    }
-  }
-</style>
+<script>
+  import { focusContentAfterNavigation } from '../lib/transitions';
+
+  focusContentAfterNavigation();
+</script>

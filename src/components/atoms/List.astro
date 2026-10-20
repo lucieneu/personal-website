@@ -1,0 +1,20 @@
+---
+// A list without bullets or indent, for lists that are part of the design (navigation, tags,
+// cards) rather than of the text. Spacing between and around the items is up to the parent,
+// through `class`.
+import type { HTMLAttributes } from 'astro/types';
+import styles from './List.module.css';
+
+interface Props extends HTMLAttributes<'ul'> {
+  /** 'ol' when the order matters, such as a timeline. */
+  as?: 'ul' | 'ol';
+  /** Items side by side, wrapping onto the next line when they don't fit. */
+  inline?: boolean;
+}
+
+const { as: Tag = 'ul', inline = false, class: className, ...rest } = Astro.props;
+---
+
+<Tag class:list={[styles.list, inline && styles.inline, className]} {...rest}>
+  <slot />
+</Tag>

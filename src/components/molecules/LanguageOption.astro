@@ -1,0 +1,40 @@
+---
+// One language in the LanguageSwitch: its code (NL) on screen, its full name (Nederlands) for
+// screen readers. The current language is plain text; the other one links to the same page in
+// that language.
+import { languages, type Lang } from '../../i18n/ui';
+import { langCode } from '../../i18n/utils';
+import Link from '../atoms/Link.astro';
+import VisuallyHidden from '../atoms/VisuallyHidden.astro';
+import styles from './LanguageOption.module.css';
+
+interface Props {
+  code: Lang;
+  /** The same page in this language. */
+  href: string;
+  current: boolean;
+}
+
+const { code, href, current } = Astro.props;
+---
+
+<li class={styles.option}>
+  {current ? (
+    <span class:list={[styles.target, styles.current]} aria-current="true">
+      <span aria-hidden="true">{langCode(code)}</span>
+      <VisuallyHidden>{languages[code]}</VisuallyHidden>
+    </span>
+  ) : (
+    <Link
+      class={styles.target}
+      href={href}
+      hreflang={code}
+      lang={code}
+      tone="muted"
+      underline={false}
+    >
+      <span aria-hidden="true">{langCode(code)}</span>
+      <VisuallyHidden>{languages[code]}</VisuallyHidden>
+    </Link>
+  )}
+</li>

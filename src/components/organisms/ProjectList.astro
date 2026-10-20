@@ -1,0 +1,24 @@
+---
+// Project cards stacked in a list, such as the featured projects or all of them.
+import type { HTMLAttributes } from 'astro/types';
+import type { Project } from '../../lib/projects';
+import List from '../atoms/List.astro';
+import ProjectCard from '../molecules/ProjectCard.astro';
+import styles from './ProjectList.module.css';
+
+interface Props extends HTMLAttributes<'ul'> {
+  projects: Project[];
+  /** The heading level of each card's title, one below the heading of the list. */
+  headingLevel: 'h2' | 'h3';
+}
+
+const { projects, headingLevel, class: className, ...rest } = Astro.props;
+---
+
+<List class:list={[styles.projectList, className]} {...rest}>
+  {projects.map((project) => (
+    <li>
+      <ProjectCard project={project} headingLevel={headingLevel} />
+    </li>
+  ))}
+</List>

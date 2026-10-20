@@ -1,0 +1,33 @@
+/* A line down the left with a dot per job. */
+.item {
+  position: relative;
+  padding: 0 0 var(--space-8) var(--space-6);
+  border-left: var(--line-timeline) solid var(--color-border);
+}
+
+.item:last-child {
+  padding-bottom: 0;
+}
+
+.item::before {
+  content: '';
+  position: absolute;
+  top: 0.45em;
+  /* Centred on the line. */
+  left: calc((var(--size-timeline-dot) + var(--line-timeline)) / -2);
+  width: var(--size-timeline-dot);
+  height: var(--size-timeline-dot);
+  border: 2px solid var(--color-accent);
+  border-radius: 50%;
+  background: var(--color-surface);
+}
+
+.period {
+  margin-bottom: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+}
+
+.heading {
+  margin: 0 0 var(--space-2);
+}

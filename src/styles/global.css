@@ -11,6 +11,13 @@ html {
   text-size-adjust: 100%;
 }
 
+@media (width < 64em) {
+  /* Elements that get focus by keyboard scroll into view above the nav island, not under it. */
+  html {
+    scroll-padding-bottom: calc(var(--size-touch) + var(--space-12) + env(safe-area-inset-bottom));
+  }
+}
+
 body {
   margin: 0;
   background: var(--color-bg);
@@ -55,8 +62,28 @@ pre {
   margin: 0 0 var(--space-4);
 }
 
+/* Links keep a faint underline, so they don't rely on color alone; on hover it darkens and
+   moves closer to the text. */
 a {
   color: var(--color-accent);
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+  text-underline-offset: 0.3em;
+  transition:
+    text-decoration-color var(--duration-hover) ease-out,
+    text-underline-offset var(--duration-hover) ease-out;
+}
+
+a:hover {
+  text-decoration-color: currentColor;
+  text-underline-offset: 0.18em;
+}
+
+/* One clearly visible focus style for everything that can get keyboard focus. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
 }
 
 code,
@@ -82,4 +109,10 @@ video {
   display: block;
   max-width: 100%;
   height: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a {
+    transition: none;
+  }
 }

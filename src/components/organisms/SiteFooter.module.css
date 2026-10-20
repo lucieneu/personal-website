@@ -1,0 +1,35 @@
+.footer {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+}
+
+.social {
+  margin: 0 0 var(--space-2);
+}
+
+.copyright {
+  margin: 0;
+}
+
+.placementSidebar {
+  display: none;
+  margin-top: var(--space-6);
+}
+
+/* Below the card it follows the card's bottom edge while the card morphs, and leaves room
+   for the nav island, so the island never covers it. */
+.placementPage {
+  padding: var(--space-6) var(--space-4)
+    calc(var(--size-touch) + var(--space-16) + env(safe-area-inset-bottom));
+  view-transition-name: site-footer;
+}
+
+@media (width >= 64em) {
+  .placementSidebar {
+    display: block;
+  }
+
+  .placementPage {
+    display: none;
+  }
+}

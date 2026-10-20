@@ -1,0 +1,24 @@
+---
+// NL / EN: links to the same page in the other language.
+import type { Lang } from '../../i18n/ui';
+import { langs, pageLang } from '../../i18n/utils';
+import List from '../atoms/List.astro';
+import LanguageOption from './LanguageOption.astro';
+import styles from './LanguageSwitch.module.css';
+
+interface Props {
+  /** Where each language's link goes: the same page in that language. */
+  targets: Record<Lang, string>;
+}
+
+const { targets } = Astro.props;
+const { lang, t } = pageLang(Astro.currentLocale);
+---
+
+<nav aria-label={t('lang.label')}>
+  <List class={styles.languages}>
+    {langs.map((code) => (
+      <LanguageOption code={code} href={targets[code]} current={code === lang} />
+    ))}
+  </List>
+</nav>

@@ -4,6 +4,9 @@ dist/
 .astro/
 # local Cloudflare/Wrangler state
 .wrangler/
+# Playwright output
+test-results/
+playwright-report/
 
 # dependencies
 node_modules/

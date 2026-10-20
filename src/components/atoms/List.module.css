@@ -1,0 +1,11 @@
+/* A list without bullets or indent. Spacing between and around the items is up to the parent. */
+.list {
+  padding: 0;
+  list-style: none;
+}
+
+/* Items side by side, wrapping onto the next line when they don't fit. */
+.inline {
+  display: flex;
+  flex-wrap: wrap;
+}

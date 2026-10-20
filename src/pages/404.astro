@@ -1,0 +1,22 @@
+---
+// One 404 page for both languages: static hosts serve a single page for every unknown path
+// (wrangler.jsonc: not_found_handling "404-page"). The default language comes first, as the h1.
+import NotFoundMessage from '../components/molecules/NotFoundMessage.astro';
+import { defaultLang } from '../i18n/ui';
+import { inEveryLang, otherLangs, useTranslations } from '../i18n/utils';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { pageTitle } from '../lib/seo';
+
+const t = useTranslations(defaultLang);
+---
+
+<BaseLayout
+  title={pageTitle(...inEveryLang('notFound.title'))}
+  description={t('notFound.text')}
+  notFound
+>
+  <NotFoundMessage lang={defaultLang} headingLevel="h1" />
+  {otherLangs(defaultLang).map((code) => (
+    <NotFoundMessage lang={code} headingLevel="h2" />
+  ))}
+</BaseLayout>

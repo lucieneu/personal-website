@@ -1,0 +1,20 @@
+/* Variants of a link. Without one, it has the look from global.css: the accent color with a
+   faint underline. */
+
+/* Gray until hovered, for secondary links such as the footer's. */
+.toneMuted {
+  color: var(--color-text-muted);
+}
+
+.toneMuted:hover {
+  color: var(--color-accent);
+}
+
+/* The text color, for a name or a title. */
+.toneText {
+  color: var(--color-text);
+}
+
+.noUnderline {
+  text-decoration: none;
+}

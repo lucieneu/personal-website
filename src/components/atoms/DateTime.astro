@@ -1,0 +1,16 @@
+---
+import { pageLang } from '../../i18n/utils';
+// A date written out for the page's language ("oktober 2026"), in a <time> element.
+import { formatDate, isoDate } from '../../lib/date';
+
+interface Props {
+  date: Date;
+  /** How precise the machine-readable date is: a day (2026-10-18) or only a month (2026-10). */
+  precision?: 'day' | 'month';
+}
+
+const { date, precision } = Astro.props;
+const { lang } = pageLang(Astro.currentLocale);
+---
+
+<time datetime={isoDate(date, precision)}>{formatDate(date, lang)}</time>

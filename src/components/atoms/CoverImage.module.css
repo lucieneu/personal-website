@@ -1,0 +1,6 @@
+/* Full width with rounded corners; the height follows the image. */
+.coverImage {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+}

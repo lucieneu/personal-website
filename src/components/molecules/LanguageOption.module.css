@@ -1,0 +1,20 @@
+/* "NL / EN" stays on one line, also with large text. */
+.option {
+  white-space: nowrap;
+}
+
+/* A slash between the languages: NL / EN */
+.option + .option::before {
+  content: '/';
+  padding-inline: var(--space-1);
+  color: var(--color-border-strong);
+}
+
+.target {
+  display: inline-block;
+  padding: var(--space-2) var(--space-1);
+}
+
+.current {
+  color: var(--color-text);
+}

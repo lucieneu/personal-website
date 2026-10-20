@@ -1,5 +1,9 @@
 /*
- * Design tokens. Components take colors, spacing and font sizes from here; no loose values.
+ * Design tokens. Components take colors, spacing and sizes from here; no loose values.
+ *
+ * Units: sizes and spacing are in rem (1rem = 16px at the browser's default font size), so the
+ * whole layout grows with a visitor's font-size setting, not only the text. Only hairlines
+ * stay in px: 1px borders, 2px focus rings and underlines, shadow offsets and blurs.
  *
  * Themes: each color is `light-dark(<light>, <dark>)`, picked by `color-scheme`. By default
  * that follows `prefers-color-scheme`; setting `data-theme="light"` or `data-theme="dark"` on
@@ -8,8 +12,9 @@
  * Reading a color in JS (the 3D scene, phase 2): getPropertyValue('--color-accent') returns
  * the light-dark() text, so read the computed `color` of an element that uses the token.
  *
- * Breakpoint: the two-column layout starts at 1024px. Custom properties can't be used in
- * media queries, so components write `@media (min-width: 1024px)` directly.
+ * Breakpoint: the two-column layout starts at 64em (1024px at the default font size). It's in
+ * em so that larger text gets the one-column layout sooner. Custom properties can't be used in
+ * media queries, so components write `@media (width >= 64em)` and `(width < 64em)` directly.
  */
 
 :root {
@@ -21,22 +26,34 @@
   --color-text: light-dark(#1a1d24, #e6e9ef);
   --color-text-muted: light-dark(#5b6170, #8b93a7);
   --color-border: light-dark(#e3e4e0, #1f2737);
+  /* Dividers that need to stand out a little more (decorative, no contrast requirement). */
+  --color-border-strong: light-dark(#c9cbc4, #34405a);
+  /* Shadow under floating elements (the mobile nav island). */
+  --color-shadow: light-dark(rgb(26 29 36 / 0.12), rgb(0 0 0 / 0.45));
   /* TODO(decision): accent color not chosen yet; this is the proposed blue. */
   --color-accent: light-dark(#3b5bdb, #7c9cff);
 
-  /* Spacing: 4px scale */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-12: 48px;
-  --space-16: 64px;
+  /* Spacing: a 4px scale (0.25rem steps), plus a half step for tight spots such as tags */
+  --space-0-5: 0.125rem; /* 2px */
+  --space-1: 0.25rem; /* 4px */
+  --space-2: 0.5rem; /* 8px */
+  --space-3: 0.75rem; /* 12px */
+  --space-4: 1rem; /* 16px */
+  --space-6: 1.5rem; /* 24px */
+  --space-8: 2rem; /* 32px */
+  --space-12: 3rem; /* 48px */
+  --space-16: 4rem; /* 64px */
 
-  /* Radius */
-  --radius-card: 16px;
-  --radius-sm: 8px;
+  /* Radius. The pill value only has to be larger than any element, so it stays in px. */
+  --radius-card: 1rem; /* 16px */
+  --radius-sm: 0.5rem; /* 8px */
+  --radius-pill: 999px;
+
+  /* Lines */
+  --line-timeline: 2px;
+
+  /* Shadows */
+  --shadow-float: 0 8px 24px var(--color-shadow);
 
   /* Typography. The font families come from the `fonts` config in astro.config.mjs. */
   --font-sans: var(--font-inter);
@@ -45,18 +62,36 @@
   --font-size-h3: 1.375rem; /* 22px */
   --font-size-h2: 1.75rem; /* 28px */
   --font-size-h1: 2.5rem; /* 40px */
+  --font-size-small: 0.9375rem; /* 15px: dates, labels, tags */
   --font-size-code: 0.9em;
   --font-weight-regular: 400;
+  --font-weight-medium: 550;
   --font-weight-heading: 650;
   --line-height-body: 1.6;
   --line-height-heading: 1.2;
 
+  /* Motion. Hover effects; page and theme transitions are timed in src/styles/transitions.css. */
+  --duration-hover: 150ms;
+  /* How far a project card rises on hover. */
+  --hover-lift: 0.125rem; /* 2px */
+
+  /* Sizes */
+  /* Controls such as the theme toggle: at least the 24px target size of WCAG 2.2. */
+  --size-control: 2.5rem; /* 40px */
+  /* Touch targets on mobile, such as the nav island's links. */
+  --size-touch: 2.75rem; /* 44px */
+  --size-icon: 1.25rem; /* 20px */
+  /* The cover thumbnail beside a project card's text. */
+  --size-card-thumb: 10rem; /* 160px */
+  /* The dot per job on the work-experience timeline. */
+  --size-timeline-dot: 0.75rem; /* 12px */
+
   /* Layout. BaseLayout.astro splits the columns 11fr : 18fr, which is 440 : 720; update that
      ratio when you change either max width. */
-  --sidebar-max-width: 440px;
-  --card-max-width: 720px;
-  --card-padding: 40px;
-  --card-padding-mobile: 24px;
+  --sidebar-max-width: 27.5rem; /* 440px */
+  --card-max-width: 45rem; /* 720px */
+  --card-padding: 2.5rem; /* 40px */
+  --card-padding-mobile: 1.5rem; /* 24px */
 }
 
 :root[data-theme='light'] {

@@ -31,19 +31,67 @@ on your machine. It checks the files on disk, uncommitted changes included. To s
 | `npm run format`       | Format everything with Prettier                                         |
 | `npm run format:check` | Check formatting without changing files                                 |
 | `npm run verify`       | Check, lint, format check and build (CI, deploys and the pre-push hook) |
+| `npm run test:e2e`     | Playwright smoke tests (see below)                                      |
 
 ## Where things live
 
-- `src/layouts/BaseLayout.astro`: the page shell (sidebar and content card).
-- `src/components/`: static components. React islands will go in `src/islands/` from phase 2.
-- `src/styles/tokens.css`: colors, spacing and typography for both themes.
-- `src/i18n/ui.ts`: all interface text, per language. Components read it through `t()` from `src/i18n/utils.ts`.
-- `src/pages/`: Dutch pages; `src/pages/en/`: the same routes in English.
+- `src/layouts/BaseLayout.astro`: the page shell (sidebar, content card, footer, SEO tags and the
+  view transitions).
+- `src/components/`: static components, built up from small to large (atomic design). Reuse these,
+  or add a small one, rather than repeating markup or CSS. A component leaves the space around it
+  to the one that places it: the parent passes a `class` for margins, and the component puts that
+  `class` (with any other attributes) on its root element. React islands will go in
+  `src/islands/` from phase 2. Each component's styles are in a CSS Module next to it
+  (`Link.module.css`), and what a loop renders per item is a component of its own.
+  - `atoms/`: the smallest pieces: `Link`, `List`, `Icon` (the base of the icons in
+    `atoms/icons/`, one component per icon), `IconButton`, `DateTime`,
+    `CoverImage`, `Tag`, `VisuallyHidden`.
+  - `molecules/`: small groups of atoms: `ProjectCard`, `Tags`, `MetaList` and `MetaItem`,
+    `MainNav` and `NavItem`, `LanguageSwitch` and `LanguageOption`, `ThemeToggle`,
+    `SocialLinks` and `LinkItem`, `ExperienceItem`, `NotFoundMessage`.
+  - `organisms/`: whole parts of the page: `Sidebar`, `ContentCard`, `SiteFooter`,
+    `ProjectList`, `ExperienceTimeline`, and the `<head>` parts `Seo` and `ThemeScript`.
+  - `views/`: one view per page, shared by the Dutch and English page files.
+- `src/lib/`: the logic (dates, navigation, projects, experience, SEO, the theme switch);
+  `src/i18n/utils.ts` has the language helpers. Components only pass props and render.
+- `src/content/`: projects (`projects/nl/` and `projects/en/`, one MDX file per language) and work
+  experience (`experience.json`). The schemas are in `src/content.config.ts`.
+- `src/styles/`: `tokens.css` (colors, spacing and typography for both themes), `global.css` and
+  `transitions.css` (page transitions and the theme switch).
+- `src/i18n/ui.ts`: all interface text, per language. A component gets the page's language and
+  `t()` with `const { lang, t } = pageLang(Astro.currentLocale)` from `src/i18n/utils.ts`, rather
+  than a `lang` prop. The helpers that don't need Astro are in `src/i18n/paths.ts`, which the
+  build check uses too.
+- `src/pages/`: Dutch pages; `src/pages/en/`: the same routes in English. `404.astro` is one page
+  for both languages.
+- `src/integrations/check-translations.ts`: fails the build when a page or project exists in only one
+  language (drafts excepted, since they aren't built).
+- `tests/`: Playwright tests.
+
+## Adding a project
+
+Add `src/content/projects/nl/<slug>.mdx` and `src/content/projects/en/<slug>.mdx` with the same
+file name, and put the cover image in `src/assets/projects/`. The frontmatter fields are checked at
+build time; `draft: true` keeps a project out of the production build. Projects with
+`featured: true` appear on the home page (the newest 3).
+
+## Tests
+
+`npm run test:e2e` builds the site, serves it locally and runs the Playwright tests in Chromium,
+Firefox, WebKit and two phone profiles. To test a deployed site instead, set `BASE_URL`:
+
+```bash
+BASE_URL=https://<branch>-personal-website.lucien-hilversum.workers.dev npm run test:e2e
+```
+
+The first time, install the browsers with `npx playwright install`.
 
 ## Deploys
 
 Every push runs `npm run verify` (`astro check`, ESLint, Prettier and the build) in GitHub Actions
-(`.github/workflows/ci.yml`).
+(`.github/workflows/ci.yml`). A second job then waits until Cloudflare has deployed that commit
+(the deploy reports its commit at `/version.json`) and runs the Playwright tests against it: the
+branch preview, or production for `main`.
 
 Hosting is on Cloudflare Workers (static assets only, configured in `wrangler.jsonc`) with
 [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/): `main` deploys to
@@ -59,5 +107,21 @@ production, and every other branch gets its own preview URL. One-time setup in t
    in `wrangler.jsonc` does the same, but only takes effect on a production deploy
    (`wrangler deploy`), so without this switch previews have no URL until `main` has deployed once.
 
-A branch preview is at `https://<branch>-personal-website.lucien-hilversum.workers.dev`. Previews
-are public but send `X-Robots-Tag: noindex`, so search engines skip them.
+Production is [reller.nl](https://reller.nl), a Worker custom domain set in `wrangler.jsonc`
+(`routes`), so `wrangler deploy` attaches it. It's also at
+`https://personal-website.lucien-hilversum.workers.dev`, which CI tests and whose canonical URLs
+point to reller.nl. A branch preview is at
+`https://<branch>-personal-website.lucien-hilversum.workers.dev`. Previews are public but send
+`X-Robots-Tag: noindex`, so search engines skip them.
+
+One-time domain setup. The reller.nl zone's DNS is on Cloudflare; it has to be in the same
+account as the Worker.
+
+1. **DNS → Records**: delete the `A` and `AAAA` records for `reller.nl` (they pointed to the
+   registrar's parking page), so the custom domain can create its own record without a conflict.
+   Keep the `www` record, proxied.
+2. Deploy `main` (or, in the Worker's **Domains** tab, add `reller.nl` as a custom domain).
+   Cloudflare creates the DNS record and the certificate.
+3. **Rules → Redirect Rules**: create one from the template _Redirect from WWW to root_, so
+   `www.reller.nl` redirects to `https://reller.nl` (301, keeping the path).
+4. **SSL/TLS → Edge Certificates**: turn on **Always Use HTTPS**.

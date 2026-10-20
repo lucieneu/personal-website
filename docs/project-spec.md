@@ -37,7 +37,7 @@ Astro with static output, and React only for the parts that are truly interactiv
 | 3D | `three`, `@react-three/fiber`, `@react-three/drei` (only the helpers needed) | Declarative 3D in React |
 | Content | Markdown/MDX via `@astrojs/mdx` + content collections with Zod schemas | One file per project or post per language, validated at build time |
 | i18n | Astro's built-in i18n routing | No extra dependency; locale-aware URLs and `Astro.currentLocale` |
-| Styling | CSS custom properties (design tokens) + scoped styles in `.astro` | No runtime CSS, full control over the design |
+| Styling | CSS custom properties (design tokens) + a CSS Module per component (`Component.module.css`, since phase 1, at the owner's request) | No runtime CSS, full control over the design, styles in their own files |
 | Fonts | Self-hosted via Fontsource, variable `woff2`, preloaded | No external requests, no layout shift |
 | Code highlighting | Shiki (built into Astro) | Highlighting at build time, 0 kB JS |
 | Package manager | npm | Comes with Node, so there is no extra tool to install (changed from pnpm on Oct 18, 2026) |
@@ -96,16 +96,18 @@ A fixed sidebar on the left and one content card on the right, with the 3D scene
 
 The 3D scene and the sidebar stay still during a page change; only the card's frame and content move.
 
-**Desktop (1024 px and up)**
+**Desktop (64em and up: 1024 px at the default font size)**
 
 - Two columns. The sidebar is `position: sticky`, 100vh tall, at most 440 px wide.
-- The sidebar contains name, job title, a 1–2 sentence intro, navigation, social links, the language switch and the theme toggle.
+- The sidebar contains name, job title, a 1–2 sentence intro and navigation at the top; the language switch and theme toggle at the bottom, with the footer (social links, copyright, source code link) below them (changed in phase 1).
 - The content card sits on the right, at most 720 px wide, with 40 px padding and a 16 px radius.
 - The page scrolls as a whole; the card has no scrollbar of its own.
 
-**Mobile (below 1024 px)**
+**Mobile (below 64em)**
 
-- The sidebar becomes a compact header with name, navigation and the language switch.
+- The sidebar becomes a compact header with the name, the language switch and the theme toggle; it scrolls away with the page. (The owner decided in phase 1 to keep the language switch and theme toggle here rather than in the nav island, for now.)
+- The navigation is a "nav island" (changed in phase 1, at the owner's request): a partly see-through, blurred pill fixed to the bottom of the screen, within thumb reach, clear of the iPhone home indicator (`env(safe-area-inset-bottom)`). It stays put during a page transition, like the desktop sidebar; only its current-page marker slides to the new item. Links are at least 44 px tall, and pages leave room at the bottom so the island never covers content.
+- The footer sits below the card.
 - The card is full width with a 16 px margin on both sides and 24 px padding.
 - No horizontal scrolling, not even with long code blocks (those scroll within their own block).
 
@@ -122,8 +124,9 @@ The 3D scene and the sidebar stay still during a page change; only the card's fr
 | `--color-border` | `#1F2737` | `#E3E4E0` | Card borders and dividers |
 | `--color-accent` | `#7C9CFF` | `#3B5BDB` | Links, active navigation, 3D accent |
 
-- **Spacing:** a scale based on 4 px (4, 8, 12, 16, 24, 32, 48, 64).
+- **Spacing:** a scale based on 4 px (4, 8, 12, 16, 24, 32, 48, 64), plus a 2 px half step.
 - **Radius:** 16 px for the card, 8 px for smaller elements.
+- **Units (since phase 1):** every size in this document is the value at the browser's default font size (16 px). In `tokens.css` sizes and spacing are in rem (`--space-4: 1rem`, `--size-icon: 1.25rem`) and the breakpoint is in em (`64em`), so the whole layout grows with a visitor's font-size setting, not only the text; with large text the one-column layout starts at a wider window. Only hairlines stay in px: 1 px borders, 2 px focus rings and underlines, and shadow offsets and blurs. A Playwright test checks the pages at a 150% default font size.
 - **Typography:** one sans variable font for everything and one mono font for code. Body 17 px with a 1.6 line height; headings 22, 28 and 40 px with a 1.2 line height.
 
 **Dark mode:** by default the site follows `prefers-color-scheme`. The theme toggle overrides that and stores the choice in `localStorage`. An inline script in `<head>` sets `data-theme` before the first paint, so there is no flash of the wrong theme. In `tokens.css` every color is a `light-dark(<light>, <dark>)` value, so `data-theme` only has to switch `color-scheme` (done since phase 0).
@@ -139,6 +142,7 @@ On every navigation the sidebar stays put, the card's frame morphs to the new he
 3. The card's frame (`<main>`) gets `transition:name="content-card"` with the browser's default morph. The frame itself contains no text, so it may stretch during the morph.
 4. The card's content gets its own `transition:name="content-body"` with a custom fade. Because the content is captured separately, the text doesn't distort during the morph.
 5. The 3D scene's container gets `transition:persist="scene"` plus its own `transition:name` with `transition:animate="none"`, so the canvas stays live.
+6. On mobile (since phase 1): the nav island gets `view-transition-name: nav-island` with no animation, and its current-page marker gets `nav-marker`, which morphs from the old item to the new one with the card's timing. The footer below the card gets `site-footer` with the card's timing, so it follows the card's bottom edge. The sidebar's own name is turned off on mobile: an element with a view-transition-name is a stacking context, which would put the fixed island below the card.
 
 ```astro
 ---
@@ -195,9 +199,10 @@ export const contentFade: TransitionDirectionalAnimations = {
 ::view-transition-old(content-card),
 ::view-transition-new(content-card) { height: 100%; }
 
-/* Don't crossfade the rest of the page (background only) */
+/* Don't animate the rest of the page (background only); the group too, since phase 1 */
+::view-transition-group(root),
 ::view-transition-old(root),
-::view-transition-new(root) { animation: none; }
+::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
 
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
@@ -211,7 +216,7 @@ export const contentFade: TransitionDirectionalAnimations = {
 **Pitfalls for the builder**
 
 - Scripts that do something on page load listen for `astro:page-load` instead of `DOMContentLoaded`. Otherwise they don't run again after a navigation.
-- The theme (`data-theme` on `<html>`) must be set again in `astro:after-swap`, otherwise it jumps back after a navigation.
+- The theme (`data-theme` on `<html>`) must be carried over on every navigation, because ClientRouter replaces all attributes of `<html>`; otherwise it jumps back. Since phase 1 the inline theme script copies it onto the new page in `astro:before-swap` (`event.newDocument`), so it's already right when the new page is swapped in, even when `localStorage` is blocked.
 - Switching language is a normal navigation with the same transition. The `lang` attribute on `<html>` comes from the new page; check that it is updated after a client-side navigation, because screen readers rely on it.
 - Every `transition:name` is unique per page. Two elements with the same name on one page break the transition.
 - Astro's default animations may need to be overridden; check in DevTools (Animations panel) which animation actually runs.
@@ -453,14 +458,15 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 ├── .husky/pre-push               # npm run verify before every push
 ├── astro.config.mjs              # includes the i18n config
 ├── package.json
+├── playwright.config.ts          # local build, or BASE_URL (a deploy)
 ├── tsconfig.json
 ├── wrangler.jsonc                # Cloudflare Workers: static assets, previews
 ├── public/
 │   ├── _headers                  # cache headers for /_astro/*
 │   ├── favicon.svg
-│   ├── og-default.png
-│   └── robots.txt
+│   └── og-default.png
 ├── src/
+│   ├── assets/projects/          # cover images
 │   ├── content.config.ts
 │   ├── content/
 │   │   ├── projects/             # nl/ and en/ subfolders
@@ -469,24 +475,57 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │   │   └── experience.json
 │   ├── i18n/
 │   │   ├── ui.ts                 # interface text per language
-│   │   └── utils.ts              # t() and locale helpers
+│   │   ├── paths.ts              # language helpers without Astro (also used by the build check)
+│   │   └── utils.ts              # t(), pageLang() and locale helpers
+│   ├── integrations/
+│   │   └── check-translations.ts # fails the build on a page in only one language
 │   ├── layouts/
-│   │   └── BaseLayout.astro      # ClientRouter, scene, sidebar, card
-│   ├── components/
-│   │   ├── Sidebar.astro
-│   │   ├── ContentCard.astro
-│   │   ├── ProjectCard.astro
-│   │   ├── LanguageSwitch.astro  # same page in the other language
-│   │   ├── ThemeToggle.astro     # vanilla script, no React
-│   │   └── Seo.astro             # meta, canonical, hreflang
+│   │   └── BaseLayout.astro      # ClientRouter, scene, sidebar, card, footer
+│   ├── components/               # atomic design: atoms → molecules → organisms → views
+│   │   ├── atoms/                # the smallest pieces; each with a .module.css next to it
+│   │   │   ├── Link.astro        # tone, underline, ← back / → forward arrow
+│   │   │   ├── List.astro        # a list without bullets, optionally in a row
+│   │   │   ├── Icon.astro        # the base <svg> of every icon
+│   │   │   ├── icons/            # one component per icon: MoonIcon.astro, SunIcon.astro
+│   │   │   ├── IconButton.astro
+│   │   │   ├── DateTime.astro    # <time> with the date for the page's language
+│   │   │   ├── CoverImage.astro  # AVIF + WebP, lazy or eager
+│   │   │   ├── Tag.astro         # one tag in Tags
+│   │   │   └── VisuallyHidden.astro
+│   │   ├── molecules/            # small groups of atoms
+│   │   │   ├── ProjectCard.astro
+│   │   │   ├── Tags.astro
+│   │   │   ├── MetaList.astro    # label/value pairs, with MetaItem.astro
+│   │   │   ├── MainNav.astro     # sidebar list on desktop, island on mobile; NavItem.astro
+│   │   │   ├── LanguageSwitch.astro # same page in the other language; LanguageOption.astro
+│   │   │   ├── ThemeToggle.astro # vanilla script, no React
+│   │   │   ├── SocialLinks.astro # LinkItem.astro: a link as a list item
+│   │   │   ├── ExperienceItem.astro # one job in the timeline
+│   │   │   └── NotFoundMessage.astro # the 404 message in one language
+│   │   ├── organisms/            # whole parts of the page
+│   │   │   ├── Sidebar.astro
+│   │   │   ├── ContentCard.astro
+│   │   │   ├── SiteFooter.astro
+│   │   │   ├── ProjectList.astro
+│   │   │   ├── ExperienceTimeline.astro
+│   │   │   ├── ThemeScript.astro # inline in <head>: stored theme before first paint
+│   │   │   └── Seo.astro         # meta, canonical, hreflang, OG, JSON-LD
+│   │   └── views/                # one view per page, shared by both languages
 │   ├── islands/                  # React only, only what's interactive
 │   │   ├── CommandPalette.tsx
 │   │   └── scene/
 │   │       ├── SceneLoader.tsx   # waits for idle, lazy import
 │   │       └── SceneCanvas.tsx   # R3F Canvas and objects
-│   ├── lib/
-│   │   ├── transitions.ts        # custom transition animations
-│   │   └── theme.ts
+│   ├── lib/                      # the logic: components only pass props and render
+│   │   ├── date.ts               # formatDate, isoDate, newestFirst
+│   │   ├── experience.ts         # work experience, newest first
+│   │   ├── images.ts             # loading attributes
+│   │   ├── navigation.ts         # nav links and which one is current
+│   │   ├── projects.ts           # projects per language, sorted, drafts filtered; paths, links
+│   │   ├── seo.ts                # titles, absolute URLs, alternates, JSON-LD
+│   │   ├── site.ts               # social links, copyright line
+│   │   ├── transitions.ts        # custom transition animations; focus after navigation
+│   │   └── theme.ts              # theme switch and toggle
 │   ├── pages/                    # Dutch (default, no prefix)
 │   │   ├── index.astro
 │   │   ├── about.astro
@@ -499,6 +538,8 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │   │   ├── now.mdx
 │   │   ├── uses.mdx
 │   │   ├── 404.astro             # one page, both languages
+│   │   ├── robots.txt.ts         # generated, so the sitemap URL follows `site`
+│   │   ├── version.json.ts       # the commit of the build, for CI
 │   │   ├── rss.xml.ts
 │   │   └── en/                   # English: the same routes under /en/
 │   │       ├── index.astro
@@ -508,8 +549,10 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │       ├── tokens.css            # colors, spacing, typography
 │       ├── global.css
 │       └── transitions.css
-└── tests/
-    └── navigation.spec.ts        # Playwright
+└── tests/                        # Playwright
+    ├── fixtures.ts               # fails a test on any console error
+    ├── navigation.spec.ts
+    └── theme.spec.ts
 ```
 
 **Conventions**
@@ -517,8 +560,14 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 - Every `client:*` directive gets a short comment on why it's needed and why this strategy.
 - Colors, spacing and font sizes always come from `tokens.css`; no loose hex values in components.
 - Interface text always comes from `src/i18n/ui.ts`; no hard-coded text in components.
+- Components get the page's language themselves, with `const { lang, t } = pageLang(Astro.currentLocale)`, instead of a `lang` prop passed down the tree. Only a component that shows another language than the page's takes one (`NotFoundMessage`, which the 404 page shows in both languages).
 - Dutch and English pages share their layout and components; a page file only picks the language and the content.
 - Components are small and do one thing; props are typed with a `Props` interface.
+- Build from atoms: reuse a component from `src/components/atoms/` (or a molecule or organism), or add one, instead of repeating markup or CSS; the parent sets the margins around it through `class`.
+- Logic (formatting, calculations, sorting, building URLs and data) lives in utils: `src/lib/` and `src/i18n/utils.ts`. Components only pass props and render, and their `<script>` calls a function from `src/lib/`.
+- One component per icon, in `src/components/atoms/icons/`, built on the shared `Icon` base; no icon component that switches on a name.
+- What a loop renders for each item is its own component (`{items.map((item) => <Item … />)}`), not markup written inside the loop.
+- Styles live in a CSS Module next to the component (`Link.astro` + `Link.module.css`), used as `class={styles.name}`; no `<style>` blocks in components. Class names are camelCase, and every selector starts from a class: in a CSS Module a bare element selector (`li`, `h2`) isn't scoped and would style the whole site. Only `src/styles/` (tokens, global element styles, transitions) is global. Tests find elements by role and accessible name, not by class, because the class names are hashed.
 - Commits follow Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`).
 
 ## Build phases
@@ -568,6 +617,7 @@ Done on Oct 18, 2026 in [PR #6](https://github.com/lucieneu/personal-website/pul
 - [ ] Blog: `posts` collection, `/blog`, `/blog/[slug]`, and an RSS feed per language.
 - [ ] Pages `/now` and `/uses` in both languages.
 - [ ] The homepage shows the latest 3 posts.
+- [ ] Absolute imports, at the owner's request (Oct 20, 2026): a path alias in `tsconfig.json` (for example `@/components/atoms/Link.astro` and `@/i18n/utils`) instead of relative imports such as `../../i18n/utils`. Astro and Vite read the aliases from `tsconfig.json`. Change every import at once, in its own PR.
 - [ ] **Gate:** budgets still met with 3D; LCP with and without 3D differs by less than 100 ms.
 
 ### Phase 3: Extras
@@ -577,6 +627,7 @@ Done on Oct 18, 2026 in [PR #6](https://github.com/lucieneu/personal-website/pul
 - [ ] Generated OG images per post.
 - [ ] Optional: live-data widget, once the owner has chosen the source.
 - [ ] Optional: evaluate whether small islands can move to Preact (not the 3D scene).
+- [ ] Optional (idea from phase 1): morph between the desktop and mobile layouts when the window crosses 1024 px, with the sidebar's navigation folding into the nav island. The layout switch is instant until then. This needs a small script to switch the layout (an attribute on `<html>`, with the media queries kept as the fallback without JavaScript), because by the time the breakpoint change is reported the new layout is already in place. It won't play while a window edge is being dragged (browsers cancel a view transition while the viewport keeps resizing), only on an iPad rotation, a window snap or a zoom change.
 - [ ] **Gate:** budgets met, all new parts keyboard operable.
 
 ## Deployment and hosting
@@ -592,8 +643,8 @@ Proposal (in use since phase 0, still a `TODO(decision)`): host the static build
 **How it's set up (since phase 0)**
 
 - Cloudflare Workers with static assets only: `wrangler.jsonc` serves `dist/`, with no Worker script. Workers Builds is connected to the GitHub repo; the one-time dashboard setup is in the README.
-- `main` deploys to production at `https://personal-website.lucien-hilversum.workers.dev` until the domain is decided. Every other branch gets a preview at `https://<branch>-personal-website.lucien-hilversum.workers.dev`.
-- Previews are public but send `X-Robots-Tag: noindex`. The production workers.dev address doesn't, so it can be indexed until the domain is live.
+- `main` deploys to production at `https://reller.nl` (since phase 1): a Worker custom domain in `wrangler.jsonc`, so every `wrangler deploy` keeps it attached. The zone's DNS is on Cloudflare; `www.reller.nl` redirects to it through a redirect rule. Production is also at `https://personal-website.lucien-hilversum.workers.dev` (`workers_dev: true`, needed because routes turn it off by default), where CI tests `main`; its canonical URLs point to reller.nl. Every other branch gets a preview at `https://<branch>-personal-website.lucien-hilversum.workers.dev`.
+- Previews are public but send `X-Robots-Tag: noindex`.
 
 **Pipeline on every push**
 
@@ -602,7 +653,7 @@ Proposal (in use since phase 0, still a `TODO(decision)`): host the static build
 1. Locally, before the push: the Husky pre-push hook.
 2. GitHub Actions: `npm ci`, then `npm run verify`.
 3. Cloudflare Workers Builds: `npm run verify` as the build command, then `npx wrangler deploy` (`main`) or `npx wrangler preview` (other branches).
-4. From phase 1: Playwright smoke tests against the preview URL.
+4. From phase 1: Playwright smoke tests against the deploy, in a second GitHub Actions job. Every build reports its commit at `/version.json` (from `WORKERS_CI_COMMIT_SHA`); the job waits until the branch preview (or production, for `main`) serves the pushed commit, then runs the tests with `BASE_URL` set to it.
 
 **Caching:** files in `/_astro/` have a hash in their name and get `Cache-Control: public, max-age=31536000, immutable` (set in `public/_headers`). HTML keeps Cloudflare's default (`max-age=0, must-revalidate`), so a new deploy is visible right away.
 
@@ -611,7 +662,7 @@ Proposal (in use since phase 0, still a `TODO(decision)`): host the static build
 Unchecked items are still open; the first four items are needed before phase 1, the rest can wait.
 
 - [x] **Language:** Dutch and English, both from phase 1. Dutch at `/`, English under `/en/` (decided Oct 18, 2026).
-- [ ] **Domain:** which domain or subdomain will the site live on?
+- [x] **Domain:** reller.nl, with www.reller.nl redirecting to it (decided Oct 19, 2026).
 - [ ] **Font:** which sans and which mono? Proposal: Inter Variable and JetBrains Mono, or Geist and Geist Mono. (Inter + JetBrains Mono are used temporarily since phase 0.)
 - [ ] **Accent color:** keep the proposed blue, or a color of your own? (The proposed blue is used temporarily since phase 0.)
 - [ ] **Projects:** which 3 projects go on the site in phase 1?

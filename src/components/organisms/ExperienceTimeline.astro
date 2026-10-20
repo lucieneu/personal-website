@@ -1,0 +1,19 @@
+---
+// Work experience as a timeline, in the order given (getExperience(): newest first). Each job
+// is an ExperienceItem.
+import type { Job } from '../../lib/experience';
+import List from '../atoms/List.astro';
+import ExperienceItem from '../molecules/ExperienceItem.astro';
+
+interface Props {
+  jobs: Job[];
+}
+
+const { jobs } = Astro.props;
+---
+
+<List as="ol">
+  {jobs.map((job) => (
+    <ExperienceItem job={job} />
+  ))}
+</List>

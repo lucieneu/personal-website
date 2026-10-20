@@ -1,0 +1,14 @@
+---
+// The base of every icon in icons/: a 20px line icon in the current text color. Each icon
+// passes its own shapes as children. Decorative: the control it's in carries the name.
+import type { HTMLAttributes } from 'astro/types';
+import styles from './Icon.module.css';
+
+type Props = HTMLAttributes<'svg'>;
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<svg class:list={[styles.icon, className]} viewBox="0 0 24 24" aria-hidden="true" {...rest}>
+  <slot />
+</svg>

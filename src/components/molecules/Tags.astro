@@ -1,0 +1,20 @@
+---
+// A small list of tags, such as the stack of a project or a job.
+import List from '../atoms/List.astro';
+import Tag from '../atoms/Tag.astro';
+import styles from './Tags.module.css';
+
+interface Props {
+  items: string[];
+  /** Accessible name for the list, e.g. "Stack". */
+  label?: string;
+}
+
+const { items, label } = Astro.props;
+---
+
+<List inline class={styles.tags} aria-label={label}>
+  {items.map((item) => (
+    <Tag>{item}</Tag>
+  ))}
+</List>

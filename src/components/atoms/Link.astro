@@ -1,0 +1,34 @@
+---
+// A link. Without props it has the look from global.css: the accent color with a faint
+// underline.
+import type { HTMLAttributes } from 'astro/types';
+import styles from './Link.module.css';
+
+interface Props extends HTMLAttributes<'a'> {
+  /**
+   * accent (default); muted: gray until hovered, for secondary links such as the footer's;
+   * text: the text color, for a name or a title.
+   */
+  tone?: 'accent' | 'muted' | 'text';
+  /** false where the place already shows it's a link: navigation, the site name, card titles. */
+  underline?: boolean;
+  /** An arrow that shows the direction: back (← before the text) or forward (→ after it). */
+  arrow?: 'back' | 'forward';
+}
+
+const { tone = 'accent', underline = true, arrow, class: className, ...rest } = Astro.props;
+---
+
+<a
+  class:list={[
+    className,
+    tone === 'muted' && styles.toneMuted,
+    tone === 'text' && styles.toneText,
+    !underline && styles.noUnderline,
+  ]}
+  {...rest}
+>
+  {arrow === 'back' && '← '}
+  <slot />
+  {arrow === 'forward' && ' →'}
+</a>

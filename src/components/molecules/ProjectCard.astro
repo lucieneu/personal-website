@@ -1,0 +1,42 @@
+---
+import { pageLang } from '../../i18n/utils';
+import { projectPath, type Project } from '../../lib/projects';
+import CoverImage from '../atoms/CoverImage.astro';
+import DateTime from '../atoms/DateTime.astro';
+import Link from '../atoms/Link.astro';
+import styles from './ProjectCard.module.css';
+import Tags from './Tags.astro';
+
+interface Props {
+  project: Project;
+  /** The heading level of the title, one below the heading of the list it's in. */
+  headingLevel: 'h2' | 'h3';
+}
+
+const { project, headingLevel: Heading } = Astro.props;
+const { title, summary, date, stack, cover, coverAlt } = project.data;
+const { lang, t } = pageLang(Astro.currentLocale);
+---
+
+{/* The whole card is clickable through its title link (see .title a::after). */}
+<article class={styles.projectCard}>
+  <CoverImage
+    class={styles.cover}
+    src={cover}
+    alt={coverAlt}
+    widths={[320, 640]}
+    sizes="(min-width: 40em) 160px, calc(100vw - 82px)"
+  />
+  <div>
+    <Heading class={styles.title}>
+      <Link href={projectPath(project, lang)} tone="text" underline={false}>
+        {title}
+      </Link>
+    </Heading>
+    <p class={styles.summary}>{summary}</p>
+    <p class={styles.date}>
+      <DateTime date={date} />
+    </p>
+    <Tags items={stack} label={t('project.stack')} />
+  </div>
+</article>

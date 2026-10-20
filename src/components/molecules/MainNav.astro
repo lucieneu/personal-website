@@ -1,0 +1,25 @@
+---
+// The main navigation. Desktop: a list in the sidebar. Mobile: an island fixed to the bottom
+// of the screen.
+import type { HTMLAttributes } from 'astro/types';
+import { pageLang } from '../../i18n/utils';
+import { navItems } from '../../lib/navigation';
+import List from '../atoms/List.astro';
+import styles from './MainNav.module.css';
+import NavItem from './NavItem.astro';
+
+type Props = HTMLAttributes<'nav'>;
+
+const { class: className, ...rest } = Astro.props;
+const { lang, t } = pageLang(Astro.currentLocale);
+
+const items = navItems(lang, Astro.url.pathname);
+---
+
+<nav class:list={[styles.mainNav, className]} aria-label={t('nav.label')} {...rest}>
+  <List class={styles.items}>
+    {items.map(({ key, href, current }) => (
+      <NavItem href={href} label={t(key)} current={current} />
+    ))}
+  </List>
+</nav>

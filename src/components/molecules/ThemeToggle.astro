@@ -1,0 +1,21 @@
+---
+import { pageLang } from '../../i18n/utils';
+import IconButton from '../atoms/IconButton.astro';
+import MoonIcon from '../atoms/icons/MoonIcon.astro';
+import SunIcon from '../atoms/icons/SunIcon.astro';
+import styles from './ThemeToggle.module.css';
+
+const { t } = pageLang(Astro.currentLocale);
+---
+
+{/* aria-pressed is set by initThemeToggle(), once it knows the current theme. */}
+<IconButton class={styles.toggle} label={t('theme.dark')} data-theme-toggle>
+  <MoonIcon class={styles.iconMoon} />
+  <SunIcon class={styles.iconSun} />
+</IconButton>
+
+<script>
+  import { initThemeToggle } from '../../lib/theme';
+
+  initThemeToggle();
+</script>

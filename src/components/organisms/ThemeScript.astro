@@ -1,0 +1,21 @@
+---
+// Goes in <head>. Applies the stored theme before the first paint, so the wrong theme never
+// flashes; this is the only script that blocks rendering, so keep it tiny (well under 1 kB).
+// Without JavaScript the toggle is hidden by `@media (scripting: none)` in ThemeToggle.
+import { THEME_STORAGE_KEY } from '../../lib/theme';
+---
+
+<script is:inline define:vars={{ key: THEME_STORAGE_KEY }}>
+  try {
+    const theme = localStorage.getItem(key);
+    if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+  } catch {
+    // Storage is blocked: follow the OS preference.
+  }
+  // On a client-side navigation, ClientRouter replaces all attributes of <html> with those of the
+  // new page. Copying the theme onto the new page first keeps it from jumping back.
+  document.addEventListener('astro:before-swap', (event) => {
+    const { theme } = document.documentElement.dataset;
+    if (theme) event.newDocument.documentElement.dataset.theme = theme;
+  });
+</script>

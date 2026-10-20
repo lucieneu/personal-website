@@ -1,0 +1,18 @@
+---
+// A square button that shows only an icon (pass one or more Icons as children). The label is
+// its accessible name, hidden on screen.
+import type { HTMLAttributes } from 'astro/types';
+import styles from './IconButton.module.css';
+import VisuallyHidden from './VisuallyHidden.astro';
+
+interface Props extends HTMLAttributes<'button'> {
+  label: string;
+}
+
+const { label, class: className, ...rest } = Astro.props;
+---
+
+<button type="button" class:list={[styles.iconButton, className]} {...rest}>
+  <slot />
+  <VisuallyHidden>{label}</VisuallyHidden>
+</button>
