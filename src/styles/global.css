@@ -11,6 +11,13 @@ html {
   text-size-adjust: 100%;
 }
 
+@media (max-width: 1023px) {
+  /* Elements that get focus by keyboard scroll into view above the nav island, not under it. */
+  html {
+    scroll-padding-bottom: calc(var(--size-touch) + var(--space-12) + env(safe-area-inset-bottom));
+  }
+}
+
 body {
   margin: 0;
   background: var(--color-bg);

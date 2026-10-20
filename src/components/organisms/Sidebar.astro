@@ -5,6 +5,7 @@ import Link from '../atoms/Link.astro';
 import LanguageSwitch from '../molecules/LanguageSwitch.astro';
 import MainNav from '../molecules/MainNav.astro';
 import ThemeToggle from '../molecules/ThemeToggle.astro';
+import styles from './Sidebar.module.css';
 import SiteFooter from './SiteFooter.astro';
 
 interface Props {
@@ -18,18 +19,18 @@ const t = useTranslations(lang);
 ---
 
 {/* Replaced on every navigation (so the current link is right), but never animated. */}
-<div class="sidebar" transition:name="sidebar" transition:animate="none">
-  <header class="masthead">
-    <Link class="name" href={localePath(lang)} tone="text" underline={false}>
+<div class={styles.sidebar} transition:name="sidebar" transition:animate="none">
+  <header class={styles.masthead}>
+    <Link class={styles.name} href={localePath(lang)} tone="text" underline={false}>
       {t('site.name')}
     </Link>
-    <p class="role">{t('site.role')}</p>
-    <p class="intro">{t('site.intro')}</p>
+    <p class={styles.role}>{t('site.role')}</p>
+    <p class={styles.intro}>{t('site.intro')}</p>
 
     {/* On mobile it's an island at the bottom of the screen, outside the header. */}
-    <MainNav class="nav" lang={lang} />
+    <MainNav class={styles.nav} lang={lang} />
 
-    <div class="controls">
+    <div class={styles.controls}>
       <LanguageSwitch lang={lang} targets={languageTargets} />
       <ThemeToggle lang={lang} />
     </div>
@@ -38,91 +39,3 @@ const t = useTranslations(lang);
   {/* On desktop the footer sits at the bottom of the sidebar; on mobile it's below the card. */}
   <SiteFooter lang={lang} placement="sidebar" />
 </div>
-
-<style>
-  /* Mobile: a compact header with the name and controls; the navigation is the island. */
-  .masthead {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    padding: var(--space-4);
-  }
-
-  .name {
-    font-size: var(--font-size-h3);
-    font-weight: var(--font-weight-heading);
-    line-height: var(--line-height-heading);
-  }
-
-  /* The compact mobile header only shows the name and the controls. */
-  .role,
-  .intro {
-    display: none;
-  }
-
-  .controls {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-  }
-
-  @media (max-width: 1023px) {
-    /* An element with a view-transition-name is its own stacking context, which would trap the
-       island's z-index below the card. On mobile the island has its own name instead, and the
-       compact header simply switches with the rest of the page. */
-    .sidebar {
-      view-transition-name: none;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    /* Desktop: name, intro and navigation at the top; controls and footer at the bottom. */
-    .sidebar {
-      position: sticky;
-      top: 0;
-      display: flex;
-      flex-direction: column;
-      height: 100dvh;
-      /* On short screens (or when zoomed in) the sidebar scrolls on its own, so nothing in it
-         ends up out of reach below the fold. */
-      overflow-y: auto;
-      padding: var(--space-16) 0;
-    }
-
-    .masthead {
-      flex: 1;
-      flex-direction: column;
-      align-items: flex-start;
-      justify-content: flex-start;
-      gap: 0;
-      padding: 0;
-    }
-
-    .name {
-      font-size: var(--font-size-h1);
-    }
-
-    .role {
-      display: block;
-      margin: var(--space-3) 0 0;
-      font-size: var(--font-size-h3);
-      line-height: var(--line-height-heading);
-    }
-
-    .intro {
-      display: block;
-      margin: var(--space-4) 0 0;
-      color: var(--color-text-muted);
-    }
-
-    .nav {
-      margin-top: var(--space-12);
-    }
-
-    .controls {
-      margin-top: auto;
-      padding-top: var(--space-8);
-    }
-  }
-</style>

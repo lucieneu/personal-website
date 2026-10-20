@@ -5,6 +5,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getFeaturedProjects } from '../../lib/projects';
 import Link from '../atoms/Link.astro';
 import ProjectList from '../organisms/ProjectList.astro';
+import styles from './HomeView.module.css';
 
 const lang = getLang(Astro.currentLocale);
 const t = useTranslations(lang);
@@ -17,16 +18,10 @@ const projects = await getFeaturedProjects(lang);
   <section aria-labelledby="featured">
     <h2 id="featured">{t('home.featured')}</h2>
     <ProjectList projects={projects} lang={lang} headingLevel="h3" />
-    <p class="more">
+    <p class={styles.more}>
       <Link href={localePath(lang, 'projects')} arrow="forward">
         {t('home.allProjects')}
       </Link>
     </p>
   </section>
 </BaseLayout>
-
-<style>
-  .more {
-    margin-top: var(--space-6);
-  }
-</style>

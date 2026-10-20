@@ -4,6 +4,7 @@ import { getLang, useTranslations } from '../../i18n/utils';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getProjects } from '../../lib/projects';
 import ProjectList from '../organisms/ProjectList.astro';
+import styles from './ProjectsView.module.css';
 
 const lang = getLang(Astro.currentLocale);
 const t = useTranslations(lang);
@@ -13,11 +14,5 @@ const projects = await getProjects(lang);
 <BaseLayout title={t('projects.title')} description={t('projects.description')}>
   <h1>{t('projects.title')}</h1>
   <slot />
-  <ProjectList class="projects" projects={projects} lang={lang} headingLevel="h2" />
+  <ProjectList class={styles.projects} projects={projects} lang={lang} headingLevel="h2" />
 </BaseLayout>
-
-<style>
-  .projects {
-    margin-top: var(--space-8);
-  }
-</style>

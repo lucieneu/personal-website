@@ -1,6 +1,7 @@
 ---
 // A 20px line icon in the current text color. Decorative: the control it's in carries the name.
 import type { HTMLAttributes } from 'astro/types';
+import styles from './Icon.module.css';
 
 interface Props extends HTMLAttributes<'svg'> {
   name: 'moon' | 'sun';
@@ -9,7 +10,7 @@ interface Props extends HTMLAttributes<'svg'> {
 const { name, class: className, ...rest } = Astro.props;
 ---
 
-<svg class:list={['icon', className]} viewBox="0 0 24 24" aria-hidden="true" {...rest}>
+<svg class:list={[styles.icon, className]} viewBox="0 0 24 24" aria-hidden="true" {...rest}>
   {name === 'moon' && <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />}
   {name === 'sun' && (
     <>
@@ -18,15 +19,3 @@ const { name, class: className, ...rest } = Astro.props;
     </>
   )}
 </svg>
-
-<style>
-  .icon {
-    width: 20px;
-    height: 20px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-</style>

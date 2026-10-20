@@ -2,6 +2,7 @@
 // A link. Without props it has the look from global.css: the accent color with a faint
 // underline.
 import type { HTMLAttributes } from 'astro/types';
+import styles from './Link.module.css';
 
 interface Props extends HTMLAttributes<'a'> {
   /**
@@ -21,7 +22,9 @@ const { tone = 'accent', underline = true, arrow, class: className, ...rest } = 
 <a
   class:list={[
     className,
-    { 'tone-muted': tone === 'muted', 'tone-text': tone === 'text', 'no-underline': !underline },
+    tone === 'muted' && styles.toneMuted,
+    tone === 'text' && styles.toneText,
+    !underline && styles.noUnderline,
   ]}
   {...rest}
 >
@@ -29,21 +32,3 @@ const { tone = 'accent', underline = true, arrow, class: className, ...rest } = 
   <slot />
   {arrow === 'forward' && ' →'}
 </a>
-
-<style>
-  .tone-muted {
-    color: var(--color-text-muted);
-  }
-
-  .tone-muted:hover {
-    color: var(--color-accent);
-  }
-
-  .tone-text {
-    color: var(--color-text);
-  }
-
-  .no-underline {
-    text-decoration: none;
-  }
-</style>

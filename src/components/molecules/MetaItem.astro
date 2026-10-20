@@ -1,23 +1,15 @@
 ---
 // One fact in a MetaList: a muted label with the value (the children) below it.
+import styles from './MetaItem.module.css';
+
 interface Props {
   label: string;
 }
 ---
 
 <div>
-  <dt>{Astro.props.label}</dt>
-  <dd>
+  <dt class={styles.label}>{Astro.props.label}</dt>
+  <dd class={styles.value}>
     <slot />
   </dd>
 </div>
-
-<style>
-  dt {
-    color: var(--color-text-muted);
-  }
-
-  dd {
-    margin: 0;
-  }
-</style>

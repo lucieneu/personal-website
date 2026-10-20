@@ -5,6 +5,7 @@ import type { Lang } from '../../i18n/ui';
 import type { Project } from '../../lib/projects';
 import List from '../atoms/List.astro';
 import ProjectCard from '../molecules/ProjectCard.astro';
+import styles from './ProjectList.module.css';
 
 interface Props extends HTMLAttributes<'ul'> {
   projects: Project[];
@@ -16,17 +17,10 @@ interface Props extends HTMLAttributes<'ul'> {
 const { projects, lang, headingLevel, class: className, ...rest } = Astro.props;
 ---
 
-<List class:list={['project-list', className]} {...rest}>
+<List class:list={[styles.projectList, className]} {...rest}>
   {projects.map((project) => (
     <li>
       <ProjectCard project={project} lang={lang} headingLevel={headingLevel} />
     </li>
   ))}
 </List>
-
-<style>
-  .project-list {
-    display: grid;
-    gap: var(--space-4);
-  }
-</style>
