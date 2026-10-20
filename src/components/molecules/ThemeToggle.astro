@@ -1,8 +1,9 @@
 ---
 import type { Lang } from '../../i18n/ui';
 import { useTranslations } from '../../i18n/utils';
-import Icon from '../atoms/Icon.astro';
 import IconButton from '../atoms/IconButton.astro';
+import MoonIcon from '../atoms/icons/MoonIcon.astro';
+import SunIcon from '../atoms/icons/SunIcon.astro';
 import styles from './ThemeToggle.module.css';
 
 interface Props {
@@ -12,29 +13,14 @@ interface Props {
 const t = useTranslations(Astro.props.lang);
 ---
 
-{/* aria-pressed is set by the script below, once it knows the current theme. */}
+{/* aria-pressed is set by initThemeToggle(), once it knows the current theme. */}
 <IconButton class={styles.toggle} label={t('theme.dark')} data-theme-toggle>
-  <Icon name="moon" class={styles.iconMoon} />
-  <Icon name="sun" class={styles.iconSun} />
+  <MoonIcon class={styles.iconMoon} />
+  <SunIcon class={styles.iconSun} />
 </IconButton>
 
 <script>
-  import { currentTheme, toggleTheme } from '../../lib/theme';
+  import { initThemeToggle } from '../../lib/theme';
 
-  const syncPressed = () => {
-    const pressed = String(currentTheme() === 'dark');
-    for (const button of document.querySelectorAll('[data-theme-toggle]')) {
-      button.setAttribute('aria-pressed', pressed);
-    }
-  };
-
-  // The sidebar is replaced on every navigation, so the new button needs its listener again.
-  document.addEventListener('astro:page-load', () => {
-    syncPressed();
-    document
-      .querySelector<HTMLButtonElement>('[data-theme-toggle]')
-      ?.addEventListener('click', toggleTheme);
-  });
-  document.addEventListener('theme-change', syncPressed);
-  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncPressed);
+  initThemeToggle();
 </script>
