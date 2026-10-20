@@ -37,7 +37,7 @@ Astro with static output, and React only for the parts that are truly interactiv
 | 3D | `three`, `@react-three/fiber`, `@react-three/drei` (only the helpers needed) | Declarative 3D in React |
 | Content | Markdown/MDX via `@astrojs/mdx` + content collections with Zod schemas | One file per project or post per language, validated at build time |
 | i18n | Astro's built-in i18n routing | No extra dependency; locale-aware URLs and `Astro.currentLocale` |
-| Styling | CSS custom properties (design tokens) + scoped styles in `.astro` | No runtime CSS, full control over the design |
+| Styling | CSS custom properties (design tokens) + a CSS Module per component (`Component.module.css`, since phase 1, at the owner's request) | No runtime CSS, full control over the design, styles in their own files |
 | Fonts | Self-hosted via Fontsource, variable `woff2`, preloaded | No external requests, no layout shift |
 | Code highlighting | Shiki (built into Astro) | Highlighting at build time, 0 kB JS |
 | Package manager | npm | Comes with Node, so there is no extra tool to install (changed from pnpm on Oct 18, 2026) |
@@ -480,26 +480,31 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │   ├── layouts/
 │   │   └── BaseLayout.astro      # ClientRouter, scene, sidebar, card, footer
 │   ├── components/               # atomic design: atoms → molecules → organisms → views
-│   │   ├── atoms/                # the smallest pieces
+│   │   ├── atoms/                # the smallest pieces; each with a .module.css next to it
 │   │   │   ├── Link.astro        # tone, underline, ← back / → forward arrow
 │   │   │   ├── List.astro        # a list without bullets, optionally in a row
 │   │   │   ├── Icon.astro
 │   │   │   ├── IconButton.astro
 │   │   │   ├── DateTime.astro    # <time> with the date for the page's language
 │   │   │   ├── CoverImage.astro  # AVIF + WebP, lazy or eager
+│   │   │   ├── Tag.astro         # one tag in Tags
 │   │   │   └── VisuallyHidden.astro
 │   │   ├── molecules/            # small groups of atoms
 │   │   │   ├── ProjectCard.astro
 │   │   │   ├── Tags.astro
 │   │   │   ├── MetaList.astro    # label/value pairs, with MetaItem.astro
-│   │   │   ├── MainNav.astro     # sidebar list on desktop, island on mobile
-│   │   │   ├── LanguageSwitch.astro # same page in the other language
-│   │   │   └── ThemeToggle.astro # vanilla script, no React
+│   │   │   ├── MainNav.astro     # sidebar list on desktop, island on mobile; NavItem.astro
+│   │   │   ├── LanguageSwitch.astro # same page in the other language; LanguageOption.astro
+│   │   │   ├── ThemeToggle.astro # vanilla script, no React
+│   │   │   ├── SocialLinks.astro # LinkItem.astro: a link as a list item
+│   │   │   ├── ExperienceItem.astro # one job in the timeline
+│   │   │   └── NotFoundMessage.astro # the 404 message in one language
 │   │   ├── organisms/            # whole parts of the page
 │   │   │   ├── Sidebar.astro
 │   │   │   ├── ContentCard.astro
 │   │   │   ├── SiteFooter.astro
 │   │   │   ├── ProjectList.astro
+│   │   │   ├── ExperienceTimeline.astro
 │   │   │   ├── ThemeScript.astro # inline in <head>: stored theme before first paint
 │   │   │   └── Seo.astro         # meta, canonical, hreflang, OG, JSON-LD
 │   │   └── views/                # one view per page, shared by both languages
@@ -550,6 +555,8 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 - Dutch and English pages share their layout and components; a page file only picks the language and the content.
 - Components are small and do one thing; props are typed with a `Props` interface.
 - Build from atoms: reuse a component from `src/components/atoms/` (or a molecule or organism), or add one, instead of repeating markup or CSS; the parent sets the margins around it through `class`.
+- What a loop renders for each item is its own component (`{items.map((item) => <Item … />)}`), not markup written inside the loop.
+- Styles live in a CSS Module next to the component (`Link.astro` + `Link.module.css`), used as `class={styles.name}`; no `<style>` blocks in components. Class names are camelCase, and every selector starts from a class: in a CSS Module a bare element selector (`li`, `h2`) isn't scoped and would style the whole site. Only `src/styles/` (tokens, global element styles, transitions) is global. Tests find elements by role and accessible name, not by class, because the class names are hashed.
 - Commits follow Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`).
 
 ## Build phases
