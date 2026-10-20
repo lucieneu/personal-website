@@ -1,14 +1,13 @@
 ---
 // The home page in either language. The page file passes the intro (with its <h1>).
-import { getLang, localePath, useTranslations } from '../../i18n/utils';
+import { localePath, pageLang } from '../../i18n/utils';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getFeaturedProjects } from '../../lib/projects';
 import Link from '../atoms/Link.astro';
 import ProjectList from '../organisms/ProjectList.astro';
 import styles from './HomeView.module.css';
 
-const lang = getLang(Astro.currentLocale);
-const t = useTranslations(lang);
+const { lang, t } = pageLang(Astro.currentLocale);
 const projects = await getFeaturedProjects(lang);
 ---
 
@@ -17,7 +16,7 @@ const projects = await getFeaturedProjects(lang);
 
   <section aria-labelledby="featured">
     <h2 id="featured">{t('home.featured')}</h2>
-    <ProjectList projects={projects} lang={lang} headingLevel="h3" />
+    <ProjectList projects={projects} headingLevel="h3" />
     <p class={styles.more}>
       <Link href={localePath(lang, 'projects')} arrow="forward">
         {t('home.allProjects')}

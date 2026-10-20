@@ -3,11 +3,10 @@
 // canonical URL, the language alternates, Open Graph / Twitter meta and, on the home pages,
 // JSON-LD about me.
 import { ogLocales, type Lang } from '../../i18n/ui';
-import { otherLangs, useTranslations } from '../../i18n/utils';
+import { otherLangs, pageLang } from '../../i18n/utils';
 import { absoluteUrl, alternateLinks, canonicalUrl, personJsonLd } from '../../lib/seo';
 
 interface Props {
-  lang: Lang;
   /** The full page title, site name included. */
   title: string;
   description: string;
@@ -20,7 +19,6 @@ interface Props {
 }
 
 const {
-  lang,
   title,
   description,
   alternates,
@@ -28,7 +26,7 @@ const {
   ogType = 'website',
   person = false,
 } = Astro.props;
-const t = useTranslations(lang);
+const { lang, t } = pageLang(Astro.currentLocale);
 
 // `site` is set in astro.config.mjs; every URL here is absolute, as crawlers expect.
 const canonical = canonicalUrl(alternates, lang, Astro.site);

@@ -1,19 +1,16 @@
 ---
 // Links to my profiles elsewhere, side by side. The profiles are listed in src/lib/site.ts.
 import type { HTMLAttributes } from 'astro/types';
-import type { Lang } from '../../i18n/ui';
-import { useTranslations } from '../../i18n/utils';
+import { pageLang } from '../../i18n/utils';
 import { socialLinks } from '../../lib/site';
 import List from '../atoms/List.astro';
 import LinkItem from './LinkItem.astro';
 import styles from './SocialLinks.module.css';
 
-interface Props extends HTMLAttributes<'ul'> {
-  lang: Lang;
-}
+type Props = HTMLAttributes<'ul'>;
 
-const { lang, class: className, ...rest } = Astro.props;
-const t = useTranslations(lang);
+const { class: className, ...rest } = Astro.props;
+const { t } = pageLang(Astro.currentLocale);
 ---
 
 <List inline class:list={[styles.socialLinks, className]} aria-label={t('social.label')} {...rest}>

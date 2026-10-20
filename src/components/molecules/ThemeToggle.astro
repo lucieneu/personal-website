@@ -1,16 +1,11 @@
 ---
-import type { Lang } from '../../i18n/ui';
-import { useTranslations } from '../../i18n/utils';
+import { pageLang } from '../../i18n/utils';
 import IconButton from '../atoms/IconButton.astro';
 import MoonIcon from '../atoms/icons/MoonIcon.astro';
 import SunIcon from '../atoms/icons/SunIcon.astro';
 import styles from './ThemeToggle.module.css';
 
-interface Props {
-  lang: Lang;
-}
-
-const t = useTranslations(Astro.props.lang);
+const { t } = pageLang(Astro.currentLocale);
 ---
 
 {/* aria-pressed is set by initThemeToggle(), once it knows the current theme. */}

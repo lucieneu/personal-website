@@ -1,18 +1,10 @@
+// Language helpers for pages and components. The ones that don't need Astro live in paths.ts
+// (the build check uses those too) and are re-exported here.
 import { getRelativeLocaleUrl } from 'astro:i18n';
-import { defaultLang, languages, ui, type Lang, type UiKey } from './ui';
+import { getLang, langs, splitLocalePath } from './paths';
+import { ui, type Lang, type UiKey } from './ui';
 
-export function isLang(value: string): value is Lang {
-  // Not `in`: that also matches inherited keys such as 'constructor'.
-  return Object.hasOwn(languages, value);
-}
-
-/** Every supported language, Dutch first. */
-export const langs = Object.keys(languages) as Lang[];
-
-/** Narrows `Astro.currentLocale` to a supported language, falling back to Dutch. */
-export function getLang(locale: string | undefined): Lang {
-  return locale !== undefined && isLang(locale) ? locale : defaultLang;
-}
+export { getLang, isLang, langs, splitLocalePath } from './paths';
 
 /** Returns `t()`, which looks up interface text for the given language. */
 export function useTranslations(lang: Lang) {
@@ -21,21 +13,19 @@ export function useTranslations(lang: Lang) {
   };
 }
 
+/**
+ * The language of the page being rendered, with its `t()`. Components call this with
+ * `Astro.currentLocale` (Astro's per-page context) instead of getting the language as a prop:
+ * `const { lang, t } = pageLang(Astro.currentLocale);`
+ */
+export function pageLang(locale: string | undefined) {
+  const lang = getLang(locale);
+  return { lang, t: useTranslations(lang) };
+}
+
 /** Builds a path in the given language, e.g. `localePath('en', 'projects')` → `/en/projects/`. */
 export function localePath(lang: Lang, path = ''): string {
   return getRelativeLocaleUrl(lang, path);
-}
-
-/**
- * Splits a URL path into its language and the path within that language:
- * `/en/projects/` → `['en', 'projects/']`, `/projects/` → `['nl', 'projects/']`.
- * Dutch has no prefix, so only the other languages are recognized as a first segment.
- */
-export function splitLocalePath(pathname: string): [Lang, string] {
-  const path = pathname.replace(/^\/+/, '');
-  const [first = '', ...rest] = path.split('/');
-  if (first !== defaultLang && isLang(first)) return [first, rest.join('/')];
-  return [defaultLang, path];
 }
 
 /** The same page in another language. Every page has the same path in both languages. */

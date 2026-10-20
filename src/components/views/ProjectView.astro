@@ -1,7 +1,7 @@
 ---
 // One project in either language: cover, the body (problem, approach, result), stack and links.
 import { render } from 'astro:content';
-import { getLang, localePath, useTranslations } from '../../i18n/utils';
+import { localePath, pageLang } from '../../i18n/utils';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { projectLinks, type Project } from '../../lib/projects';
 import CoverImage from '../atoms/CoverImage.astro';
@@ -20,8 +20,7 @@ interface Props {
 
 const { project } = Astro.props;
 const { title, summary, date, role, stack, cover, coverAlt } = project.data;
-const lang = getLang(Astro.currentLocale);
-const t = useTranslations(lang);
+const { lang, t } = pageLang(Astro.currentLocale);
 const { Content } = await render(project);
 const links = projectLinks(project, lang);
 ---
@@ -38,7 +37,7 @@ const links = projectLinks(project, lang);
 
   <MetaList class={styles.meta}>
     <MetaItem label={t('project.date')}>
-      <DateTime date={date} lang={lang} />
+      <DateTime date={date} />
     </MetaItem>
     <MetaItem label={t('project.role')}>{role}</MetaItem>
   </MetaList>

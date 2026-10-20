@@ -1,6 +1,6 @@
 ---
 import type { Lang } from '../../i18n/ui';
-import { localePath, useTranslations } from '../../i18n/utils';
+import { localePath, pageLang } from '../../i18n/utils';
 import Link from '../atoms/Link.astro';
 import LanguageSwitch from '../molecules/LanguageSwitch.astro';
 import MainNav from '../molecules/MainNav.astro';
@@ -9,13 +9,12 @@ import styles from './Sidebar.module.css';
 import SiteFooter from './SiteFooter.astro';
 
 interface Props {
-  lang: Lang;
   /** Where the language switch links to, per language. */
   languageTargets: Record<Lang, string>;
 }
 
-const { lang, languageTargets } = Astro.props;
-const t = useTranslations(lang);
+const { languageTargets } = Astro.props;
+const { lang, t } = pageLang(Astro.currentLocale);
 ---
 
 {/* Replaced on every navigation (so the current link is right), but never animated. */}
@@ -28,14 +27,14 @@ const t = useTranslations(lang);
     <p class={styles.intro}>{t('site.intro')}</p>
 
     {/* On mobile it's an island at the bottom of the screen, outside the header. */}
-    <MainNav class={styles.nav} lang={lang} />
+    <MainNav class={styles.nav} />
 
     <div class={styles.controls}>
-      <LanguageSwitch lang={lang} targets={languageTargets} />
-      <ThemeToggle lang={lang} />
+      <LanguageSwitch targets={languageTargets} />
+      <ThemeToggle />
     </div>
   </header>
 
   {/* On desktop the footer sits at the bottom of the sidebar; on mobile it's below the card. */}
-  <SiteFooter lang={lang} placement="sidebar" />
+  <SiteFooter placement="sidebar" />
 </div>

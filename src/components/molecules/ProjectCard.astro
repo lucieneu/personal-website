@@ -1,6 +1,5 @@
 ---
-import type { Lang } from '../../i18n/ui';
-import { useTranslations } from '../../i18n/utils';
+import { pageLang } from '../../i18n/utils';
 import { projectPath, type Project } from '../../lib/projects';
 import CoverImage from '../atoms/CoverImage.astro';
 import DateTime from '../atoms/DateTime.astro';
@@ -10,14 +9,13 @@ import Tags from './Tags.astro';
 
 interface Props {
   project: Project;
-  lang: Lang;
   /** The heading level of the title, one below the heading of the list it's in. */
   headingLevel: 'h2' | 'h3';
 }
 
-const { project, lang, headingLevel: Heading } = Astro.props;
+const { project, headingLevel: Heading } = Astro.props;
 const { title, summary, date, stack, cover, coverAlt } = project.data;
-const t = useTranslations(lang);
+const { lang, t } = pageLang(Astro.currentLocale);
 ---
 
 {/* The whole card is clickable through its title link (see .title a::after). */}
@@ -37,7 +35,7 @@ const t = useTranslations(lang);
     </Heading>
     <p class={styles.summary}>{summary}</p>
     <p class={styles.date}>
-      <DateTime date={date} lang={lang} />
+      <DateTime date={date} />
     </p>
     <Tags items={stack} label={t('project.stack')} />
   </div>

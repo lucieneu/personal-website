@@ -7,7 +7,7 @@ import Seo from '../components/organisms/Seo.astro';
 import Sidebar from '../components/organisms/Sidebar.astro';
 import SiteFooter from '../components/organisms/SiteFooter.astro';
 import ThemeScript from '../components/organisms/ThemeScript.astro';
-import { getLang, isHomePath, languagePaths, useTranslations } from '../i18n/utils';
+import { isHomePath, languagePaths, pageLang } from '../i18n/utils';
 import { pageTitle } from '../lib/seo';
 import '../styles/tokens.css';
 import '../styles/global.css';
@@ -24,8 +24,7 @@ interface Props {
 }
 
 const { title, description, ogType, notFound = false } = Astro.props;
-const lang = getLang(Astro.currentLocale);
-const t = useTranslations(lang);
+const { lang, t } = pageLang(Astro.currentLocale);
 
 // Every page exists in both languages under the same path, so the language switch and the
 // hreflang links point to the same path in the other language. The 404 page links to both homes.
@@ -41,7 +40,6 @@ const { alternates, targets } = languagePaths(Astro.url.pathname, !notFound);
     <meta name="color-scheme" content="light dark" />
     <ThemeScript />
     <Seo
-      lang={lang}
       title={pageTitle(title, t('site.name'))}
       description={description}
       alternates={alternates}
@@ -61,11 +59,11 @@ const { alternates, targets } = languagePaths(Astro.url.pathname, !notFound);
       {t('skip.link')}
     </Link>
     <div class={styles.layout}>
-      <Sidebar lang={lang} languageTargets={targets} />
+      <Sidebar languageTargets={targets} />
       <ContentCard>
         <slot />
       </ContentCard>
-      <SiteFooter lang={lang} placement="page" />
+      <SiteFooter placement="page" />
     </div>
   </body>
 </html>
