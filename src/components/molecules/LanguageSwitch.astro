@@ -1,9 +1,10 @@
 ---
-import { languages, type Lang } from '../../i18n/ui';
+// NL / EN: links to the same page in the other language.
+import type { Lang } from '../../i18n/ui';
 import { langs, useTranslations } from '../../i18n/utils';
-import Link from '../atoms/Link.astro';
 import List from '../atoms/List.astro';
-import VisuallyHidden from '../atoms/VisuallyHidden.astro';
+import LanguageOption from './LanguageOption.astro';
+import styles from './LanguageSwitch.module.css';
 
 interface Props {
   lang: Lang;
@@ -15,50 +16,10 @@ const { lang, targets } = Astro.props;
 const t = useTranslations(lang);
 ---
 
-<nav class="lang-switch" aria-label={t('lang.label')}>
-  <List class="languages">
+<nav aria-label={t('lang.label')}>
+  <List class={styles.languages}>
     {langs.map((code) => (
-      <li>
-        {code === lang ? (
-          <span class="current" aria-current="true">
-            <span aria-hidden="true">{code.toUpperCase()}</span>
-            <VisuallyHidden>{languages[code]}</VisuallyHidden>
-          </span>
-        ) : (
-          <Link href={targets[code]} hreflang={code} lang={code} tone="muted" underline={false}>
-            <span aria-hidden="true">{code.toUpperCase()}</span>
-            <VisuallyHidden>{languages[code]}</VisuallyHidden>
-          </Link>
-        )}
-      </li>
+      <LanguageOption code={code} href={targets[code]} current={code === lang} />
     ))}
   </List>
 </nav>
-
-<style>
-  .languages {
-    display: flex;
-    align-items: center;
-    margin: 0;
-    font-size: var(--font-size-small);
-    font-weight: var(--font-weight-medium);
-    letter-spacing: 0.04em;
-  }
-
-  /* A slash between the two languages: NL / EN */
-  li + li::before {
-    content: '/';
-    padding-inline: var(--space-1);
-    color: var(--color-border-strong);
-  }
-
-  a,
-  .current {
-    display: inline-block;
-    padding: var(--space-2) var(--space-1);
-  }
-
-  .current {
-    color: var(--color-text);
-  }
-</style>

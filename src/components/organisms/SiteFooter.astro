@@ -1,9 +1,10 @@
 ---
 import type { Lang } from '../../i18n/ui';
 import { useTranslations } from '../../i18n/utils';
-import { repoUrl, socialLinks } from '../../lib/site';
+import { repoUrl } from '../../lib/site';
 import Link from '../atoms/Link.astro';
-import List from '../atoms/List.astro';
+import SocialLinks from '../molecules/SocialLinks.astro';
+import styles from './SiteFooter.module.css';
 
 interface Props {
   lang: Lang;
@@ -19,59 +20,17 @@ const t = useTranslations(lang);
 const year = new Date().getFullYear();
 ---
 
-<footer class="footer" data-placement={placement}>
-  <List inline class="social" aria-label={t('social.label')}>
-    {socialLinks.map(({ label, href }) => (
-      <li>
-        <Link href={href} tone="muted">
-          {label}
-        </Link>
-      </li>
-    ))}
-  </List>
-  <p>
+<footer
+  class:list={[
+    styles.footer,
+    placement === 'sidebar' ? styles.placementSidebar : styles.placementPage,
+  ]}
+>
+  <SocialLinks class={styles.social} lang={lang} />
+  <p class={styles.copyright}>
     {`© ${year} ${t('site.name')}`} ·{' '}
     <Link href={repoUrl} tone="muted">
       {t('footer.source')}
     </Link>
   </p>
 </footer>
-
-<style>
-  .footer {
-    color: var(--color-text-muted);
-    font-size: var(--font-size-small);
-  }
-
-  .social {
-    gap: var(--space-4);
-    margin: 0 0 var(--space-2);
-  }
-
-  p {
-    margin: 0;
-  }
-
-  [data-placement='sidebar'] {
-    display: none;
-    margin-top: var(--space-6);
-  }
-
-  /* Below the card it follows the card's bottom edge while the card morphs, and leaves room
-     for the nav island, so the island never covers it. */
-  [data-placement='page'] {
-    padding: var(--space-6) var(--space-4)
-      calc(var(--size-touch) + var(--space-16) + env(safe-area-inset-bottom));
-    view-transition-name: site-footer;
-  }
-
-  @media (min-width: 1024px) {
-    [data-placement='sidebar'] {
-      display: block;
-    }
-
-    [data-placement='page'] {
-      display: none;
-    }
-  }
-</style>

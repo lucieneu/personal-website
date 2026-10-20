@@ -1,0 +1,76 @@
+.link {
+  position: relative;
+  display: inline-block;
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+  transition: color var(--duration-hover) ease-out;
+}
+
+.link:hover,
+.link[aria-current] {
+  color: var(--color-accent);
+}
+
+/* Above the marker. */
+.label {
+  position: relative;
+}
+
+@media (max-width: 1023px) {
+  /* In the nav island: pill-shaped touch targets. */
+  .link {
+    display: flex;
+    align-items: center;
+    min-height: var(--size-touch);
+    padding-inline: var(--space-4);
+    border-radius: var(--radius-pill);
+  }
+
+  /* Whatever shows through the island (a dark image, a bright one), the labels keep at least
+     4.5:1 contrast in the full text color; the muted gray and the accent don't. The marker
+     shows the current page. */
+  .link,
+  .link:hover,
+  .link[aria-current] {
+    color: var(--color-text);
+  }
+
+  .marker {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    /* A lighter tint in dark mode, where it would otherwise brighten the label's background. */
+    background: light-dark(
+      color-mix(in srgb, var(--color-accent) 22%, transparent),
+      color-mix(in srgb, var(--color-accent) 16%, transparent)
+    );
+    /* Captured on its own, so it moves from the old item to the new one. */
+    view-transition-name: nav-marker;
+  }
+}
+
+@media (min-width: 1024px) {
+  .link {
+    padding-block: var(--space-1);
+    /* An underline that grows from the left on hover, and stays on the current page. */
+    background: linear-gradient(currentColor, currentColor) no-repeat left bottom / 0 2px;
+    transition:
+      color var(--duration-hover) ease-out,
+      background-size var(--duration-hover) ease-out;
+  }
+
+  .link:hover,
+  .link[aria-current] {
+    background-size: 100% 2px;
+  }
+
+  .marker {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link {
+    transition: none;
+  }
+}

@@ -1,9 +1,8 @@
 ---
 // One 404 page for both languages: static hosts serve a single page for every unknown path
 // (wrangler.jsonc: not_found_handling "404-page").
-import Link from '../components/atoms/Link.astro';
-import { languages } from '../i18n/ui';
-import { langs, localePath, useTranslations } from '../i18n/utils';
+import NotFoundMessage from '../components/molecules/NotFoundMessage.astro';
+import { langs, useTranslations } from '../i18n/utils';
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 const [nl, en] = [useTranslations('nl'), useTranslations('en')];
@@ -14,29 +13,7 @@ const [nl, en] = [useTranslations('nl'), useTranslations('en')];
   description={nl('notFound.text')}
   notFound
 >
-  {langs.map((code, index) => {
-    const t = useTranslations(code);
-    const Heading = index === 0 ? 'h1' : 'h2';
-    return (
-      <section lang={code} aria-label={languages[code]}>
-        <Heading>{t('notFound.title')}</Heading>
-        <p>{t('notFound.text')}</p>
-        <p>
-          <Link href={localePath(code)}>{t('notFound.home')}</Link>
-        </p>
-      </section>
-    );
-  })}
+  {langs.map((code, index) => (
+    <NotFoundMessage lang={code} headingLevel={index === 0 ? 'h1' : 'h2'} />
+  ))}
 </BaseLayout>
-
-<style>
-  section + section {
-    margin-top: var(--space-12);
-    padding-top: var(--space-8);
-    border-top: 1px solid var(--color-border);
-  }
-
-  h2 {
-    margin-top: 0;
-  }
-</style>

@@ -4,15 +4,11 @@
 import { getCollection } from 'astro:content';
 import { getLang, useTranslations } from '../../i18n/utils';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import DateTime from '../atoms/DateTime.astro';
-import List from '../atoms/List.astro';
-import Tags from '../molecules/Tags.astro';
+import ExperienceTimeline from '../organisms/ExperienceTimeline.astro';
 
 const lang = getLang(Astro.currentLocale);
 const t = useTranslations(lang);
-const jobs = (await getCollection('experience')).sort(
-  (a, b) => b.data.start.getTime() - a.data.start.getTime(),
-);
+const jobs = await getCollection('experience');
 ---
 
 <BaseLayout title={t('about.title')} description={t('about.description')}>
@@ -20,57 +16,8 @@ const jobs = (await getCollection('experience')).sort(
   <slot />
 
   <h2>{t('about.experience')}</h2>
-  <List as="ol" class="timeline">
-    {jobs.map(({ data: { company, role, start, end, summary, stack } }) => (
-      <li>
-        <p class="period">
-          <DateTime date={start} lang={lang} precision="month" /> –{' '}
-          {end ? <DateTime date={end} lang={lang} precision="month" /> : t('about.present')}
-        </p>
-        <h3>
-          {role[lang]} · {company}
-        </h3>
-        <p>{summary[lang]}</p>
-        <Tags items={stack} label={t('project.stack')} />
-      </li>
-    ))}
-  </List>
+  <ExperienceTimeline jobs={jobs} lang={lang} />
 
   <h2>{t('about.skills')}</h2>
   <slot name="skills" />
 </BaseLayout>
-
-<style>
-  /* A line down the left with a dot per job. */
-  .timeline li {
-    position: relative;
-    padding: 0 0 var(--space-8) var(--space-6);
-    border-left: 2px solid var(--color-border);
-  }
-
-  .timeline li:last-child {
-    padding-bottom: 0;
-  }
-
-  .timeline li::before {
-    content: '';
-    position: absolute;
-    top: 0.45em;
-    left: -7px;
-    width: 12px;
-    height: 12px;
-    border: 2px solid var(--color-accent);
-    border-radius: 50%;
-    background: var(--color-surface);
-  }
-
-  .period {
-    margin-bottom: var(--space-1);
-    color: var(--color-text-muted);
-    font-size: var(--font-size-small);
-  }
-
-  h3 {
-    margin: 0 0 var(--space-2);
-  }
-</style>

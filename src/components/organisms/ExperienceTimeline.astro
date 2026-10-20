@@ -1,0 +1,21 @@
+---
+// Work experience as a timeline, newest first. Each job is an ExperienceItem.
+import type { CollectionEntry } from 'astro:content';
+import type { Lang } from '../../i18n/ui';
+import List from '../atoms/List.astro';
+import ExperienceItem from '../molecules/ExperienceItem.astro';
+
+interface Props {
+  jobs: CollectionEntry<'experience'>[];
+  lang: Lang;
+}
+
+const { jobs, lang } = Astro.props;
+const newestFirst = [...jobs].sort((a, b) => b.data.start.getTime() - a.data.start.getTime());
+---
+
+<List as="ol">
+  {newestFirst.map((job) => (
+    <ExperienceItem job={job} lang={lang} />
+  ))}
+</List>

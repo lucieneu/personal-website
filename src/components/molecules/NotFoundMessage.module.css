@@ -1,0 +1,10 @@
+/* The second language's message, below a line. */
+.message + .message {
+  margin-top: var(--space-12);
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--color-border);
+}
+
+.heading {
+  margin-top: 0;
+}

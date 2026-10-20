@@ -1,0 +1,25 @@
+---
+// The 404 message in one language, with a link to that language's home page. The 404 page
+// shows it in both languages.
+import { languages, type Lang } from '../../i18n/ui';
+import { localePath, useTranslations } from '../../i18n/utils';
+import Link from '../atoms/Link.astro';
+import styles from './NotFoundMessage.module.css';
+
+interface Props {
+  lang: Lang;
+  /** h1 for the first language on the page, h2 for the other. */
+  headingLevel: 'h1' | 'h2';
+}
+
+const { lang, headingLevel: Heading } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<section class={styles.message} lang={lang} aria-label={languages[lang]}>
+  <Heading class={styles.heading}>{t('notFound.title')}</Heading>
+  <p>{t('notFound.text')}</p>
+  <p>
+    <Link href={localePath(lang)}>{t('notFound.home')}</Link>
+  </p>
+</section>

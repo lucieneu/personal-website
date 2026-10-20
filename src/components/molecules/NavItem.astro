@@ -1,0 +1,22 @@
+---
+// One link in the MainNav. The current page gets aria-current="page"; the section of the
+// current page (Projects, on a project) gets aria-current="true".
+import Link from '../atoms/Link.astro';
+import styles from './NavItem.module.css';
+
+interface Props {
+  href: string;
+  label: string;
+  current?: 'page' | 'true' | undefined;
+}
+
+const { href, label, current } = Astro.props;
+---
+
+<li>
+  <Link class={styles.link} href={href} aria-current={current} underline={false}>
+    {/* The island's current-page marker; it slides to the new item on a navigation. */}
+    {current && <span class={styles.marker} aria-hidden="true" />}
+    <span class={styles.label}>{label}</span>
+  </Link>
+</li>

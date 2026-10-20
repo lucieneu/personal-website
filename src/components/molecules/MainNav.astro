@@ -4,14 +4,15 @@
 import type { HTMLAttributes } from 'astro/types';
 import type { Lang, UiKey } from '../../i18n/ui';
 import { localePath, useTranslations } from '../../i18n/utils';
-import Link from '../atoms/Link.astro';
 import List from '../atoms/List.astro';
+import styles from './MainNav.module.css';
+import NavItem from './NavItem.astro';
 
 interface Props extends HTMLAttributes<'nav'> {
   lang: Lang;
 }
 
-interface NavItem {
+interface NavLink {
   key: UiKey;
   path: string;
 }
@@ -20,7 +21,7 @@ const { lang, class: className, ...rest } = Astro.props;
 const t = useTranslations(lang);
 
 // Blog follows in phase 2; Now, Uses and Lab become secondary links below these.
-const navItems: NavItem[] = [
+const navLinks: NavLink[] = [
   { key: 'nav.home', path: '' },
   { key: 'nav.projects', path: 'projects' },
   { key: 'nav.about', path: 'about' },
@@ -40,145 +41,11 @@ function currentState(href: string): 'page' | 'true' | undefined {
 }
 ---
 
-<nav class:list={['main-nav', className]} aria-label={t('nav.label')} {...rest}>
-  <List>
-    {navItems.map(({ key, path }) => {
+<nav class:list={[styles.mainNav, className]} aria-label={t('nav.label')} {...rest}>
+  <List class={styles.items}>
+    {navLinks.map(({ key, path }) => {
       const href = localePath(lang, path);
-      const state = currentState(href);
-      return (
-        <li>
-          <Link href={href} aria-current={state} underline={false}>
-            {/* The island's current-page marker; it slides to the new item on a navigation. */}
-            {state && <span class="marker" aria-hidden="true" />}
-            <span class="label">{t(key)}</span>
-          </Link>
-        </li>
-      );
+      return <NavItem href={href} label={t(key)} current={currentState(href)} />;
     })}
   </List>
 </nav>
-
-<style>
-  ul {
-    margin: 0;
-  }
-
-  .main-nav a {
-    position: relative;
-    display: inline-block;
-    color: var(--color-text-muted);
-    font-weight: var(--font-weight-medium);
-    transition: color var(--duration-hover) ease-out;
-  }
-
-  .main-nav a:hover,
-  .main-nav a[aria-current] {
-    color: var(--color-accent);
-  }
-
-  .label {
-    position: relative;
-  }
-
-  @media (max-width: 1023px) {
-    /* The island: a pill at the bottom of the screen, within thumb reach, that stays put while
-       the card changes (the mobile counterpart of the desktop sidebar). */
-    .main-nav {
-      position: fixed;
-      inset-inline: 0;
-      bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
-      z-index: 10;
-      width: max-content;
-      max-width: calc(100% - 2 * var(--space-4));
-      margin-inline: auto;
-      padding: var(--space-1);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-pill);
-      /* Partly see-through; the blur keeps whatever is behind it from showing through its
-         labels as readable text. */
-      /* 70% is about the limit: below it, a bright image behind the island in dark mode pulls
-         the labels under 4.5:1 contrast. */
-      background: color-mix(in srgb, var(--color-surface) 70%, transparent);
-      box-shadow: 0 8px 24px var(--color-shadow);
-      -webkit-backdrop-filter: blur(24px);
-      backdrop-filter: blur(24px);
-      /* Its own snapshot, so it stays on top of the card during a page transition. */
-      view-transition-name: nav-island;
-    }
-
-    /* Without the blur, text behind would show through the labels, so it stays opaque. */
-    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-      .main-nav {
-        background: var(--color-surface);
-      }
-    }
-
-    .main-nav ul {
-      display: flex;
-      gap: var(--space-1);
-    }
-
-    .main-nav a {
-      display: flex;
-      align-items: center;
-      min-height: var(--size-touch);
-      padding-inline: var(--space-4);
-      border-radius: var(--radius-pill);
-    }
-
-    /* Whatever shows through the island (a dark image, a bright one), the labels keep at least
-       4.5:1 contrast in the full text color; the muted gray and the accent don't. The marker
-       shows the current page. */
-    .main-nav a,
-    .main-nav a:hover,
-    .main-nav a[aria-current] {
-      color: var(--color-text);
-    }
-
-    .marker {
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      /* A lighter tint in dark mode, where it would otherwise brighten the label's background. */
-      background: light-dark(
-        color-mix(in srgb, var(--color-accent) 22%, transparent),
-        color-mix(in srgb, var(--color-accent) 16%, transparent)
-      );
-      /* Captured on its own, so it moves from the old item to the new one. */
-      view-transition-name: nav-marker;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .main-nav ul {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: var(--space-2);
-    }
-
-    .main-nav a {
-      padding-block: var(--space-1);
-      /* An underline that grows from the left on hover, and stays on the current page. */
-      background: linear-gradient(currentColor, currentColor) no-repeat left bottom / 0 2px;
-      transition:
-        color var(--duration-hover) ease-out,
-        background-size var(--duration-hover) ease-out;
-    }
-
-    .main-nav a:hover,
-    .main-nav a[aria-current] {
-      background-size: 100% 2px;
-    }
-
-    .marker {
-      display: none;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .main-nav a {
-      transition: none;
-    }
-  }
-</style>
