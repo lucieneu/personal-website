@@ -5,8 +5,17 @@ import { defineConfig, devices } from '@playwright/test';
 const baseURL = process.env.BASE_URL;
 const isCI = !!process.env.CI;
 
+/** The local production build, served by `astro preview`. */
+export const localServer = {
+  command: 'npm run build && npm run preview -- --port 4321',
+  url: 'http://localhost:4321',
+  timeout: 120_000,
+};
+
 export default defineConfig({
   testDir: 'tests',
+  // visual.spec.ts compares screenshots and runs with its own config, playwright.visual.config.ts.
+  testIgnore: 'visual.spec.ts',
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 1 : 0,
@@ -23,12 +32,5 @@ export default defineConfig({
     { name: 'mobile-chrome', use: { ...devices['Pixel 7'] } },
     { name: 'mobile-safari', use: { ...devices['iPhone 15'] } },
   ],
-  webServer: baseURL
-    ? undefined
-    : {
-        command: 'npm run build && npm run preview -- --port 4321',
-        url: 'http://localhost:4321',
-        reuseExistingServer: !isCI,
-        timeout: 120_000,
-      },
+  webServer: baseURL ? undefined : { ...localServer, reuseExistingServer: !isCI },
 });

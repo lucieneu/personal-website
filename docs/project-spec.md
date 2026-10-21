@@ -42,7 +42,7 @@ Astro with static output, and React only for the parts that are truly interactiv
 | Code highlighting | Shiki (built into Astro) | Highlighting at build time, 0 kB JS |
 | Package manager | npm | Comes with Node, so there is no extra tool to install (changed from pnpm on Oct 18, 2026) |
 | Quality | ESLint, Prettier + `prettier-plugin-astro`, `astro check`, a Husky pre-push hook that runs them all (added Oct 18, 2026) | Consistent code, type errors caught before a push or deploy |
-| Tests | Playwright | Smoke tests and navigation with transitions |
+| Tests | Playwright | Smoke tests, navigation with transitions, and screenshot comparisons for refactors (`toHaveScreenshot`, since phase 2) |
 
 **Preact is out of scope for version 1.** It can be evaluated later for small islands. The 3D scene always stays React, because React Three Fiber runs on `react-reconciler` and does not work with Preact.
 
@@ -459,6 +459,7 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 ├── astro.config.mjs              # includes the i18n config
 ├── package.json
 ├── playwright.config.ts          # local build, or BASE_URL (a deploy)
+├── playwright.visual.config.ts   # npm run test:visual (screenshots of every page)
 ├── tsconfig.json                 # strict, plus the @/ alias for src/
 ├── wrangler.jsonc                # Cloudflare Workers: static assets, previews
 ├── docs/
@@ -555,7 +556,8 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 └── tests/                        # Playwright
     ├── fixtures.ts               # fails a test on any console error
     ├── navigation.spec.ts
-    └── theme.spec.ts
+    ├── theme.spec.ts
+    └── visual.spec.ts            # screenshots of every page, compared with earlier ones
 ```
 
 **Conventions**
@@ -691,3 +693,4 @@ Work phase by phase, report after each phase, and when in doubt choose the calme
 8. **Test accessibility:** every page and every interaction with the keyboard only, and once with a screen reader (VoiceOver or NVDA).
 9. **Small commits** per part, using Conventional Commits, so every step can be reverted.
 10. **When deviating from this document:** briefly explain why, and update the relevant section or record it as an open question.
+11. **Prove that a refactor changes nothing** (since phase 2, at the owner's request): compare screenshots of every page before and after with `npm run test:visual`, diff the built HTML, and run the tests.

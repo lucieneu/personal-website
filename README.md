@@ -32,6 +32,7 @@ on your machine. It checks the files on disk, uncommitted changes included. To s
 | `npm run format:check` | Check formatting without changing files                                 |
 | `npm run verify`       | Check, lint, format check and build (CI, deploys and the pre-push hook) |
 | `npm run test:e2e`     | Playwright smoke tests (see below)                                      |
+| `npm run test:visual`  | Compare screenshots of every page with earlier ones (see below)         |
 
 ## Where things live
 
@@ -91,6 +92,28 @@ BASE_URL=https://<branch>-personal-website.lucien-hilversum.workers.dev npm run 
 ```
 
 The first time, install the browsers with `npx playwright install`.
+
+## Checking that a change changes nothing
+
+For a refactor, `npm run test:visual` shows that every page still looks the same. It takes a
+full-page screenshot of every page in both themes, on a desktop, a tablet and a phone, and compares
+it with the one taken before the change (Playwright's `toHaveScreenshot()`). Take the screenshots
+on `main` first, then compare on your branch:
+
+```bash
+git switch main && npm run test:visual -- --update-snapshots
+```
+
+```bash
+git switch <branch> && npm run test:visual
+```
+
+Each run builds and serves the checkout it's on. Differences show up side by side in the report
+(`npx playwright show-report`). The screenshots differ per machine, so they aren't committed
+(`tests/visual.spec.ts-snapshots/` is ignored), and images are masked because lazy ones may still be
+loading. To compare two deploys instead, set `BASE_URL`: production with `--update-snapshots`, then
+the branch preview. For the HTML, copy `dist/` after building `main` and `diff -r` it with the
+branch's.
 
 ## Deploys
 

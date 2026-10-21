@@ -7,6 +7,8 @@ dist/
 # Playwright output
 test-results/
 playwright-report/
+# screenshots from npm run test:visual: they differ per machine, so they stay local
+tests/visual.spec.ts-snapshots/
 
 # dependencies
 node_modules/

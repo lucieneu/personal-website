@@ -16,6 +16,7 @@
     "format:check": "prettier --check .",
     "verify": "astro check && eslint . && prettier --check . && astro build",
     "test:e2e": "playwright test",
+    "test:visual": "playwright test --config playwright.visual.config.ts",
     "astro": "astro",
     "prepare": "husky"
   },
