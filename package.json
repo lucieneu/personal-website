@@ -10,6 +10,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "compare": "node scripts/compare-builds.ts",
     "check": "astro check",
     "lint": "eslint .",
     "format": "prettier --write .",
