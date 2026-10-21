@@ -68,6 +68,11 @@ on your machine. It checks the files on disk, uncommitted changes included. To s
   language (drafts excepted, since they aren't built).
 - `tests/`: Playwright tests.
 
+Imports from `src/` use the `@/` alias set in `tsconfig.json`
+(`import Link from '@/components/atoms/Link.astro'`), also within the same folder. Only a
+component's own CSS Module is imported with `./` (`./Link.module.css`); ESLint flags any other
+relative import.
+
 ## Adding a project
 
 Add `src/content/projects/nl/<slug>.mdx` and `src/content/projects/en/<slug>.mdx` with the same
