@@ -68,10 +68,11 @@ on your machine. It checks the files on disk, uncommitted changes included. To s
   language (drafts excepted, since they aren't built).
 - `tests/`: Playwright tests.
 
-Imports from `src/` use the `@/` alias set in `tsconfig.json`
-(`import Link from '@/components/atoms/Link.astro'`), also within the same folder. Only a
-component's own CSS Module is imported with `./` (`./Link.module.css`); ESLint flags any other
-relative import.
+Files in `src/` are imported with the `@/` alias set in `tsconfig.json`
+(`import Link from '@/components/atoms/Link.astro'`), also from the same folder. Only a
+component's own CSS Module is imported with `./` (`./Link.module.css`). The project's own lint
+rule in `eslint/` checks this: it flags `../` everywhere and `./` to any other file in `src/`, in
+imports and exports, `import()`, `import.meta.glob()` and the import lines of `.mdx` files.
 
 ## Adding a project
 

@@ -457,6 +457,7 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 ├── .github/workflows/ci.yml      # npm ci + npm run verify on every push
 ├── .husky/pre-push               # npm run verify before every push
 ├── astro.config.mjs              # includes the i18n config
+├── eslint.config.js              # with the project's own rule and MDX processor from eslint/
 ├── package.json
 ├── playwright.config.ts          # local build, or BASE_URL (a deploy)
 ├── tsconfig.json                 # strict, plus the @/ alias for src/
@@ -568,7 +569,7 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 - One component per icon, in `src/components/atoms/icons/`, built on the shared `Icon` base; no icon component that switches on a name.
 - What a loop renders for each item is its own component (`{items.map((item) => <Item … />)}`), not markup written inside the loop.
 - Styles live in a CSS Module next to the component (`Link.astro` + `Link.module.css`), used as `class={styles.name}`; no `<style>` blocks in components. Class names are camelCase, and every selector starts from a class: in a CSS Module a bare element selector (`li`, `h2`) isn't scoped and would style the whole site. Only `src/styles/` (tokens, global element styles, transitions) is global. Tests find elements by role and accessible name, not by class, because the class names are hashed.
-- Imports from `src/` use the `@/` alias from `tsconfig.json` (`@/lib/date`, `@/components/atoms/Link.astro`), also within the same folder; only a component's own CSS Module is imported relatively (`./Link.module.css`). ESLint flags any other relative import (since phase 2). Imports are sorted the way the editor's "Organize imports" sorts them (packages and `@/` by path, then `./`), but the order of component imports also sets the order of their CSS in the build, so a component's styles must not depend on that order.
+- Imports from `src/` use the `@/` alias from `tsconfig.json` (`@/lib/date`, `@/components/atoms/Link.astro`), also within the same folder; only a component's own CSS Module is imported relatively (`./Link.module.css`). A lint rule of the project's own (`eslint/alias-imports.js`, since phase 2) flags `../` anywhere and `./` to any other file in `src/`, in imports and exports, `import()`, `import.meta.glob()` and the import lines of `.mdx` files. Imports are sorted the way the editor's "Organize imports" sorts them (packages and `@/` by path, then `./`), but the order of component imports also sets the order of their CSS in the build, so a component's styles must not depend on that order.
 - Commits follow Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`).
 
 ## Build phases

@@ -2,8 +2,11 @@ import js from '@eslint/js';
 import eslintPluginAstro from 'eslint-plugin-astro';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
+import aliasImports from './eslint/alias-imports.js';
+import mdxEsm from './eslint/mdx-esm.js';
 
-const useAlias = "Import from src/ with the @/ alias (for example '@/lib/date')";
+// This project's own lint rule and processor, in eslint/.
+const local = { rules: { 'alias-imports': aliasImports }, processors: { 'mdx-esm': mdxEsm } };
 
 export default defineConfig(
   globalIgnores(['dist/', '.astro/', 'test-results/', 'playwright-report/']),
@@ -11,28 +14,11 @@ export default defineConfig(
   tseslint.configs.recommended,
   eslintPluginAstro.configs.recommended,
 
-  // Absolute imports: no `../` anywhere.
-  {
-    rules: {
-      'no-restricted-imports': ['error', { patterns: [{ regex: '^\\.\\./', message: useAlias }] }],
-    },
-  },
-  // In src/ not even `./`, except a component's own CSS Module next to it ('./Link.module.css').
-  // `src/**` also matches the <script> blocks of .astro files.
-  {
-    files: ['src/**'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              regex: '^\\.(?!/[^/]+\\.module\\.css$)',
-              message: `${useAlias}; only a component's own CSS Module is imported with './'.`,
-            },
-          ],
-        },
-      ],
-    },
-  },
+  // Imports from src/ use the @/ alias (eslint/alias-imports.js).
+  { plugins: { local }, rules: { 'local/alias-imports': 'error' } },
+
+  // .mdx files: only their import and export lines are linted (eslint/mdx-esm.js). Those imports
+  // are used in the MDX body, which the linted part doesn't contain.
+  { files: ['**/*.mdx'], processor: 'local/mdx-esm' },
+  { files: ['**/*.mdx/*.mjs'], rules: { 'no-unused-vars': 'off', 'no-undef': 'off' } },
 );
