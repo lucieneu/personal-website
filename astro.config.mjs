@@ -2,6 +2,7 @@
 // Astro loads this file through Vite with tsconfig paths turned on, so the @/ alias works here
 // (and in the files it imports) like everywhere else.
 import { defaultLang, languages } from '@/i18n/ui';
+import checkCssOrder from '@/integrations/check-css-order';
 import checkTranslations from '@/integrations/check-translations';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
@@ -25,6 +26,7 @@ export default defineConfig({
       },
     }),
     checkTranslations(),
+    checkCssOrder(),
   ],
 
   // Loads the next page on hover, so it's usually there before the click.
