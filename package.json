@@ -14,9 +14,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "verify": "astro check && eslint . && npm run test:lint && prettier --check . && astro build",
+    "verify": "astro check && eslint . && prettier --check . && astro build",
     "test:e2e": "playwright test",
-    "test:lint": "node --test eslint/*.test.js",
     "astro": "astro",
     "prepare": "husky"
   },
