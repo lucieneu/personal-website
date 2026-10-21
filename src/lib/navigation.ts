@@ -1,6 +1,6 @@
 // The main navigation: its links, and which of them is the current page.
-import type { Lang, UiKey } from '../i18n/ui';
-import { localePath } from '../i18n/utils';
+import type { Lang, UiKey } from '@/i18n/ui';
+import { localePath } from '@/i18n/utils';
 
 interface NavLink {
   key: UiKey;

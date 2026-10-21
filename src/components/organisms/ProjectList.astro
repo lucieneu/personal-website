@@ -1,9 +1,9 @@
 ---
 // Project cards stacked in a list, such as the featured projects or all of them.
+import List from '@/components/atoms/List.astro';
+import ProjectCard from '@/components/molecules/ProjectCard.astro';
+import type { Project } from '@/lib/projects';
 import type { HTMLAttributes } from 'astro/types';
-import type { Project } from '../../lib/projects';
-import List from '../atoms/List.astro';
-import ProjectCard from '../molecules/ProjectCard.astro';
 import styles from './ProjectList.module.css';
 
 interface Props extends HTMLAttributes<'ul'> {

@@ -1,9 +1,9 @@
 ---
 // The 404 message in one language, with a link to that language's home page. The 404 page
 // shows it in both languages.
-import { languages, type Lang } from '../../i18n/ui';
-import { localePath, useTranslations } from '../../i18n/utils';
-import Link from '../atoms/Link.astro';
+import Link from '@/components/atoms/Link.astro';
+import { languages, type Lang } from '@/i18n/ui';
+import { localePath, useTranslations } from '@/i18n/utils';
 import styles from './NotFoundMessage.module.css';
 
 interface Props {

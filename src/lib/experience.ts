@@ -1,6 +1,6 @@
 // Work experience, from src/content/experience.json.
+import { newestFirst } from '@/lib/date';
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { newestFirst } from './date';
 
 export type Job = CollectionEntry<'experience'>;
 

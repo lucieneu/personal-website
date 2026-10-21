@@ -1,10 +1,10 @@
 ---
 // The home page in either language. The page file passes the intro (with its <h1>).
-import { localePath, pageLang } from '../../i18n/utils';
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getFeaturedProjects } from '../../lib/projects';
-import Link from '../atoms/Link.astro';
-import ProjectList from '../organisms/ProjectList.astro';
+import Link from '@/components/atoms/Link.astro';
+import ProjectList from '@/components/organisms/ProjectList.astro';
+import { localePath, pageLang } from '@/i18n/utils';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getFeaturedProjects } from '@/lib/projects';
 import styles from './HomeView.module.css';
 
 const { lang, t } = pageLang(Astro.currentLocale);

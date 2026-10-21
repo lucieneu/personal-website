@@ -1,10 +1,10 @@
 ---
 // One job in the ExperienceTimeline: the period, role and employer, a summary and the stack.
-import type { Job } from '../../lib/experience';
-import { pageLang } from '../../i18n/utils';
-import DateTime from '../atoms/DateTime.astro';
+import DateTime from '@/components/atoms/DateTime.astro';
+import Tags from '@/components/molecules/Tags.astro';
+import { pageLang } from '@/i18n/utils';
+import type { Job } from '@/lib/experience';
 import styles from './ExperienceItem.module.css';
-import Tags from './Tags.astro';
 
 interface Props {
   job: Job;

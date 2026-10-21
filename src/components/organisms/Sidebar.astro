@@ -1,12 +1,12 @@
 ---
-import type { Lang } from '../../i18n/ui';
-import { localePath, pageLang } from '../../i18n/utils';
-import Link from '../atoms/Link.astro';
-import LanguageSwitch from '../molecules/LanguageSwitch.astro';
-import MainNav from '../molecules/MainNav.astro';
-import ThemeToggle from '../molecules/ThemeToggle.astro';
+import Link from '@/components/atoms/Link.astro';
+import LanguageSwitch from '@/components/molecules/LanguageSwitch.astro';
+import MainNav from '@/components/molecules/MainNav.astro';
+import ThemeToggle from '@/components/molecules/ThemeToggle.astro';
+import SiteFooter from '@/components/organisms/SiteFooter.astro';
+import type { Lang } from '@/i18n/ui';
+import { localePath, pageLang } from '@/i18n/utils';
 import styles from './Sidebar.module.css';
-import SiteFooter from './SiteFooter.astro';
 
 interface Props {
   /** Where the language switch links to, per language. */

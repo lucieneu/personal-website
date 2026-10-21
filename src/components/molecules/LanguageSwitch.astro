@@ -1,9 +1,9 @@
 ---
 // NL / EN: links to the same page in the other language.
-import type { Lang } from '../../i18n/ui';
-import { langs, pageLang } from '../../i18n/utils';
-import List from '../atoms/List.astro';
-import LanguageOption from './LanguageOption.astro';
+import List from '@/components/atoms/List.astro';
+import LanguageOption from '@/components/molecules/LanguageOption.astro';
+import type { Lang } from '@/i18n/ui';
+import { langs, pageLang } from '@/i18n/utils';
 import styles from './LanguageSwitch.module.css';
 
 interface Props {

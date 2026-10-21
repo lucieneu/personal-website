@@ -1,7 +1,7 @@
 // Language helpers that don't need Astro, so the build check in src/integrations/ can use them
 // too (astro:i18n doesn't exist yet when astro.config.mjs loads). Components import them through
 // src/i18n/utils.ts.
-import { defaultLang, languages, type Lang } from './ui';
+import { defaultLang, languages, type Lang } from '@/i18n/ui';
 
 export function isLang(value: string): value is Lang {
   // Not `in`: that also matches inherited keys such as 'constructor'.

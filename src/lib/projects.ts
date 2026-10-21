@@ -1,7 +1,7 @@
+import type { Lang } from '@/i18n/ui';
+import { localePath, useTranslations } from '@/i18n/utils';
+import { newestFirst } from '@/lib/date';
 import { getCollection, type CollectionEntry } from 'astro:content';
-import type { Lang } from '../i18n/ui';
-import { localePath, useTranslations } from '../i18n/utils';
-import { newestFirst } from './date';
 
 export type Project = CollectionEntry<'projects'>;
 

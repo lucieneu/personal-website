@@ -1,9 +1,9 @@
 // @ts-check
+import { defaultLang, languages } from '@/i18n/ui';
+import checkTranslations from '@/integrations/check-translations';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig, fontProviders } from 'astro/config';
-import { defaultLang, languages } from './src/i18n/ui';
-import checkTranslations from './src/integrations/check-translations';
 
 // https://astro.build/config
 export default defineConfig({
