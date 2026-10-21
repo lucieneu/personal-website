@@ -1,17 +1,17 @@
 ---
+import Link from '@/components/atoms/Link.astro';
+import ContentCard from '@/components/organisms/ContentCard.astro';
+import Seo from '@/components/organisms/Seo.astro';
+import Sidebar from '@/components/organisms/Sidebar.astro';
+import SiteFooter from '@/components/organisms/SiteFooter.astro';
+import ThemeScript from '@/components/organisms/ThemeScript.astro';
+import { isHomePath, languagePaths, pageLang } from '@/i18n/utils';
+import { pageTitle } from '@/lib/seo';
 import { Font } from 'astro:assets';
 import { ClientRouter } from 'astro:transitions';
-import Link from '../components/atoms/Link.astro';
-import ContentCard from '../components/organisms/ContentCard.astro';
-import Seo from '../components/organisms/Seo.astro';
-import Sidebar from '../components/organisms/Sidebar.astro';
-import SiteFooter from '../components/organisms/SiteFooter.astro';
-import ThemeScript from '../components/organisms/ThemeScript.astro';
-import { isHomePath, languagePaths, pageLang } from '../i18n/utils';
-import { pageTitle } from '../lib/seo';
-import '../styles/tokens.css';
-import '../styles/global.css';
-import '../styles/transitions.css';
+import '@/styles/tokens.css';
+import '@/styles/global.css';
+import '@/styles/transitions.css';
 import styles from './BaseLayout.module.css';
 
 interface Props {
@@ -69,7 +69,7 @@ const { alternates, targets } = languagePaths(Astro.url.pathname, !notFound);
 </html>
 
 <script>
-  import { focusContentAfterNavigation } from '../lib/transitions';
+  import { focusContentAfterNavigation } from '@/lib/transitions';
 
   focusContentAfterNavigation();
 </script>

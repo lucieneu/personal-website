@@ -1,5 +1,5 @@
 // Dates: written out for a language, in machine-readable form, and sorted.
-import type { Lang } from '../i18n/ui';
+import type { Lang } from '@/i18n/ui';
 
 /**
  * Formats a date for a language, by default as month and year ("oktober 2026").

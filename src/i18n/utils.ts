@@ -1,10 +1,10 @@
 // Language helpers for pages and components. The ones that don't need Astro live in paths.ts
 // (the build check uses those too) and are re-exported here.
+import { getLang, langs, splitLocalePath } from '@/i18n/paths';
+import { ui, type Lang, type UiKey } from '@/i18n/ui';
 import { getRelativeLocaleUrl } from 'astro:i18n';
-import { getLang, langs, splitLocalePath } from './paths';
-import { ui, type Lang, type UiKey } from './ui';
 
-export { getLang, isLang, langs, splitLocalePath } from './paths';
+export { getLang, isLang, langs, splitLocalePath } from '@/i18n/paths';
 
 /** Returns `t()`, which looks up interface text for the given language. */
 export function useTranslations(lang: Lang) {

@@ -1,5 +1,5 @@
+import { ui, type UiKey } from '@/i18n/ui';
 import { test as base, expect, type Page } from '@playwright/test';
-import { ui, type UiKey } from '../src/i18n/ui';
 
 /**
  * `test` with one addition: every test fails when the page logs a console error or throws.

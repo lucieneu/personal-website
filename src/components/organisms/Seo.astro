@@ -2,9 +2,9 @@
 // Everything in <head> that search engines and link previews read: title, description,
 // canonical URL, the language alternates, Open Graph / Twitter meta and, on the home pages,
 // JSON-LD about me.
-import { ogLocales, type Lang } from '../../i18n/ui';
-import { otherLangs, pageLang } from '../../i18n/utils';
-import { absoluteUrl, alternateLinks, canonicalUrl, personJsonLd } from '../../lib/seo';
+import { ogLocales, type Lang } from '@/i18n/ui';
+import { otherLangs, pageLang } from '@/i18n/utils';
+import { absoluteUrl, alternateLinks, canonicalUrl, personJsonLd } from '@/lib/seo';
 
 interface Props {
   /** The full page title, site name included. */

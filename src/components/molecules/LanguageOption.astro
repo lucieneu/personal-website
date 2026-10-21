@@ -2,10 +2,10 @@
 // One language in the LanguageSwitch: its code (NL) on screen, its full name (Nederlands) for
 // screen readers. The current language is plain text; the other one links to the same page in
 // that language.
-import { languages, type Lang } from '../../i18n/ui';
-import { langCode } from '../../i18n/utils';
-import Link from '../atoms/Link.astro';
-import VisuallyHidden from '../atoms/VisuallyHidden.astro';
+import Link from '@/components/atoms/Link.astro';
+import VisuallyHidden from '@/components/atoms/VisuallyHidden.astro';
+import { languages, type Lang } from '@/i18n/ui';
+import { langCode } from '@/i18n/utils';
 import styles from './LanguageOption.module.css';
 
 interface Props {

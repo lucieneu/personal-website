@@ -1,12 +1,12 @@
 ---
 // The main navigation. Desktop: a list in the sidebar. Mobile: an island fixed to the bottom
 // of the screen.
+import List from '@/components/atoms/List.astro';
+import NavItem from '@/components/molecules/NavItem.astro';
+import { pageLang } from '@/i18n/utils';
+import { navItems } from '@/lib/navigation';
 import type { HTMLAttributes } from 'astro/types';
-import { pageLang } from '../../i18n/utils';
-import { navItems } from '../../lib/navigation';
-import List from '../atoms/List.astro';
 import styles from './MainNav.module.css';
-import NavItem from './NavItem.astro';
 
 type Props = HTMLAttributes<'nav'>;
 

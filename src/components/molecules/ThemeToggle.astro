@@ -1,8 +1,8 @@
 ---
-import { pageLang } from '../../i18n/utils';
-import IconButton from '../atoms/IconButton.astro';
-import MoonIcon from '../atoms/icons/MoonIcon.astro';
-import SunIcon from '../atoms/icons/SunIcon.astro';
+import IconButton from '@/components/atoms/IconButton.astro';
+import MoonIcon from '@/components/atoms/icons/MoonIcon.astro';
+import SunIcon from '@/components/atoms/icons/SunIcon.astro';
+import { pageLang } from '@/i18n/utils';
 import styles from './ThemeToggle.module.css';
 
 const { t } = pageLang(Astro.currentLocale);
@@ -15,7 +15,7 @@ const { t } = pageLang(Astro.currentLocale);
 </IconButton>
 
 <script>
-  import { initThemeToggle } from '../../lib/theme';
+  import { initThemeToggle } from '@/lib/theme';
 
   initThemeToggle();
 </script>

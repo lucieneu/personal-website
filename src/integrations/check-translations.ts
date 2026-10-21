@@ -2,9 +2,9 @@
 // every project, post and experiment) has the same path in both languages, so after the build
 // each Dutch path needs an English twin under /en/, and the other way around.
 // Drafts aren't built in production, so a draft without a translation passes.
+import { joinLocalePath, langs, splitLocalePath } from '@/i18n/paths';
+import type { Lang } from '@/i18n/ui';
 import type { AstroIntegration } from 'astro';
-import { joinLocalePath, langs, splitLocalePath } from '../i18n/paths';
-import type { Lang } from '../i18n/ui';
 
 // Pages that exist once for both languages.
 const shared = new Set(['404']);

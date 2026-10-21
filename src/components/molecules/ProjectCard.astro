@@ -1,11 +1,11 @@
 ---
-import { pageLang } from '../../i18n/utils';
-import { projectPath, type Project } from '../../lib/projects';
-import CoverImage from '../atoms/CoverImage.astro';
-import DateTime from '../atoms/DateTime.astro';
-import Link from '../atoms/Link.astro';
+import CoverImage from '@/components/atoms/CoverImage.astro';
+import DateTime from '@/components/atoms/DateTime.astro';
+import Link from '@/components/atoms/Link.astro';
+import Tags from '@/components/molecules/Tags.astro';
+import { pageLang } from '@/i18n/utils';
+import { projectPath, type Project } from '@/lib/projects';
 import styles from './ProjectCard.module.css';
-import Tags from './Tags.astro';
 
 interface Props {
   project: Project;

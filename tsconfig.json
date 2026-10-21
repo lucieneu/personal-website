@@ -1,5 +1,11 @@
 {
   "extends": "astro/tsconfigs/strict",
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"]
+  "exclude": ["dist"],
+  "compilerOptions": {
+    // Absolute imports from src/ (`@/i18n/utils`), read by TypeScript, Astro/Vite and Playwright.
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
 }

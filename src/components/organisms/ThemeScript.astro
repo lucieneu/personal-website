@@ -2,7 +2,7 @@
 // Goes in <head>. Applies the stored theme before the first paint, so the wrong theme never
 // flashes; this is the only script that blocks rendering, so keep it tiny (well under 1 kB).
 // Without JavaScript the toggle is hidden by `@media (scripting: none)` in ThemeToggle.
-import { THEME_STORAGE_KEY } from '../../lib/theme';
+import { THEME_STORAGE_KEY } from '@/lib/theme';
 ---
 
 <script is:inline define:vars={{ key: THEME_STORAGE_KEY }}>

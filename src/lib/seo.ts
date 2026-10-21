@@ -1,8 +1,8 @@
 // What search engines and link previews read: titles, absolute URLs, language alternates and
 // JSON-LD.
-import { defaultLang, type Lang } from '../i18n/ui';
-import { langs, useTranslations } from '../i18n/utils';
-import { socialLinks } from './site';
+import { defaultLang, type Lang } from '@/i18n/ui';
+import { langs, useTranslations } from '@/i18n/utils';
+import { socialLinks } from '@/lib/site';
 
 /** A page title: its parts joined with a middle dot, leaving out empty ones. */
 export function pageTitle(...parts: (string | undefined)[]): string {

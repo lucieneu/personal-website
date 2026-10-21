@@ -1,9 +1,9 @@
 ---
 // The list of all projects in either language. The page file may pass an intro.
-import { pageLang } from '../../i18n/utils';
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getProjects } from '../../lib/projects';
-import ProjectList from '../organisms/ProjectList.astro';
+import ProjectList from '@/components/organisms/ProjectList.astro';
+import { pageLang } from '@/i18n/utils';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getProjects } from '@/lib/projects';
 import styles from './ProjectsView.module.css';
 
 const { lang, t } = pageLang(Astro.currentLocale);

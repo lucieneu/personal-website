@@ -1,10 +1,10 @@
 ---
 // Links to my profiles elsewhere, side by side. The profiles are listed in src/lib/site.ts.
+import List from '@/components/atoms/List.astro';
+import LinkItem from '@/components/molecules/LinkItem.astro';
+import { pageLang } from '@/i18n/utils';
+import { socialLinks } from '@/lib/site';
 import type { HTMLAttributes } from 'astro/types';
-import { pageLang } from '../../i18n/utils';
-import { socialLinks } from '../../lib/site';
-import List from '../atoms/List.astro';
-import LinkItem from './LinkItem.astro';
 import styles from './SocialLinks.module.css';
 
 type Props = HTMLAttributes<'ul'>;

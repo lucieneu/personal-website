@@ -1,9 +1,11 @@
 // @ts-check
+// Astro loads this file through Vite with tsconfig paths turned on, so the @/ alias works here
+// (and in the files it imports) like everywhere else.
+import { defaultLang, languages } from '@/i18n/ui';
+import checkTranslations from '@/integrations/check-translations';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig, fontProviders } from 'astro/config';
-import { defaultLang, languages } from './src/i18n/ui';
-import checkTranslations from './src/integrations/check-translations';
 
 // https://astro.build/config
 export default defineConfig({
