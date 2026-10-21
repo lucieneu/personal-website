@@ -95,17 +95,7 @@ branch preview, or production for `main`.
 
 Hosting is on Cloudflare Workers (static assets only, configured in `wrangler.jsonc`) with
 [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/): `main` deploys to
-production, and every other branch gets its own preview URL. One-time setup in the Cloudflare dashboard:
-
-1. **Workers & Pages → Create → Import a repository**, and pick `lucieneu/personal-website`.
-2. Project name `personal-website` (must match `name` in `wrangler.jsonc`).
-3. Build command: `npm run verify`, the same checks as CI, so nothing deploys when a check fails.
-   Deploy command: `npx wrangler deploy` (default).
-   Non-production branch deploy command: `npx wrangler preview` (default).
-4. Turn on builds for non-production branches.
-5. In the Worker's **Domains** tab, under **Worker URL**, turn on **Preview**. `"preview_urls": true`
-   in `wrangler.jsonc` does the same, but only takes effect on a production deploy
-   (`wrangler deploy`), so without this switch previews have no URL until `main` has deployed once.
+production, and every other branch gets its own preview URL.
 
 Production is [reller.nl](https://reller.nl), a Worker custom domain set in `wrangler.jsonc`
 (`routes`), so `wrangler deploy` attaches it. It's also at
@@ -114,14 +104,5 @@ point to reller.nl. A branch preview is at
 `https://<branch>-personal-website.lucien-hilversum.workers.dev`. Previews are public but send
 `X-Robots-Tag: noindex`, so search engines skip them.
 
-One-time domain setup. The reller.nl zone's DNS is on Cloudflare; it has to be in the same
-account as the Worker.
-
-1. **DNS → Records**: delete the `A` and `AAAA` records for `reller.nl` (they pointed to the
-   registrar's parking page), so the custom domain can create its own record without a conflict.
-   Keep the `www` record, proxied.
-2. Deploy `main` (or, in the Worker's **Domains** tab, add `reller.nl` as a custom domain).
-   Cloudflare creates the DNS record and the certificate.
-3. **Rules → Redirect Rules**: create one from the template _Redirect from WWW to root_, so
-   `www.reller.nl` redirects to `https://reller.nl` (301, keeping the path).
-4. **SSL/TLS → Edge Certificates**: turn on **Always Use HTTPS**.
+The one-time setup in the Cloudflare dashboard (Workers Builds and the reller.nl domain, all done)
+is in [docs/cloudflare-setup.md](docs/cloudflare-setup.md), as a reference for setting it up again.
