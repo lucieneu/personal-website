@@ -32,6 +32,7 @@ on your machine. It checks the files on disk, uncommitted changes included. To s
 | `npm run format:check` | Check formatting without changing files                                 |
 | `npm run verify`       | Check, lint, format check and build (CI, deploys and the pre-push hook) |
 | `npm run test:e2e`     | Playwright smoke tests (see below)                                      |
+| `npm run test:lint`    | Tests of the project's own lint rule and MDX processor (in `eslint/`)   |
 
 ## Where things live
 
@@ -92,12 +93,16 @@ BASE_URL=https://<branch>-personal-website.lucien-hilversum.workers.dev npm run 
 
 The first time, install the browsers with `npx playwright install`.
 
+`npm run test:lint` tests the project's own lint rule and MDX processor in `eslint/` (with Node's
+built-in test runner), so the rule can't silently stop checking anything. `npm run verify` runs
+them too.
+
 ## Deploys
 
-Every push runs `npm run verify` (`astro check`, ESLint, Prettier and the build) in GitHub Actions
-(`.github/workflows/ci.yml`). A second job then waits until Cloudflare has deployed that commit
-(the deploy reports its commit at `/version.json`) and runs the Playwright tests against it: the
-branch preview, or production for `main`.
+Every push runs `npm run verify` (`astro check`, ESLint and the tests of its own rule, Prettier
+and the build) in GitHub Actions (`.github/workflows/ci.yml`). A second job then waits until
+Cloudflare has deployed that commit (the deploy reports its commit at `/version.json`) and runs
+the Playwright tests against it: the branch preview, or production for `main`.
 
 Hosting is on Cloudflare Workers (static assets only, configured in `wrangler.jsonc`) with
 [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/): `main` deploys to

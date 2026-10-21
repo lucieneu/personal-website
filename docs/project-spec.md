@@ -650,7 +650,7 @@ Proposal (in use since phase 0, still a `TODO(decision)`): host the static build
 
 **Pipeline on every push**
 
-`npm run verify` runs `astro check`, ESLint, the Prettier check and `astro build`. The same script runs in all three places, so they can't drift apart:
+`npm run verify` runs `astro check`, ESLint, the tests of the project's own lint rule (`npm run test:lint`, since phase 2), the Prettier check and `astro build`. The same script runs in all three places, so they can't drift apart:
 
 1. Locally, before the push: the Husky pre-push hook.
 2. GitHub Actions: `npm ci`, then `npm run verify`.
