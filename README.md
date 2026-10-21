@@ -33,6 +33,7 @@ on your machine. It checks the files on disk, uncommitted changes included. To s
 | `npm run verify`       | Check, lint, format check and build (CI, deploys and the pre-push hook) |
 | `npm run test:e2e`     | Playwright smoke tests (see below)                                      |
 | `npm run test:lint`    | Tests of the project's own lint rule and MDX processor (in `eslint/`)   |
+| `npm run compare`      | Compare the site with another version, page by page (see below)         |
 
 ## Where things live
 
@@ -65,15 +66,23 @@ on your machine. It checks the files on disk, uncommitted changes included. To s
   build check uses too.
 - `src/pages/`: Dutch pages; `src/pages/en/`: the same routes in English. `404.astro` is one page
   for both languages.
-- `src/integrations/check-translations.ts`: fails the build when a page or project exists in only one
-  language (drafts excepted, since they aren't built).
+- `src/integrations/`: checks that fail the build. `check-translations.ts`: a page or project
+  exists in only one language (drafts excepted, since they aren't built). `check-css-order.ts`:
+  an element's styles depend on the order of the CSS in the build (see below), with the CSS
+  helpers in `css-rules.ts`.
 - `tests/`: Playwright tests.
+- `scripts/compare-builds.ts`: `npm run compare`, see below.
 
 Files in `src/` are imported with the `@/` alias set in `tsconfig.json`
 (`import Link from '@/components/atoms/Link.astro'`), also from the same folder. Only a
 component's own CSS Module is imported with `./` (`./Link.module.css`). The project's own lint
 rule in `eslint/` checks this: it flags `../` everywhere and `./` to any other file in `src/`, in
 imports and exports, `import()`, `import.meta.glob()` and the import lines of `.mdx` files.
+
+The order of component imports sets the order of their CSS in the build, so styles mustn't depend
+on it: two components may not set the same property on the same element with the same
+specificity, typically a parent's `class` for margins on a child that sets that margin itself.
+`check-css-order.ts` fails the build when they do and names both rules.
 
 ## Adding a project
 
@@ -96,6 +105,31 @@ The first time, install the browsers with `npx playwright install`.
 `npm run test:lint` tests the project's own lint rule and MDX processor in `eslint/` (with Node's
 built-in test runner), so the rule can't silently stop checking anything. `npm run verify` runs
 them too.
+
+## Checking that a change changes nothing
+
+For a refactor, `npm run compare` shows that the site still looks and behaves the same. It
+compares two versions page by page in Chromium: the HTML, the computed styles of every element (at
+rest, and around every link and button while hovered and focused) and full-page screenshots, on a
+desktop, a tablet and a phone in both themes. Each version is a URL or a build folder; the second
+one defaults to `dist/`. To compare a new build with production:
+
+```bash
+npm run build
+```
+
+```bash
+npm run compare -- https://personal-website.lucien-hilversum.workers.dev
+```
+
+Different HTML alone is fine (the same CSS can come in another order); different styles,
+screenshots or image choices fail the run, and the differing screenshots are saved in
+`test-results/compare/`. Screenshot pixels that are off by 1 or 2 (out of 255) are anti-aliasing
+noise and don't count; colors are compared exactly through the styles. The screenshots mask the images, because the same image gives different
+AVIF bytes on Windows and on Cloudflare's Linux build; the run notes image files that differ, and
+when both versions come from the same kind of build (two deploys, or two local builds) there
+should be none. Use the workers.dev address rather than reller.nl, where Cloudflare adds a script
+to every page.
 
 ## Deploys
 

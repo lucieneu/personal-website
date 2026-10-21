@@ -466,6 +466,8 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │   ├── _headers                  # cache headers for /_astro/*
 │   ├── favicon.svg
 │   └── og-default.png
+├── scripts/
+│   └── compare-builds.ts         # npm run compare: proves a change changes nothing
 ├── src/
 │   ├── assets/projects/          # cover images
 │   ├── content.config.ts
@@ -478,8 +480,10 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │   │   ├── ui.ts                 # interface text per language
 │   │   ├── paths.ts              # language helpers without Astro (also used by the build check)
 │   │   └── utils.ts              # t(), pageLang() and locale helpers
-│   ├── integrations/
-│   │   └── check-translations.ts # fails the build on a page in only one language
+│   ├── integrations/             # checks that fail the build
+│   │   ├── check-css-order.ts    # styles that depend on the order of the CSS
+│   │   ├── check-translations.ts # a page in only one language
+│   │   └── css-rules.ts          # reads the built CSS for check-css-order
 │   ├── layouts/
 │   │   └── BaseLayout.astro      # ClientRouter, scene, sidebar, card, footer
 │   ├── components/               # atomic design: atoms → molecules → organisms → views
@@ -569,7 +573,7 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 - One component per icon, in `src/components/atoms/icons/`, built on the shared `Icon` base; no icon component that switches on a name.
 - What a loop renders for each item is its own component (`{items.map((item) => <Item … />)}`), not markup written inside the loop.
 - Styles live in a CSS Module next to the component (`Link.astro` + `Link.module.css`), used as `class={styles.name}`; no `<style>` blocks in components. Class names are camelCase, and every selector starts from a class: in a CSS Module a bare element selector (`li`, `h2`) isn't scoped and would style the whole site. Only `src/styles/` (tokens, global element styles, transitions) is global. Tests find elements by role and accessible name, not by class, because the class names are hashed.
-- Imports from `src/` use the `@/` alias from `tsconfig.json` (`@/lib/date`, `@/components/atoms/Link.astro`), also within the same folder; only a component's own CSS Module is imported relatively (`./Link.module.css`). A lint rule of the project's own (`eslint/alias-imports.js`, since phase 2) flags `../` anywhere and `./` to any other file in `src/`, in imports and exports, `import()`, `import.meta.glob()` and the import lines of `.mdx` files. Imports are sorted the way the editor's "Organize imports" sorts them (packages and `@/` by path, then `./`), but the order of component imports also sets the order of their CSS in the build, so a component's styles must not depend on that order.
+- Imports from `src/` use the `@/` alias from `tsconfig.json` (`@/lib/date`, `@/components/atoms/Link.astro`), also within the same folder; only a component's own CSS Module is imported relatively (`./Link.module.css`). A lint rule of the project's own (`eslint/alias-imports.js`, since phase 2) flags `../` anywhere and `./` to any other file in `src/`, in imports and exports, `import()`, `import.meta.glob()` and the import lines of `.mdx` files. Imports are sorted the way the editor's "Organize imports" sorts them (packages and `@/` by path, then `./`), but the order of component imports also sets the order of their CSS in the build, so a component's styles must not depend on that order: two components may not set the same property on the same element with the same specificity. The build checks this (`src/integrations/check-css-order.ts`, since phase 2).
 - Commits follow Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`).
 
 ## Build phases
@@ -650,7 +654,7 @@ Proposal (in use since phase 0, still a `TODO(decision)`): host the static build
 
 **Pipeline on every push**
 
-`npm run verify` runs `astro check`, ESLint, the tests of the project's own lint rule (`npm run test:lint`, since phase 2), the Prettier check and `astro build`. The same script runs in all three places, so they can't drift apart:
+`npm run verify` runs `astro check`, ESLint, the tests of the project's own lint rule (`npm run test:lint`, since phase 2), the Prettier check and `astro build` (with its checks for missing translations and for styles that depend on the CSS order). The same script runs in all three places, so they can't drift apart:
 
 1. Locally, before the push: the Husky pre-push hook.
 2. GitHub Actions: `npm ci`, then `npm run verify`.
@@ -688,3 +692,4 @@ Work phase by phase, report after each phase, and when in doubt choose the calme
 8. **Test accessibility:** every page and every interaction with the keyboard only, and once with a screen reader (VoiceOver or NVDA).
 9. **Small commits** per part, using Conventional Commits, so every step can be reverted.
 10. **When deviating from this document:** briefly explain why, and update the relevant section or record it as an open question.
+11. **Prove that a refactor changes nothing:** compare the new build with production using `npm run compare` (the HTML, computed styles and screenshots of every page), and run the tests (since phase 2, at the owner's request).
