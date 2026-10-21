@@ -462,6 +462,9 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 ├── playwright.config.ts          # local build, or BASE_URL (a deploy)
 ├── tsconfig.json                 # strict, plus the @/ alias for src/
 ├── wrangler.jsonc                # Cloudflare Workers: static assets, previews
+├── docs/
+│   ├── project-spec.md           # this document
+│   └── cloudflare-setup.md       # one-time Cloudflare dashboard setup (all done), for reference
 ├── public/
 │   ├── _headers                  # cache headers for /_astro/*
 │   ├── favicon.svg
@@ -620,6 +623,7 @@ Done on Oct 18, 2026 in [PR #6](https://github.com/lucieneu/personal-website/pul
 - [ ] Pages `/now` and `/uses` in both languages.
 - [ ] The homepage shows the latest 3 posts.
 - [ ] Absolute imports, at the owner's request (Oct 20, 2026): a path alias in `tsconfig.json` (for example `@/components/atoms/Link.astro` and `@/i18n/utils`) instead of relative imports such as `../../i18n/utils`. Astro and Vite read the aliases from `tsconfig.json`. Change every import at once, in its own PR.
+- [ ] Move the one-time Cloudflare setup (the Workers Builds steps and the reller.nl domain steps, all done) from the README to `docs/cloudflare-setup.md`, as a reference for setting it up again, at the owner's request (Oct 21, 2026). The README keeps a short Deploys section that links to it.
 - [ ] **Gate:** budgets still met with 3D; LCP with and without 3D differs by less than 100 ms.
 
 ### Phase 3: Extras
@@ -644,7 +648,7 @@ Proposal (in use since phase 0, still a `TODO(decision)`): host the static build
 
 **How it's set up (since phase 0)**
 
-- Cloudflare Workers with static assets only: `wrangler.jsonc` serves `dist/`, with no Worker script. Workers Builds is connected to the GitHub repo; the one-time dashboard setup is in the README.
+- Cloudflare Workers with static assets only: `wrangler.jsonc` serves `dist/`, with no Worker script. Workers Builds is connected to the GitHub repo; the one-time dashboard setup is in `docs/cloudflare-setup.md` (moved from the README in phase 2).
 - `main` deploys to production at `https://reller.nl` (since phase 1): a Worker custom domain in `wrangler.jsonc`, so every `wrangler deploy` keeps it attached. The zone's DNS is on Cloudflare; `www.reller.nl` redirects to it through a redirect rule. Production is also at `https://personal-website.lucien-hilversum.workers.dev` (`workers_dev: true`, needed because routes turn it off by default), where CI tests `main`; its canonical URLs point to reller.nl. Every other branch gets a preview at `https://<branch>-personal-website.lucien-hilversum.workers.dev`.
 - Previews are public but send `X-Robots-Tag: noindex`.
 
