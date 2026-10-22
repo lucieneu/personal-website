@@ -1,14 +1,17 @@
 ---
 // The home page in either language. The page file passes the intro (with its <h1>).
 import Link from '@/components/atoms/Link.astro';
+import PostList from '@/components/organisms/PostList.astro';
 import ProjectList from '@/components/organisms/ProjectList.astro';
 import { localePath, pageLang } from '@/i18n/utils';
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getLatestPosts } from '@/lib/posts';
 import { getFeaturedProjects } from '@/lib/projects';
 import styles from './HomeView.module.css';
 
 const { lang, t } = pageLang(Astro.currentLocale);
 const projects = await getFeaturedProjects(lang);
+const posts = await getLatestPosts(lang);
 ---
 
 <BaseLayout description={t('site.description')}>
@@ -20,6 +23,16 @@ const projects = await getFeaturedProjects(lang);
     <p class={styles.more}>
       <Link href={localePath(lang, 'projects')} arrow="forward">
         {t('home.allProjects')}
+      </Link>
+    </p>
+  </section>
+
+  <section aria-labelledby="latest">
+    <h2 id="latest">{t('home.latest')}</h2>
+    <PostList posts={posts} headingLevel="h3" />
+    <p class={styles.more}>
+      <Link href={localePath(lang, 'blog')} arrow="forward">
+        {t('home.allPosts')}
       </Link>
     </p>
   </section>
