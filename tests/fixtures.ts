@@ -28,9 +28,12 @@ export { expect };
 export async function sitePaths(page: Page): Promise<string[]> {
   const response = await page.request.get('/sitemap-0.xml');
   expect(response.ok()).toBe(true);
-  const xml = await response.text();
-  return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => new URL(match[1]!).pathname);
+  return pathsInSitemap(await response.text());
 }
+
+/** The path of every page in a sitemap's XML. */
+export const pathsInSitemap = (xml: string) =>
+  [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => new URL(match[1]!).pathname);
 
 /** The language a path belongs to: English under /en/, Dutch everywhere else. */
 export const langOf = (path: string) => (path.startsWith('/en/') || path === '/en' ? 'en' : 'nl');

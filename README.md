@@ -109,9 +109,12 @@ git switch <branch> && npm run test:visual
 ```
 
 Each run builds and serves the checkout it's on. Differences show up side by side in the report
-(`npx playwright show-report`). The screenshots differ per machine, so they aren't committed
-(`tests/visual.spec.ts-snapshots/` is ignored), and images are masked because lazy ones may still be
-loading. To compare two deploys instead, set `BASE_URL`: production with `--update-snapshots`, then
+(`npx playwright show-report`). Images are masked because lazy ones may still be loading.
+
+The browser runs in Playwright's official Docker image, so Docker Desktop has to be running.
+Everything else runs here, and nothing leaves the machine: the browser reaches `localhost` through
+Playwright's connection. The first run downloads the image. The container (`playwright-visual`) keeps
+running after a run, and the next run reuses it; `docker stop playwright-visual` removes it. The screenshots stay local (`tests/visual.spec.ts-snapshots/` is ignored). To compare two deploys instead, set `BASE_URL`: production with `--update-snapshots`, then
 the branch preview. For the HTML, copy `dist/` after building `main` and `diff -r` it with the
 branch's.
 
