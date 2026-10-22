@@ -39,7 +39,7 @@ Astro with static output, and React only for the parts that are truly interactiv
 | i18n | Astro's built-in i18n routing | No extra dependency; locale-aware URLs and `Astro.currentLocale` |
 | Styling | CSS custom properties (design tokens) + a CSS Module per component (`Component.module.css`, since phase 1, at the owner's request) | No runtime CSS, full control over the design, styles in their own files |
 | Fonts | Self-hosted via Fontsource, variable `woff2`, preloaded | No external requests, no layout shift |
-| Code highlighting | Shiki (built into Astro) | Highlighting at build time, 0 kB JS |
+| Code highlighting | Shiki (built into Astro), with a light and a dark theme that follow the theme toggle through `light-dark()` (since phase 2) | Highlighting at build time, 0 kB JS |
 | Package manager | npm | Comes with Node, so there is no extra tool to install (changed from pnpm on Oct 18, 2026) |
 | Quality | ESLint, Prettier + `prettier-plugin-astro`, `astro check`, a Husky pre-push hook that runs them all (added Oct 18, 2026) | Consistent code, type errors caught before a push or deploy |
 | Tests | Playwright | Smoke tests, navigation with transitions, and screenshot comparisons for refactors (`toHaveScreenshot`, since phase 2) |
@@ -79,7 +79,7 @@ export default defineConfig({
 | `/lab` | Lab | Small experiments and demos | 3 |
 | `/lab/[slug]` | Experiment | One demo with a short explanation | 3 |
 
-**Sidebar navigation:** Home, Projects, Blog, About. Now, Uses and Lab are secondary links below them. The active page gets `aria-current="page"` and a visual marker. A language switch (NL / EN) links to the same page in the other language.
+**Sidebar navigation:** Home, Projects, Blog, About. Now, Uses and Lab are secondary links below them (since phase 2: small, muted links below the main navigation on desktop, and in the footer below the card on phones). The active page gets `aria-current="page"` and a visual marker. A language switch (NL / EN) links to the same page in the other language.
 
 ## Layout and visual design
 
@@ -106,6 +106,7 @@ The 3D scene and the sidebar stay still during a page change; only the card's fr
 **Mobile (below 64em)**
 
 - The sidebar becomes a compact header with the name, the language switch and the theme toggle; it scrolls away with the page. (The owner decided in phase 1 to keep the language switch and theme toggle here rather than in the nav island, for now.)
+- The nav island leaves out Home (since phase 2, the owner's choice): with Blog added, four links don't fit on one row in Dutch, and the name in the header already links to the home page. The desktop sidebar keeps all four.
 - The navigation is a "nav island" (changed in phase 1, at the owner's request): a partly see-through, blurred pill fixed to the bottom of the screen, within thumb reach, clear of the iPhone home indicator (`env(safe-area-inset-bottom)`). It stays put during a page transition, like the desktop sidebar; only its current-page marker slides to the new item. Links are at least 44 px tall, and pages leave room at the bottom so the island never covers content.
 - The footer sits below the card.
 - The card is full width with a 16 px margin on both sides and 24 px padding.
@@ -514,18 +515,21 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │   │   │   ├── ExperienceTimeline.astro
 │   │   │   ├── ThemeScript.astro # inline in <head>: stored theme before first paint
 │   │   │   └── Seo.astro         # meta, canonical, hreflang, OG, JSON-LD
-│   │   └── views/                # one view per page, shared by both languages
+│   │   └── views/                # one view per page, shared by both languages; MdxPageView.astro is the layout of /now and /uses
 │   ├── islands/                  # React only, only what's interactive
 │   │   ├── CommandPalette.tsx
 │   │   └── scene/
 │   │       ├── SceneLoader.tsx   # waits for idle, lazy import
 │   │       └── SceneCanvas.tsx   # R3F Canvas and objects
 │   ├── lib/                      # the logic: components only pass props and render
+│   │   ├── collections.ts        # slug and language of a projects/posts entry; drafts
 │   │   ├── date.ts               # formatDate, isoDate, newestFirst
 │   │   ├── experience.ts         # work experience, newest first
 │   │   ├── images.ts             # loading attributes
 │   │   ├── navigation.ts         # nav links and which one is current
+│   │   ├── posts.ts              # posts per language, newest first; latest, paths
 │   │   ├── projects.ts           # projects per language, sorted, drafts filtered; paths, links
+│   │   ├── rss.ts                # the RSS feed per language, and where it is
 │   │   ├── seo.ts                # titles, absolute URLs, alternates, JSON-LD
 │   │   ├── site.ts               # social links, copyright line
 │   │   ├── transitions.ts        # custom transition animations; focus after navigation
@@ -555,6 +559,7 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │       └── transitions.css
 └── tests/                        # Playwright
     ├── fixtures.ts               # fails a test on any console error
+    ├── feed.spec.ts              # the RSS feed per language
     ├── navigation.spec.ts
     ├── theme.spec.ts
     └── visual.spec.ts            # screenshots of every page, compared with earlier ones
