@@ -4,10 +4,20 @@ My personal website: a static [Astro](https://astro.build) site in Dutch (at `/`
 
 The plan for the site (goals, stack, design, build phases) is in [docs/project-spec.md](docs/project-spec.md).
 
-## Getting started
+## Requirements
 
-Requires Node.js 22.22.3+, 24.16+ or 26.3+ (the range ESLint's Astro plugin supports; CI and
-Cloudflare use Node 24, see `.node-version`) and the npm that comes with it.
+| Software                                                                                          | Needed for            | Notes                                                                                                                                                          |
+| ------------------------------------------------------------------------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Git](https://git-scm.com)                                                                        | Everything            | The pre-push hook runs through Git.                                                                                                                            |
+| [Node.js](https://nodejs.org) 22.22.3+, 24.16+ or 26.3+                                           | Everything            | The range ESLint's Astro plugin supports. CI and Cloudflare use Node 24 (`.node-version`).                                                                     |
+| Playwright's browsers                                                                             | `npm run test:e2e`    | Install once with `npx playwright install` (Chromium, Firefox and WebKit). On Linux, add `--with-deps` for the system libraries.                               |
+| [Docker Desktop](https://www.docker.com/products/docker-desktop/), or [Podman](https://podman.io) | `npm run test:visual` | Must be running. The first run downloads Playwright's image. With Podman, set `DOCKER_CONTEXT=podman-machine-default` or make it the default `docker context`. |
+
+Deploys need nothing on your machine: Cloudflare builds and deploys every push (see
+[Deploys](#deploys)). For VS Code, `.vscode/extensions.json` recommends the Astro, ESLint and
+Prettier extensions.
+
+## Getting started
 
 ```bash
 npm install
