@@ -8,12 +8,14 @@ interface Props {
   href: string;
   label: string;
   current?: 'page' | 'true' | undefined;
+  /** Hidden in the nav island on phones. */
+  desktopOnly?: boolean;
 }
 
-const { href, label, current } = Astro.props;
+const { href, label, current, desktopOnly = false } = Astro.props;
 ---
 
-<li>
+<li class:list={[desktopOnly && styles.desktopOnly]}>
   <Link class={styles.link} href={href} aria-current={current} underline={false}>
     {/* The island's current-page marker; it slides to the new item on a navigation. */}
     {current && <span class={styles.marker} aria-hidden="true" />}

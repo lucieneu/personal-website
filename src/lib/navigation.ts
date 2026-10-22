@@ -5,11 +5,14 @@ import { localePath } from '@/i18n/utils';
 export interface NavLink {
   key: UiKey;
   path: string;
+  /** Only in the desktop sidebar: on phones the nav island leaves it out (Home: the name links there). */
+  desktopOnly?: boolean;
 }
 
 /** The main navigation: in the sidebar on desktop, in the nav island on phones. */
 export const mainLinks: NavLink[] = [
-  { key: 'nav.home', path: '' },
+  // Four links don't fit the island on one row, and the name in the mobile header links home.
+  { key: 'nav.home', path: '', desktopOnly: true },
   { key: 'nav.projects', path: 'projects' },
   { key: 'nav.blog', path: 'blog' },
   { key: 'nav.about', path: 'about' },
@@ -28,6 +31,7 @@ export interface NavItemData {
   key: UiKey;
   href: string;
   current: NavState;
+  desktopOnly: boolean;
 }
 
 /** '/projects/' → '/projects', and '/' stays '/'. */
@@ -52,8 +56,8 @@ export function navState(href: string, pathname: string, homeHref: string): NavS
 /** Navigation links in a language, with the current page marked. */
 export function navItems(links: NavLink[], lang: Lang, pathname: string): NavItemData[] {
   const homeHref = localePath(lang);
-  return links.map(({ key, path }) => {
+  return links.map(({ key, path, desktopOnly = false }) => {
     const href = localePath(lang, path);
-    return { key, href, current: navState(href, pathname, homeHref) };
+    return { key, href, current: navState(href, pathname, homeHref), desktopOnly };
   });
 }

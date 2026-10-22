@@ -18,8 +18,8 @@ const items = navItems(mainLinks, lang, Astro.url.pathname);
 
 <nav class:list={[styles.mainNav, className]} aria-label={t('nav.label')} {...rest}>
   <List class={styles.items}>
-    {items.map(({ key, href, current }) => (
-      <NavItem href={href} label={t(key)} current={current} />
+    {items.map(({ key, href, current, desktopOnly }) => (
+      <NavItem href={href} label={t(key)} current={current} desktopOnly={desktopOnly} />
     ))}
   </List>
 </nav>
