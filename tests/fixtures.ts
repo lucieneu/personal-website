@@ -118,7 +118,7 @@ const inEitherLanguage = (key: UiKey) => new RegExp(`^(${ui.nl[key]}|${ui.en[key
 export const mainNav = (page: Page) =>
   page.getByRole('navigation', { name: inEitherLanguage('nav.label') });
 
-/** The secondary links (Now, Uses): in the sidebar on desktop, in the footer on phones. */
+/** The secondary links (Now): in the sidebar on desktop, in the footer on phones. */
 export const secondaryNav = (page: Page) =>
   page.getByRole('navigation', { name: inEitherLanguage('nav.more') });
 

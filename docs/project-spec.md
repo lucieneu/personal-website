@@ -73,13 +73,12 @@ export default defineConfig({
 | `/404` | Not found | Friendly message in both languages with links back to both home pages, in the same layout (static hosts serve a single 404 page) | 1 |
 | `/blog` | Blog | List of posts with date and tags | 2 |
 | `/blog/[slug]` | Post | MDX with optional interactive islands | 2 |
-| `/now` | Now | What I'm working on right now, with the date of the last update | 2 |
-| `/uses` | Uses | Hardware, software, homelab | 2 |
+| `/now` | Now | What I'm working on and with right now (including the setup and homelab), with the date of the last update; titled "Waar ik nu mee werk" / "What I'm working with" | 2 |
 | `/rss.xml` | RSS feed | All published posts; one feed per language (`/rss.xml` and `/en/rss.xml`) | 2 |
 | `/lab` | Lab | Small experiments and demos | 3 |
 | `/lab/[slug]` | Experiment | One demo with a short explanation | 3 |
 
-**Sidebar navigation:** Home, Projects, Blog, About. Now, Uses and Lab are secondary links below them (since phase 2: small, muted links below the main navigation on desktop, and in the footer below the card on phones). The active page gets `aria-current="page"` and a visual marker. A language switch (NL / EN) links to the same page in the other language.
+**Sidebar navigation:** Home, Projects, Blog, About. Now and Lab are secondary links below them (since phase 2: small, muted links below the main navigation on desktop, and in the footer below the card on phones). The active page gets `aria-current="page"` and a visual marker. A language switch (NL / EN) links to the same page in the other language.
 
 ## Layout and visual design
 
@@ -346,7 +345,7 @@ All content lives as files in the repo, in Dutch and English, and is validated a
 | `lab` | `src/content/lab/{nl,en}/*.mdx` | `title`, `description`, `date`, `draft` |
 | `experience` | `src/content/experience.json` | `company`, `role` (nl + en), `start`, `end?`, `summary` (nl + en), `stack[]` |
 
-`/now` and `/uses` are standalone MDX pages, one per language (`src/pages/now.mdx` and `src/pages/en/now.mdx`, and the same for `uses`), each with an `updated` date in the frontmatter.
+`/now` is a standalone MDX page, one per language (`src/pages/now.mdx` and `src/pages/en/now.mdx`), with an `updated` date in the frontmatter. (A separate `/uses` page for the setup and homelab was dropped in phase 2, at the owner's request; that content goes on `/now`.)
 
 ```ts
 // src/content.config.ts (excerpt)
@@ -411,7 +410,7 @@ The owner supplies the real copy in both languages. Until then, the builder uses
 - [ ] Projects 2 and 3: work or side projects, described as problem, approach and result.
 - [ ] Work experience for `/about`.
 - [ ] First post (phase 2): "Hoe ik deze site bouwde" / "How I built this site".
-- [ ] `/uses`: setup, tools and the homelab.
+- [ ] `/now`: current work, and the setup, tools and the homelab.
 
 ## Performance, accessibility and SEO
 
@@ -516,7 +515,7 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │   │   │   ├── ExperienceTimeline.astro
 │   │   │   ├── ThemeScript.astro # inline in <head>: stored theme before first paint
 │   │   │   └── Seo.astro         # meta, canonical, hreflang, OG, JSON-LD
-│   │   └── views/                # one view per page, shared by both languages; MdxPageView.astro is the layout of /now and /uses
+│   │   └── views/                # one view per page, shared by both languages; MdxPageView.astro is the layout of /now
 │   ├── islands/                  # React only, only what's interactive
 │   │   ├── CommandPalette.tsx
 │   │   └── scene/
@@ -544,7 +543,6 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │   │   ├── lab/index.astro
 │   │   ├── lab/[...slug].astro
 │   │   ├── now.mdx
-│   │   ├── uses.mdx
 │   │   ├── 404.astro             # one page, both languages
 │   │   ├── robots.txt.ts         # generated, so the sitemap URL follows `site`
 │   │   ├── version.json.ts       # the commit of the build, for CI
@@ -591,7 +589,7 @@ Four phases, each ending with a working, deployed site; phase 1 is the first ver
 flowchart LR
   F0["<b>Phase 0 · Foundation</b><br/>Setup and tooling<br/>Design tokens<br/>Base layout and i18n<br/>Preview deploys<br/><br/><i>Gate: checks green,<br/>preview works</i>"]
   F1["<b>Phase 1 · Core, goes live</b><br/>5 pages in NL and EN<br/>Transitions<br/>Theme switch<br/>SEO and a11y basics<br/><br/><i>Gate: Lighthouse ≥ 95,<br/>live on domain</i>"]
-  F2["<b>Phase 2 · 3D and content</b><br/>3D background<br/>Blog and RSS<br/>/now and /uses<br/>Latest posts on home<br/><br/><i>Gate: budget met<br/>with 3D</i>"]
+  F2["<b>Phase 2 · 3D and content</b><br/>3D background<br/>Blog and RSS<br/>/now<br/>Latest posts on home<br/><br/><i>Gate: budget met<br/>with 3D</i>"]
   F3["<b>Phase 3 · Extras</b><br/>Command palette<br/>Lab pages<br/>OG images<br/>Live data (optional)<br/><br/><i>Gate: budget met,<br/>all keyboard operable</i>"]
   F0 --> F1 --> F2 --> F3
   classDef live stroke:#3B5BDB,stroke-width:3px
@@ -626,7 +624,7 @@ Done on Oct 18, 2026 in [PR #6](https://github.com/lucieneu/personal-website/pul
 
 - [ ] 3D background as described in the 3D background section, including the fallback and exceptions.
 - [ ] Blog: `posts` collection, `/blog`, `/blog/[slug]`, and an RSS feed per language.
-- [ ] Pages `/now` and `/uses` in both languages.
+- [ ] The page `/now` in both languages (`/uses` dropped at the owner's request, Oct 22, 2026; its content goes on `/now`).
 - [ ] The homepage shows the latest 3 posts.
 - [ ] Absolute imports, at the owner's request (Oct 20, 2026): a path alias in `tsconfig.json` (for example `@/components/atoms/Link.astro` and `@/i18n/utils`) instead of relative imports such as `../../i18n/utils`. Astro and Vite read the aliases from `tsconfig.json`. Change every import at once, in its own PR.
 - [ ] Move the one-time Cloudflare setup (the Workers Builds steps and the reller.nl domain steps, all done) from the README to `docs/cloudflare-setup.md`, as a reference for setting it up again, at the owner's request (Oct 21, 2026). The README keeps a short Deploys section that links to it.

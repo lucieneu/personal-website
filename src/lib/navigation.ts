@@ -31,10 +31,7 @@ export function mainLinks(showBlog: boolean): NavLink[] {
 }
 
 /** The secondary links: below the main navigation on desktop, in the footer on phones. */
-export const secondaryLinks: NavLink[] = [
-  { key: 'nav.now', path: 'now' },
-  { key: 'nav.uses', path: 'uses' },
-];
+export const secondaryLinks: NavLink[] = [{ key: 'nav.now', path: 'now' }];
 
 /** "page" for the current page, "true" for the section it's in, undefined for the others. */
 export type NavState = 'page' | 'true' | undefined;

@@ -16,10 +16,7 @@ import {
 } from './fixtures';
 
 /** The pages with a link in the navigation, in both languages (Blog only with posts; see blog.spec.ts). */
-const navPaths = ['', 'projects/', 'about/', 'now/', 'uses/'].flatMap((path) => [
-  `/${path}`,
-  `/en/${path}`,
-]);
+const navPaths = ['', 'projects/', 'about/', 'now/'].flatMap((path) => [`/${path}`, `/en/${path}`]);
 
 /** A single project or post: /projects/x/, /en/blog/y/. */
 const isDetailPage = (path: string) => /^(\/en)?\/(projects|blog)\/[^/]+\/$/.test(path);
@@ -68,8 +65,8 @@ test('client-side navigation through every page in both languages', async ({ pag
       )
       .map((path) => path.split('/')[2]);
 
-  // Home → Projects → each project and back → Blog → each post and back → About → Now → Uses
-  // → Home, then the same in English.
+  // Home → Projects → each project and back → Blog → each post and back → About → Now →
+  // Home, then the same in English.
   const section = (prefix: string, name: string) => [
     `${prefix}/${name}/`,
     ...slugsIn(name).flatMap((slug) => [`${prefix}/${name}/${slug}/`, `${prefix}/${name}/`]),
@@ -80,7 +77,6 @@ test('client-side navigation through every page in both languages', async ({ pag
     ...(paths.includes('/blog/') ? section(prefix, 'blog') : []),
     `${prefix}/about/`,
     `${prefix}/now/`,
-    `${prefix}/uses/`,
     `${prefix}/`,
   ];
 
