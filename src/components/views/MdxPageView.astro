@@ -1,0 +1,28 @@
+---
+// The layout of a standalone MDX page (/now) in either language: the title, the date of
+// the last update and the page's body. The page sets this file as `layout` in its frontmatter.
+import DateTime from '@/components/atoms/DateTime.astro';
+import { pageLang } from '@/i18n/utils';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import styles from './MdxPageView.module.css';
+
+interface Props {
+  frontmatter: {
+    title: string;
+    description: string;
+    /** When the page was last updated, as YAML gives it: a date or a date string. */
+    updated: Date | string;
+  };
+}
+
+const { title, description, updated } = Astro.props.frontmatter;
+const { t } = pageLang(Astro.currentLocale);
+---
+
+<BaseLayout title={title} description={description}>
+  <h1>{title}</h1>
+  <p class={styles.updated}>
+    {t('page.updated')}: <DateTime date={new Date(updated)} display="day" />
+  </p>
+  <slot />
+</BaseLayout>

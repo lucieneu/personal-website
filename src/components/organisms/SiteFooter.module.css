@@ -3,6 +3,10 @@
   font-size: var(--font-size-small);
 }
 
+.secondaryNav {
+  margin-bottom: var(--space-4);
+}
+
 .social {
   margin: 0 0 var(--space-2);
 }

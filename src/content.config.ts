@@ -30,6 +30,19 @@ const projects = defineCollection({
     }),
 });
 
+const posts = defineCollection({
+  // Like projects: nl/ and en/ subfolders, so ids look like 'nl/my-post'.
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/posts' }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string().max(160),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+    tags: z.array(z.string()),
+    draft: z.boolean().default(false),
+  }),
+});
+
 const experience = defineCollection({
   loader: file('./src/content/experience.json'),
   schema: z.object({
@@ -42,4 +55,4 @@ const experience = defineCollection({
   }),
 });
 
-export const collections = { projects, experience };
+export const collections = { projects, posts, experience };

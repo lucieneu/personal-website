@@ -17,6 +17,10 @@
 }
 
 @media (width < 64em) {
+  .desktopOnly {
+    display: none;
+  }
+
   /* In the nav island: pill-shaped touch targets. */
   .link {
     display: flex;

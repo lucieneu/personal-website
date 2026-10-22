@@ -27,6 +27,15 @@ export default defineConfig({
     checkTranslations(),
   ],
 
+  // Code blocks get both a light and a dark theme as CSS variables, without a default color;
+  // global.css picks one with light-dark(), so code follows the theme toggle too.
+  markdown: {
+    shikiConfig: {
+      themes: { light: 'github-light', dark: 'github-dark' },
+      defaultColor: false,
+    },
+  },
+
   // Loads the next page on hover, so it's usually there before the click.
   prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
 

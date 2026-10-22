@@ -1,0 +1,22 @@
+---
+// The blog: the list of posts at /blog/ and each post at /blog/<slug>/. No pages at all while
+// no post is published (see blogPaths()).
+import BlogView from '@/components/views/BlogView.astro';
+import PostView from '@/components/views/PostView.astro';
+import { blogPaths } from '@/lib/posts';
+import type { InferGetStaticPropsType } from 'astro';
+
+export const getStaticPaths = () => blogPaths('en');
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { post } = Astro.props;
+---
+
+{post ? (
+  <PostView post={post} />
+) : (
+  <BlogView>
+    <p>TODO(content): a sentence about what this blog is about.</p>
+  </BlogView>
+)}

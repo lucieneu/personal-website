@@ -1,0 +1,27 @@
+---
+// The secondary links (Now): small and muted, below the main navigation on desktop and in
+// the footer on phones.
+import List from '@/components/atoms/List.astro';
+import LinkItem from '@/components/molecules/LinkItem.astro';
+import { pageLang } from '@/i18n/utils';
+import { navItems, secondaryLinks } from '@/lib/navigation';
+import type { HTMLAttributes } from 'astro/types';
+import styles from './SecondaryNav.module.css';
+
+type Props = HTMLAttributes<'nav'>;
+
+const { class: className, ...rest } = Astro.props;
+const { lang, t } = pageLang(Astro.currentLocale);
+
+const items = navItems(secondaryLinks, lang, Astro.url.pathname);
+---
+
+<nav class:list={[styles.secondaryNav, className]} aria-label={t('nav.more')} {...rest}>
+  <List inline class={styles.items}>
+    {items.map(({ key, href, current }) => (
+      <LinkItem class={styles.link} href={href} aria-current={current} tone="muted">
+        {t(key)}
+      </LinkItem>
+    ))}
+  </List>
+</nav>
