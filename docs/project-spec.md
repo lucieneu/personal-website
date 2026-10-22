@@ -73,7 +73,7 @@ export default defineConfig({
 | `/404` | Not found | Friendly message in both languages with links back to both home pages, in the same layout (static hosts serve a single 404 page) | 1 |
 | `/blog` | Blog | List of posts with date and tags | 2 |
 | `/blog/[slug]` | Post | MDX with optional interactive islands | 2 |
-| `/now` | Now | What I'm working on and with right now (including the setup and homelab), with the date of the last update; titled "Waar ik nu mee werk" / "What I'm working with" | 2 |
+| `/now` | Now | What I'm working on and with right now (including the setup and homelab), with the date of the last update; titled "Waar ben ik tegenwoordig mee bezig?" / "What am I up to these days?" | 2 |
 | `/rss.xml` | RSS feed | All published posts; one feed per language (`/rss.xml` and `/en/rss.xml`) | 2 |
 | `/lab` | Lab | Small experiments and demos | 3 |
 | `/lab/[slug]` | Experiment | One demo with a short explanation | 3 |
