@@ -42,7 +42,7 @@ Astro with static output, and React only for the parts that are truly interactiv
 | Code highlighting | Shiki (built into Astro) | Highlighting at build time, 0 kB JS |
 | Package manager | npm | Comes with Node, so there is no extra tool to install (changed from pnpm on Oct 18, 2026) |
 | Quality | ESLint, Prettier + `prettier-plugin-astro`, `astro check`, a Husky pre-push hook that runs them all (added Oct 18, 2026) | Consistent code, type errors caught before a push or deploy |
-| Tests | Playwright | Smoke tests and navigation with transitions |
+| Tests | Playwright | Smoke tests, navigation with transitions, and screenshot comparisons for refactors (`toHaveScreenshot`, since phase 2) |
 
 **Preact is out of scope for version 1.** It can be evaluated later for small islands. The 3D scene always stays React, because React Three Fiber runs on `react-reconciler` and does not work with Preact.
 
@@ -457,9 +457,9 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 ├── .github/workflows/ci.yml      # npm ci + npm run verify on every push
 ├── .husky/pre-push               # npm run verify before every push
 ├── astro.config.mjs              # includes the i18n config
-├── eslint.config.js              # with the project's own rule and MDX processor from eslint/
 ├── package.json
 ├── playwright.config.ts          # local build, or BASE_URL (a deploy)
+├── playwright.visual.config.ts   # npm run test:visual (screenshots of every page)
 ├── tsconfig.json                 # strict, plus the @/ alias for src/
 ├── wrangler.jsonc                # Cloudflare Workers: static assets, previews
 ├── docs/
@@ -556,7 +556,8 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 └── tests/                        # Playwright
     ├── fixtures.ts               # fails a test on any console error
     ├── navigation.spec.ts
-    └── theme.spec.ts
+    ├── theme.spec.ts
+    └── visual.spec.ts            # screenshots of every page, compared with earlier ones
 ```
 
 **Conventions**
@@ -572,7 +573,7 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 - One component per icon, in `src/components/atoms/icons/`, built on the shared `Icon` base; no icon component that switches on a name.
 - What a loop renders for each item is its own component (`{items.map((item) => <Item … />)}`), not markup written inside the loop.
 - Styles live in a CSS Module next to the component (`Link.astro` + `Link.module.css`), used as `class={styles.name}`; no `<style>` blocks in components. Class names are camelCase, and every selector starts from a class: in a CSS Module a bare element selector (`li`, `h2`) isn't scoped and would style the whole site. Only `src/styles/` (tokens, global element styles, transitions) is global. Tests find elements by role and accessible name, not by class, because the class names are hashed.
-- Imports from `src/` use the `@/` alias from `tsconfig.json` (`@/lib/date`, `@/components/atoms/Link.astro`), also within the same folder; only a component's own CSS Module is imported relatively (`./Link.module.css`). A lint rule of the project's own (`eslint/alias-imports.js`, since phase 2) flags `../` anywhere and `./` to any other file in `src/`, in imports and exports, `import()`, `import.meta.glob()` and the import lines of `.mdx` files. Imports are sorted the way the editor's "Organize imports" sorts them (packages and `@/` by path, then `./`), but the order of component imports also sets the order of their CSS in the build, so a component's styles must not depend on that order.
+- Imports from `src/` use the `@/` alias from `tsconfig.json` (`@/lib/date`, `@/components/atoms/Link.astro`), also within the same folder; only a component's own CSS Module is imported relatively (`./Link.module.css`). ESLint's built-in `no-restricted-imports` flags any other relative import in `src/` (since phase 2; it doesn't see a dynamic `import()` or the imports in `.mdx` files). Imports are sorted the way the editor's "Organize imports" sorts them (packages and `@/` by path, then `./`), but the order of component imports also sets the order of their CSS in the build, so a component's styles must not depend on that order.
 - Commits follow Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`).
 
 ## Build phases
@@ -654,7 +655,7 @@ Proposal (in use since phase 0, still a `TODO(decision)`): host the static build
 
 **Pipeline on every push**
 
-`npm run verify` runs `astro check`, ESLint, the tests of the project's own lint rule (`npm run test:lint`, since phase 2), the Prettier check and `astro build`. The same script runs in all three places, so they can't drift apart:
+`npm run verify` runs `astro check`, ESLint, the Prettier check and `astro build`. The same script runs in all three places, so they can't drift apart:
 
 1. Locally, before the push: the Husky pre-push hook.
 2. GitHub Actions: `npm ci`, then `npm run verify`.
@@ -692,3 +693,4 @@ Work phase by phase, report after each phase, and when in doubt choose the calme
 8. **Test accessibility:** every page and every interaction with the keyboard only, and once with a screen reader (VoiceOver or NVDA).
 9. **Small commits** per part, using Conventional Commits, so every step can be reverted.
 10. **When deviating from this document:** briefly explain why, and update the relevant section or record it as an open question.
+11. **Prove that a refactor changes nothing** (since phase 2, at the owner's request): compare screenshots of every page before and after with `npm run test:visual`, diff the built HTML, and run the tests.

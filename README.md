@@ -4,10 +4,20 @@ My personal website: a static [Astro](https://astro.build) site in Dutch (at `/`
 
 The plan for the site (goals, stack, design, build phases) is in [docs/project-spec.md](docs/project-spec.md).
 
-## Getting started
+## Requirements
 
-Requires Node.js 22.22.3+, 24.16+ or 26.3+ (the range ESLint's Astro plugin supports; CI and
-Cloudflare use Node 24, see `.node-version`) and the npm that comes with it.
+| Software                                                                                          | Needed for            | Notes                                                                                                                                                          |
+| ------------------------------------------------------------------------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Git](https://git-scm.com)                                                                        | Everything            | The pre-push hook runs through Git.                                                                                                                            |
+| [Node.js](https://nodejs.org) 22.22.3+, 24.16+ or 26.3+                                           | Everything            | The range ESLint's Astro plugin supports. CI and Cloudflare use Node 24 (`.node-version`).                                                                     |
+| Playwright's browsers                                                                             | `npm run test:e2e`    | Install once with `npx playwright install` (Chromium, Firefox and WebKit). On Linux, add `--with-deps` for the system libraries.                               |
+| [Docker Desktop](https://www.docker.com/products/docker-desktop/), or [Podman](https://podman.io) | `npm run test:visual` | Must be running. The first run downloads Playwright's image. With Podman, set `DOCKER_CONTEXT=podman-machine-default` or make it the default `docker context`. |
+
+Deploys need nothing on your machine: Cloudflare builds and deploys every push (see
+[Deploys](#deploys)). For VS Code, `.vscode/extensions.json` recommends the Astro, ESLint and
+Prettier extensions.
+
+## Getting started
 
 ```bash
 npm install
@@ -32,7 +42,7 @@ on your machine. It checks the files on disk, uncommitted changes included. To s
 | `npm run format:check` | Check formatting without changing files                                 |
 | `npm run verify`       | Check, lint, format check and build (CI, deploys and the pre-push hook) |
 | `npm run test:e2e`     | Playwright smoke tests (see below)                                      |
-| `npm run test:lint`    | Tests of the project's own lint rule and MDX processor (in `eslint/`)   |
+| `npm run test:visual`  | Compare screenshots of every page with earlier ones (see below)         |
 
 ## Where things live
 
@@ -71,9 +81,9 @@ on your machine. It checks the files on disk, uncommitted changes included. To s
 
 Files in `src/` are imported with the `@/` alias set in `tsconfig.json`
 (`import Link from '@/components/atoms/Link.astro'`), also from the same folder. Only a
-component's own CSS Module is imported with `./` (`./Link.module.css`). The project's own lint
-rule in `eslint/` checks this: it flags `../` everywhere and `./` to any other file in `src/`, in
-imports and exports, `import()`, `import.meta.glob()` and the import lines of `.mdx` files.
+component's own CSS Module is imported with `./` (`./Link.module.css`). ESLint's built-in
+`no-restricted-imports` flags any other relative import in `src/` (it doesn't see a dynamic
+`import()` or the imports in `.mdx` files).
 
 ## Adding a project
 
@@ -93,16 +103,37 @@ BASE_URL=https://<branch>-personal-website.lucien-hilversum.workers.dev npm run 
 
 The first time, install the browsers with `npx playwright install`.
 
-`npm run test:lint` tests the project's own lint rule and MDX processor in `eslint/` (with Node's
-built-in test runner), so the rule can't silently stop checking anything. `npm run verify` runs
-them too.
+## Checking that a change changes nothing
+
+For a refactor, `npm run test:visual` shows that every page still looks the same. It takes a
+full-page screenshot of every page in both themes, on a desktop, a tablet and a phone, and compares
+it with the one taken before the change (Playwright's `toHaveScreenshot()`). Take the screenshots
+on `main` first, then compare on your branch:
+
+```bash
+git switch main && npm run test:visual -- --update-snapshots
+```
+
+```bash
+git switch <branch> && npm run test:visual
+```
+
+Each run builds and serves the checkout it's on. Differences show up side by side in the report
+(`npx playwright show-report`). Images are masked because lazy ones may still be loading.
+
+The browser runs in Playwright's official Docker image, so Docker Desktop has to be running.
+Everything else runs here, and nothing leaves the machine: the browser reaches `localhost` through
+Playwright's connection. The first run downloads the image. The container (`playwright-visual`) keeps
+running after a run, and the next run reuses it; `docker stop playwright-visual` removes it. The screenshots stay local (`tests/visual.spec.ts-snapshots/` is ignored). To compare two deploys instead, set `BASE_URL`: production with `--update-snapshots`, then
+the branch preview. For the HTML, copy `dist/` after building `main` and `diff -r` it with the
+branch's.
 
 ## Deploys
 
-Every push runs `npm run verify` (`astro check`, ESLint and the tests of its own rule, Prettier
-and the build) in GitHub Actions (`.github/workflows/ci.yml`). A second job then waits until
-Cloudflare has deployed that commit (the deploy reports its commit at `/version.json`) and runs
-the Playwright tests against it: the branch preview, or production for `main`.
+Every push runs `npm run verify` (`astro check`, ESLint, Prettier and the build) in GitHub Actions
+(`.github/workflows/ci.yml`). A second job then waits until Cloudflare has deployed that commit
+(the deploy reports its commit at `/version.json`) and runs the Playwright tests against it: the
+branch preview, or production for `main`.
 
 Hosting is on Cloudflare Workers (static assets only, configured in `wrangler.jsonc`) with
 [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/): `main` deploys to

@@ -1,7 +1,8 @@
 {
   "extends": "astro/tsconfigs/strict",
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"],
+  // Build output and Playwright's reports (generated, and ignored by git) aren't type-checked.
+  "exclude": ["dist", "test-results", "playwright-report"],
   "compilerOptions": {
     // Absolute imports from src/ (`@/i18n/utils`), read by TypeScript, Astro/Vite and Playwright.
     "paths": {
