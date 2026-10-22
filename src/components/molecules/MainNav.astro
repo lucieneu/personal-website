@@ -4,7 +4,7 @@
 import List from '@/components/atoms/List.astro';
 import NavItem from '@/components/molecules/NavItem.astro';
 import { pageLang } from '@/i18n/utils';
-import { navItems } from '@/lib/navigation';
+import { mainLinks, navItems } from '@/lib/navigation';
 import type { HTMLAttributes } from 'astro/types';
 import styles from './MainNav.module.css';
 
@@ -13,7 +13,7 @@ type Props = HTMLAttributes<'nav'>;
 const { class: className, ...rest } = Astro.props;
 const { lang, t } = pageLang(Astro.currentLocale);
 
-const items = navItems(lang, Astro.url.pathname);
+const items = navItems(mainLinks, lang, Astro.url.pathname);
 ---
 
 <nav class:list={[styles.mainNav, className]} aria-label={t('nav.label')} {...rest}>

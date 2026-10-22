@@ -1,17 +1,24 @@
-// The main navigation: its links, and which of them is the current page.
+// The navigation: its links, and which of them is the current page.
 import type { Lang, UiKey } from '@/i18n/ui';
 import { localePath } from '@/i18n/utils';
 
-interface NavLink {
+export interface NavLink {
   key: UiKey;
   path: string;
 }
 
-// Blog follows in phase 2; Now, Uses and Lab become secondary links below these.
-const navLinks: NavLink[] = [
+/** The main navigation: in the sidebar on desktop, in the nav island on phones. */
+export const mainLinks: NavLink[] = [
   { key: 'nav.home', path: '' },
   { key: 'nav.projects', path: 'projects' },
+  { key: 'nav.blog', path: 'blog' },
   { key: 'nav.about', path: 'about' },
+];
+
+/** The secondary links: below the main navigation on desktop, in the footer on phones. */
+export const secondaryLinks: NavLink[] = [
+  { key: 'nav.now', path: 'now' },
+  { key: 'nav.uses', path: 'uses' },
 ];
 
 /** "page" for the current page, "true" for the section it's in, undefined for the others. */
@@ -42,10 +49,10 @@ export function navState(href: string, pathname: string, homeHref: string): NavS
   return undefined;
 }
 
-/** The main navigation's links in a language, with the current page marked. */
-export function navItems(lang: Lang, pathname: string): NavItemData[] {
+/** Navigation links in a language, with the current page marked. */
+export function navItems(links: NavLink[], lang: Lang, pathname: string): NavItemData[] {
   const homeHref = localePath(lang);
-  return navLinks.map(({ key, path }) => {
+  return links.map(({ key, path }) => {
     const href = localePath(lang, path);
     return { key, href, current: navState(href, pathname, homeHref) };
   });

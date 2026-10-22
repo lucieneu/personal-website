@@ -1,5 +1,6 @@
 ---
 import Link from '@/components/atoms/Link.astro';
+import SecondaryNav from '@/components/molecules/SecondaryNav.astro';
 import SocialLinks from '@/components/molecules/SocialLinks.astro';
 import { pageLang } from '@/i18n/utils';
 import { copyrightNotice, repoUrl } from '@/lib/site';
@@ -23,6 +24,8 @@ const { t } = pageLang(Astro.currentLocale);
     placement === 'sidebar' ? styles.placementSidebar : styles.placementPage,
   ]}
 >
+  {/* On desktop the secondary links are in the sidebar, below the main navigation. */}
+  {placement === 'page' && <SecondaryNav class={styles.secondaryNav} />}
   <SocialLinks class={styles.social} />
   <p class={styles.copyright}>
     {copyrightNotice(t('site.name'))} ·{' '}

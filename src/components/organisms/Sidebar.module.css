@@ -15,7 +15,8 @@
 
 /* The compact mobile header only shows the name and the controls. */
 .role,
-.intro {
+.intro,
+.secondaryNav {
   display: none;
 }
 
@@ -77,6 +78,11 @@
 
   .nav {
     margin-top: var(--space-12);
+  }
+
+  .secondaryNav {
+    display: block;
+    margin-top: var(--space-6);
   }
 
   .controls {
