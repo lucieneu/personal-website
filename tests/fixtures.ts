@@ -62,7 +62,8 @@ export async function clickLink(page: Page, href: string) {
       document.addEventListener('astro:page-load', () => resolve(), { once: true }),
     );
   });
-  await page.locator(`a[href="${href}"]`).first().click();
+  // :visible, because some links are in the page twice, once per layout (the secondary links).
+  await page.locator(`a[href="${href}"]:visible`).first().click();
   await page.waitForURL((url) => url.pathname === href);
   await page.evaluate(() => (window as unknown as { __pageLoaded: Promise<void> }).__pageLoaded);
 }
@@ -116,6 +117,10 @@ const inEitherLanguage = (key: UiKey) => new RegExp(`^(${ui.nl[key]}|${ui.en[key
 
 export const mainNav = (page: Page) =>
   page.getByRole('navigation', { name: inEitherLanguage('nav.label') });
+
+/** The secondary links (Now, Uses): in the sidebar on desktop, in the footer on phones. */
+export const secondaryNav = (page: Page) =>
+  page.getByRole('navigation', { name: inEitherLanguage('nav.more') });
 
 export const languageSwitch = (page: Page) =>
   page.getByRole('navigation', { name: inEitherLanguage('lang.label') });

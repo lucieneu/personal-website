@@ -9,17 +9,25 @@ import {
   mainNav,
   markDocument,
   recordViewTransition,
+  secondaryNav,
   sitePaths,
   skipLink,
   test,
 } from './fixtures';
 
+/** The pages with a link in the navigation, in both languages. */
+const navPaths = ['', 'projects/', 'blog/', 'about/', 'now/', 'uses/'].flatMap((path) => [
+  `/${path}`,
+  `/en/${path}`,
+]);
+
+/** A single project or post: /projects/x/, /en/blog/y/. */
+const isDetailPage = (path: string) => /^(\/en)?\/(projects|blog)\/[^/]+\/$/.test(path);
+
 test('every page loads in both languages, with its translation linked', async ({ page }) => {
   const paths = await sitePaths(page);
   expect(paths.filter((path) => langOf(path) === 'nl').length).toBe(paths.length / 2);
-  expect(paths).toEqual(
-    expect.arrayContaining(['/', '/projects/', '/about/', '/en/', '/en/projects/', '/en/about/']),
-  );
+  expect(paths).toEqual(expect.arrayContaining(navPaths));
 
   for (const path of paths) {
     const lang = langOf(path);
@@ -44,24 +52,34 @@ test('every page loads in both languages, with its translation linked', async ({
       new RegExp(`${path}$`),
     );
 
-    // The current page is marked in the navigation.
-    const current = mainNav(page).locator('a[aria-current="page"]');
-    if (!path.includes('/projects/') || path.endsWith('/projects/'))
-      await expect(current).toHaveCount(1);
+    // The current page is marked in the main or the secondary navigation, whichever is on
+    // screen. A project or a post isn't in the navigation; its section is marked instead.
+    const current = mainNav(page).or(secondaryNav(page)).locator('a[aria-current="page"]');
+    if (!isDetailPage(path)) await expect(current).toHaveCount(1);
   }
 });
 
 test('client-side navigation through every page in both languages', async ({ page }) => {
   const paths = await sitePaths(page);
-  const projectSlugs = paths
-    .filter((path) => langOf(path) === 'nl' && /^\/projects\/.+/.test(path))
-    .map((path) => path.split('/')[2]);
+  const slugsIn = (section: string) =>
+    paths
+      .filter(
+        (path) => langOf(path) === 'nl' && isDetailPage(path) && path.startsWith(`/${section}/`),
+      )
+      .map((path) => path.split('/')[2]);
 
-  // Home → Projects → each project and back → About → Home, then the same in English.
+  // Home → Projects → each project and back → Blog → each post and back → About → Now → Uses
+  // → Home, then the same in English.
+  const section = (prefix: string, name: string) => [
+    `${prefix}/${name}/`,
+    ...slugsIn(name).flatMap((slug) => [`${prefix}/${name}/${slug}/`, `${prefix}/${name}/`]),
+  ];
   const walk = (prefix: string) => [
-    `${prefix}/projects/`,
-    ...projectSlugs.flatMap((slug) => [`${prefix}/projects/${slug}/`, `${prefix}/projects/`]),
+    ...section(prefix, 'projects'),
+    ...section(prefix, 'blog'),
     `${prefix}/about/`,
+    `${prefix}/now/`,
+    `${prefix}/uses/`,
     `${prefix}/`,
   ];
 
