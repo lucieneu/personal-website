@@ -1,9 +1,10 @@
 ---
 // Everything in <head> that search engines and link previews read: title, description,
-// canonical URL, the language alternates, Open Graph / Twitter meta and, on the home pages,
-// JSON-LD about me.
+// canonical URL, the language alternates, the RSS feed, Open Graph / Twitter meta and, on the
+// home pages, JSON-LD about me.
 import { ogLocales, type Lang } from '@/i18n/ui';
 import { otherLangs, pageLang } from '@/i18n/utils';
+import { feedPath, feedTitle } from '@/lib/rss';
 import { absoluteUrl, alternateLinks, canonicalUrl, personJsonLd } from '@/lib/seo';
 
 interface Props {
@@ -40,6 +41,12 @@ const ogImage = absoluteUrl('/og-default.png', Astro.site);
 {alternateLinks(alternates, Astro.site).map(({ hreflang, href }) => (
   <link rel="alternate" hreflang={hreflang} href={href} />
 ))}
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  title={feedTitle(lang)}
+  href={absoluteUrl(feedPath(lang), Astro.site)}
+/>
 
 <meta property="og:type" content={ogType} />
 <meta property="og:site_name" content={t('site.name')} />

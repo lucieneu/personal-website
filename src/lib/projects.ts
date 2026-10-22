@@ -1,30 +1,14 @@
 import type { Lang } from '@/i18n/ui';
 import { localePath, useTranslations } from '@/i18n/utils';
+import { entrySlug, isPublished } from '@/lib/collections';
 import { newestFirst } from '@/lib/date';
 import { getCollection, type CollectionEntry } from 'astro:content';
 
 export type Project = CollectionEntry<'projects'>;
 
-// Project ids are '<lang>/<slug>': the subfolder is the language and the file name the slug.
-const splitId = (project: Project) => {
-  const [lang = '', ...slug] = project.id.split('/');
-  return { lang, slug: slug.join('/') };
-};
-
-/** The slug of a project, the same in both languages ('nl/my-project' → 'my-project'). */
-export function projectSlug(project: Project): string {
-  return splitId(project).slug;
-}
-
-/**
- * The projects in one language, newest first. Drafts only show up in development.
- * Missing translations are caught after the build by src/integrations/check-translations.ts.
- */
+/** The projects in one language, newest first. Drafts only show up in development. */
 export async function getProjects(lang: Lang): Promise<Project[]> {
-  const projects = await getCollection(
-    'projects',
-    (project) => splitId(project).lang === lang && (import.meta.env.DEV || !project.data.draft),
-  );
+  const projects = await getCollection('projects', (project) => isPublished(project, lang));
   return newestFirst(projects, (project) => project.data.date);
 }
 
@@ -36,14 +20,14 @@ export async function getFeaturedProjects(lang: Lang): Promise<Project[]> {
 /** getStaticPaths() for the project pages: one page per project, at its slug. */
 export async function projectPaths(lang: Lang) {
   return (await getProjects(lang)).map((project) => ({
-    params: { slug: projectSlug(project) },
+    params: { slug: entrySlug(project) },
     props: { project },
   }));
 }
 
 /** The page of a project in a language: /projects/my-project/ or /en/projects/my-project/. */
 export function projectPath(project: Project, lang: Lang): string {
-  return localePath(lang, `projects/${projectSlug(project)}`);
+  return localePath(lang, `projects/${entrySlug(project)}`);
 }
 
 /** The links a project has (its live site, its code), with their labels in `lang`. */

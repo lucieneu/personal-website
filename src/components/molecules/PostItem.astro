@@ -1,0 +1,32 @@
+---
+// One post in a PostList: its title (a link to the post), date, description and tags.
+import DateTime from '@/components/atoms/DateTime.astro';
+import Link from '@/components/atoms/Link.astro';
+import Tags from '@/components/molecules/Tags.astro';
+import { pageLang } from '@/i18n/utils';
+import { postPath, type Post } from '@/lib/posts';
+import styles from './PostItem.module.css';
+
+interface Props {
+  post: Post;
+  /** The heading level of the title, one below the heading of the list it's in. */
+  headingLevel: 'h2' | 'h3';
+}
+
+const { post, headingLevel: Heading } = Astro.props;
+const { title, description, pubDate, tags } = post.data;
+const { lang, t } = pageLang(Astro.currentLocale);
+---
+
+<article>
+  <Heading class={styles.title}>
+    <Link class={styles.link} href={postPath(post, lang)} tone="text" underline={false}>
+      {title}
+    </Link>
+  </Heading>
+  <p class={styles.date}>
+    <DateTime date={pubDate} display="day" />
+  </p>
+  <p class={styles.description}>{description}</p>
+  <Tags items={tags} label={t('post.tags')} />
+</article>

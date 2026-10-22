@@ -1,0 +1,13 @@
+---
+import PostView from '@/components/views/PostView.astro';
+import { postPaths } from '@/lib/posts';
+import type { InferGetStaticPropsType } from 'astro';
+
+export const getStaticPaths = () => postPaths('en');
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { post } = Astro.props;
+---
+
+<PostView post={post} />

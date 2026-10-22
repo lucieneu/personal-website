@@ -1,0 +1,12 @@
+.back {
+  margin-bottom: var(--space-6);
+  font-size: var(--font-size-small);
+}
+
+.meta {
+  margin: var(--space-6) 0 var(--space-4);
+}
+
+.body {
+  margin-top: var(--space-8);
+}

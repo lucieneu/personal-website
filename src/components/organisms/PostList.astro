@@ -1,0 +1,24 @@
+---
+// Posts in a list, such as the latest ones on the home page or all of them on the blog.
+import List from '@/components/atoms/List.astro';
+import PostItem from '@/components/molecules/PostItem.astro';
+import type { Post } from '@/lib/posts';
+import type { HTMLAttributes } from 'astro/types';
+import styles from './PostList.module.css';
+
+interface Props extends HTMLAttributes<'ul'> {
+  posts: Post[];
+  /** The heading level of each post's title, one below the heading of the list. */
+  headingLevel: 'h2' | 'h3';
+}
+
+const { posts, headingLevel, class: className, ...rest } = Astro.props;
+---
+
+<List class:list={[styles.postList, className]} {...rest}>
+  {posts.map((post) => (
+    <li>
+      <PostItem post={post} headingLevel={headingLevel} />
+    </li>
+  ))}
+</List>

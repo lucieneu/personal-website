@@ -104,6 +104,19 @@ pre {
   overflow-x: auto;
 }
 
+/* Highlighted code blocks (Shiki, set up in astro.config.mjs): the colors of the current theme. */
+.astro-code {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: light-dark(var(--shiki-light-bg), var(--shiki-dark-bg));
+}
+
+.astro-code,
+.astro-code span {
+  color: light-dark(var(--shiki-light), var(--shiki-dark));
+}
+
 img,
 video {
   display: block;

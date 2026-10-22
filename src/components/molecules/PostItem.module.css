@@ -1,0 +1,28 @@
+.title {
+  margin: 0 0 var(--space-1);
+  font-size: var(--font-size-h3);
+}
+
+.link {
+  transition: color var(--duration-hover) ease-out;
+}
+
+.link:hover {
+  color: var(--color-accent);
+}
+
+.date {
+  margin-bottom: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+}
+
+.description {
+  margin-bottom: var(--space-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link {
+    transition: none;
+  }
+}
