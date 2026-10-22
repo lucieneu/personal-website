@@ -106,7 +106,7 @@ The 3D scene and the sidebar stay still during a page change; only the card's fr
 **Mobile (below 64em)**
 
 - The sidebar becomes a compact header with the name, the language switch and the theme toggle; it scrolls away with the page. (The owner decided in phase 1 to keep the language switch and theme toggle here rather than in the nav island, for now.)
-- The nav island leaves out Home (since phase 2, the owner's choice): with Blog added, four links don't fit on one row in Dutch, and the name in the header already links to the home page. The desktop sidebar keeps all four.
+- While the blog is shown, the nav island leaves out Home (since phase 2, the owner's choice): four links don't fit on one row in Dutch, and the name in the header already links to the home page. The desktop sidebar keeps all four.
 - The navigation is a "nav island" (changed in phase 1, at the owner's request): a partly see-through, blurred pill fixed to the bottom of the screen, within thumb reach, clear of the iPhone home indicator (`env(safe-area-inset-bottom)`). It stays put during a page transition, like the desktop sidebar; only its current-page marker slides to the new item. Links are at least 44 px tall, and pages leave room at the bottom so the island never covers content.
 - The footer sits below the card.
 - The card is full width with a 16 px margin on both sides and 24 px padding.
@@ -395,6 +395,7 @@ export const collections = { projects, experience /*, posts, lab */ };
 **Rules**
 
 - Items with `draft: true` are only visible in development, never in the production build.
+- The blog stays hidden until a post is published (since phase 2, the owner's choice): without one there are no `/blog` pages, no Blog link, no latest posts on the home page and no feed link in `<head>`. The feed itself is still built, empty. The placeholder first post is a draft until the owner writes it.
 - The language is the subfolder (`nl/` or `en/`) and the slug is the file name, so `nl/my-project.mdx` and `en/my-project.mdx` are the two versions of one project.
 - Every project, post and experiment exists in both languages. The build fails when a translation is missing, unless the item is `draft: true`.
 - Projects are sorted by `date`, newest first; the homepage shows at most 3 projects with `featured: true`.
@@ -539,8 +540,7 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │   │   ├── about.astro
 │   │   ├── projects/index.astro
 │   │   ├── projects/[...slug].astro
-│   │   ├── blog/index.astro
-│   │   ├── blog/[...slug].astro
+│   │   ├── blog/[...slug].astro    # the list at /blog/ and each post; no pages without posts
 │   │   ├── lab/index.astro
 │   │   ├── lab/[...slug].astro
 │   │   ├── now.mdx
@@ -559,7 +559,7 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │       └── transitions.css
 └── tests/                        # Playwright
     ├── fixtures.ts               # fails a test on any console error
-    ├── feed.spec.ts              # the RSS feed per language
+    ├── blog.spec.ts              # the blog hidden without posts; the RSS feed per language
     ├── navigation.spec.ts
     ├── theme.spec.ts
     └── visual.spec.ts            # screenshots of every page, compared with earlier ones

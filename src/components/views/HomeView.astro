@@ -27,13 +27,16 @@ const posts = await getLatestPosts(lang);
     </p>
   </section>
 
-  <section aria-labelledby="latest">
-    <h2 id="latest">{t('home.latest')}</h2>
-    <PostList posts={posts} headingLevel="h3" />
-    <p class={styles.more}>
-      <Link href={localePath(lang, 'blog')} arrow="forward">
-        {t('home.allPosts')}
-      </Link>
-    </p>
-  </section>
+  {/* Only once there are posts. */}
+  {posts.length > 0 && (
+    <section aria-labelledby="latest">
+      <h2 id="latest">{t('home.latest')}</h2>
+      <PostList posts={posts} headingLevel="h3" />
+      <p class={styles.more}>
+        <Link href={localePath(lang, 'blog')} arrow="forward">
+          {t('home.allPosts')}
+        </Link>
+      </p>
+    </section>
+  )}
 </BaseLayout>

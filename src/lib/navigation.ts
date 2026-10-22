@@ -9,14 +9,26 @@ export interface NavLink {
   desktopOnly?: boolean;
 }
 
-/** The main navigation: in the sidebar on desktop, in the nav island on phones. */
-export const mainLinks: NavLink[] = [
-  // Four links don't fit the island on one row, and the name in the mobile header links home.
-  { key: 'nav.home', path: '', desktopOnly: true },
+const allMainLinks: NavLink[] = [
+  { key: 'nav.home', path: '' },
   { key: 'nav.projects', path: 'projects' },
   { key: 'nav.blog', path: 'blog' },
   { key: 'nav.about', path: 'about' },
 ];
+
+/**
+ * The main navigation: in the sidebar on desktop, in the nav island on phones. Blog only once
+ * there are posts (see hasPosts() in posts.ts).
+ */
+export function mainLinks(showBlog: boolean): NavLink[] {
+  return (
+    allMainLinks
+      .filter((link) => showBlog || link.key !== 'nav.blog')
+      // Four links don't fit the island on one row, so with Blog the island leaves out Home: the
+      // name in the mobile header links there too. Without Blog it keeps three links.
+      .map((link) => (link.key === 'nav.home' ? { ...link, desktopOnly: showBlog } : link))
+  );
+}
 
 /** The secondary links: below the main navigation on desktop, in the footer on phones. */
 export const secondaryLinks: NavLink[] = [

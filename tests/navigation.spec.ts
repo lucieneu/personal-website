@@ -15,8 +15,8 @@ import {
   test,
 } from './fixtures';
 
-/** The pages with a link in the navigation, in both languages. */
-const navPaths = ['', 'projects/', 'blog/', 'about/', 'now/', 'uses/'].flatMap((path) => [
+/** The pages with a link in the navigation, in both languages (Blog only with posts; see blog.spec.ts). */
+const navPaths = ['', 'projects/', 'about/', 'now/', 'uses/'].flatMap((path) => [
   `/${path}`,
   `/en/${path}`,
 ]);
@@ -76,7 +76,8 @@ test('client-side navigation through every page in both languages', async ({ pag
   ];
   const walk = (prefix: string) => [
     ...section(prefix, 'projects'),
-    ...section(prefix, 'blog'),
+    // The blog only exists once a post is published.
+    ...(paths.includes('/blog/') ? section(prefix, 'blog') : []),
     `${prefix}/about/`,
     `${prefix}/now/`,
     `${prefix}/uses/`,

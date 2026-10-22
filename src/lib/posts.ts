@@ -18,12 +18,31 @@ export async function getLatestPosts(lang: Lang, count = 3): Promise<Post[]> {
   return (await getPosts(lang)).slice(0, count);
 }
 
-/** getStaticPaths() for the post pages: one page per post, at its slug. */
-export async function postPaths(lang: Lang) {
-  return (await getPosts(lang)).map((post) => ({
-    params: { slug: entrySlug(post) },
-    props: { post },
-  }));
+/**
+ * Whether the blog shows up in `lang` (its pages, the Blog link, the latest posts on the home
+ * page, the feed link): only once a post is published. In development drafts count.
+ */
+export async function hasPosts(lang: Lang): Promise<boolean> {
+  return (await getPosts(lang)).length > 0;
+}
+
+interface BlogPath {
+  params: { slug: string | undefined };
+  /** The post on this page; none on the list at /blog/. */
+  props: { post: Post | undefined };
+}
+
+/**
+ * getStaticPaths() for the blog: the list at /blog/ and one page per post at its slug. Without
+ * published posts there are no blog pages at all.
+ */
+export async function blogPaths(lang: Lang): Promise<BlogPath[]> {
+  const posts = await getPosts(lang);
+  if (posts.length === 0) return [];
+  return [
+    { params: { slug: undefined }, props: { post: undefined } },
+    ...posts.map((post) => ({ params: { slug: entrySlug(post) }, props: { post } })),
+  ];
 }
 
 /** The page of a post in a language: /blog/my-post/ or /en/blog/my-post/. */
