@@ -151,7 +151,7 @@ Both cards use `perspective(1000px)`. The text of the new page is readable after
 1. `<ClientRouter />` from `astro:transitions` is in the `<head>` of `BaseLayout.astro`.
 2. The sidebar gets `transition:name="sidebar"` and `transition:animate="none"`. It is still replaced (so the active link is correct), but without animation.
 3. The card (`<main>`) gets `transition:name="content-card"` with the custom `cardHandoff` animation (sections 2 and 3). Its group doesn't animate (no morph): the old and new snapshots move independently, each at its own size. The content is part of the card's snapshot, so it needs no name of its own.
-4. The starfield's container gets `transition:persist="starfield"` plus its own `transition:name` with `transition:animate="none"`, so the canvas stays live.
+4. The starfield's container gets `transition:persist="starfield"`, so the canvas and its state survive the swap. It has no `transition:name` of its own (changed while building it, Oct 24, 2026): it's part of the root snapshot, whose new state is live and covers the old one, so the canvas keeps moving during the transition, and a name of its own crashed WebKit after a few dozen navigations.
 5. The starfield starts sections 1 and 4 on `astro:after-swap`, which runs right before the view transition's animations start. Check in DevTools (Animations panel and a performance recording) that the canvas and the cards line up.
 6. On mobile (since phase 1): the nav island gets `view-transition-name: nav-island` with no animation, and its current-page marker gets `nav-marker`, which slides from the old item to the new one. The footer below the card gets `site-footer` and moves with the cards. The sidebar's own name is turned off on mobile: an element with a view-transition-name is a stacking context, which would put the fixed island below the card.
 
@@ -166,7 +166,7 @@ import { cardHandoff } from '@/lib/transitions';
     <ClientRouter />
   </head>
   <body>
-    <div class="starfield" transition:persist="starfield" transition:name="starfield" transition:animate="none" aria-hidden="true">
+    <div class="starfield" transition:persist="starfield" aria-hidden="true">
       <!-- Starfield, see 3D background: card starfield -->
     </div>
 
@@ -310,7 +310,7 @@ One subtle, self-built background behind the content, on every page: a field of 
 
 The logic lives in `src/lib/starfield/` as plain TypeScript, with no React: the field (stars, projection, drift), the hand-off items (sections 1 and 4) and the drawing. The math (projection, curves, easing) is pure functions, so it can be unit tested.
 
-**Placement:** `position: fixed; inset: 0; z-index: 0`, with the sidebar and card above it, and the hand-off canvas above the card. Both canvases have `pointer-events: none`.
+**Placement:** `position: fixed; inset: 0; z-index: -1` (−1 rather than 0, so the layout needs no stacking context of its own, which would trap the fixed nav island), with the sidebar and card above it, and the hand-off canvas above the card. Both canvases have `pointer-events: none`.
 
 **Performance rules**
 
