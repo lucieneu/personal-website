@@ -1,14 +1,15 @@
 // Draws the stars onto a canvas, every star a tiny card: the moving field, turned by its roll,
-// and the fixed stars, drawn once on a canvas of their own.
+// and the fixed stars, on a canvas of their own that is only redrawn when something changes.
 import {
   CARD_ASPECT,
   type Field,
-  FIXED_COUNT,
+  FIXED_MAX,
   type FixedStars,
+  fixedOpacityOf,
   opacityOf,
   rollAt,
   scaleAt,
-  STAR_COUNT,
+  STAR_MAX,
   starHeight,
 } from '@/lib/starfield/field';
 
@@ -21,7 +22,7 @@ const ROUND_FROM = 2;
 const LEVELS = 20;
 
 // Per star, filled before drawing: its step (0 = not drawn) and where it's drawn. Allocated once.
-const size = Math.max(STAR_COUNT, FIXED_COUNT);
+const size = Math.max(STAR_MAX, FIXED_MAX);
 const level = new Uint8Array(size);
 const left = new Float32Array(size);
 const top = new Float32Array(size);
@@ -82,7 +83,7 @@ export function drawField(
   // A star further out than this is off screen whatever the roll.
   const limit = Math.hypot(width, height) / 2 + 8;
   let highest = 0;
-  for (let i = 0; i < STAR_COUNT; i++) {
+  for (let i = 0; i < field.count; i++) {
     level[i] = 0;
     const z = field.z[i]!;
     const scale = scaleAt(z, height);
@@ -91,13 +92,17 @@ export function drawField(
     if (Math.abs(x) > limit || Math.abs(y) > limit) continue;
     highest = Math.max(highest, plan(i, x, y, starHeight(z), opacityOf(field, i, seconds)));
   }
-  fill(ctx, STAR_COUNT, highest);
+  fill(ctx, field.count, highest);
 }
 
-/** Draws the fixed stars on a canvas like drawField's. Only needed on a resize or theme change. */
+/**
+ * Draws the fixed stars at `seconds` on a canvas like drawField's. They don't move, so this is
+ * only needed while they fade in, and on a resize or theme change.
+ */
 export function drawFixed(
   ctx: CanvasRenderingContext2D,
   stars: FixedStars,
+  seconds: number,
   width: number,
   height: number,
   dpr: number,
@@ -106,15 +111,15 @@ export function drawFixed(
   clear(ctx, color);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   let highest = 0;
-  for (let i = 0; i < FIXED_COUNT; i++) {
+  for (let i = 0; i < stars.count; i++) {
     const step = plan(
       i,
       stars.x[i]! * width,
       stars.y[i]! * height,
       stars.height[i]!,
-      stars.opacity[i]!,
+      fixedOpacityOf(stars, i, seconds),
     );
     highest = Math.max(highest, step);
   }
-  fill(ctx, FIXED_COUNT, highest);
+  fill(ctx, stars.count, highest);
 }
