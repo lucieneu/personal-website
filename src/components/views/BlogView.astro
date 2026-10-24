@@ -1,0 +1,25 @@
+---
+// The list of all posts in either language, with a link to the RSS feed. The page file may pass
+// an intro.
+import Link from '@/components/atoms/Link.astro';
+import PostList from '@/components/organisms/PostList.astro';
+import { pageLang } from '@/i18n/utils';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getPosts } from '@/lib/posts';
+import { feedPath } from '@/lib/rss';
+import styles from './BlogView.module.css';
+
+const { lang, t } = pageLang(Astro.currentLocale);
+const posts = await getPosts(lang);
+---
+
+<BaseLayout title={t('blog.title')} description={t('blog.description')}>
+  <h1>{t('blog.title')}</h1>
+  <slot />
+  <PostList class={styles.posts} posts={posts} headingLevel="h2" />
+  <p class={styles.feed}>
+    <Link href={feedPath(lang)} tone="muted">
+      {t('blog.feed')}
+    </Link>
+  </p>
+</BaseLayout>

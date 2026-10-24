@@ -39,7 +39,7 @@ Astro with static output, and React only for the parts that are truly interactiv
 | i18n | Astro's built-in i18n routing | No extra dependency; locale-aware URLs and `Astro.currentLocale` |
 | Styling | CSS custom properties (design tokens) + a CSS Module per component (`Component.module.css`, since phase 1, at the owner's request) | No runtime CSS, full control over the design, styles in their own files |
 | Fonts | Self-hosted via Fontsource, variable `woff2`, preloaded | No external requests, no layout shift |
-| Code highlighting | Shiki (built into Astro) | Highlighting at build time, 0 kB JS |
+| Code highlighting | Shiki (built into Astro), with a light and a dark theme that follow the theme toggle through `light-dark()` (since phase 2) | Highlighting at build time, 0 kB JS |
 | Package manager | npm | Comes with Node, so there is no extra tool to install (changed from pnpm on Oct 18, 2026) |
 | Quality | ESLint, Prettier + `prettier-plugin-astro`, `astro check`, a Husky pre-push hook that runs them all (added Oct 18, 2026) | Consistent code, type errors caught before a push or deploy |
 | Tests | Playwright | Smoke tests, navigation with transitions, and screenshot comparisons for refactors (`toHaveScreenshot`, since phase 2) |
@@ -73,13 +73,12 @@ export default defineConfig({
 | `/404` | Not found | Friendly message in both languages with links back to both home pages, in the same layout (static hosts serve a single 404 page) | 1 |
 | `/blog` | Blog | List of posts with date and tags | 2 |
 | `/blog/[slug]` | Post | MDX with optional interactive islands | 2 |
-| `/now` | Now | What I'm working on right now, with the date of the last update | 2 |
-| `/uses` | Uses | Hardware, software, homelab | 2 |
+| `/now` | Now | What I'm working on and with right now (including the setup and homelab), with the date of the last update; titled "Waar ben ik tegenwoordig mee bezig?" / "What am I up to these days?" | 2 |
 | `/rss.xml` | RSS feed | All published posts; one feed per language (`/rss.xml` and `/en/rss.xml`) | 2 |
 | `/lab` | Lab | Small experiments and demos | 3 |
 | `/lab/[slug]` | Experiment | One demo with a short explanation | 3 |
 
-**Sidebar navigation:** Home, Projects, Blog, About. Now, Uses and Lab are secondary links below them. The active page gets `aria-current="page"` and a visual marker. A language switch (NL / EN) links to the same page in the other language.
+**Sidebar navigation:** Home, Projects, Blog, About. Now and Lab are secondary links below them (since phase 2: small, muted links below the main navigation on desktop, and in the footer below the card on phones). The active page gets `aria-current="page"` and a visual marker. A language switch (NL / EN) links to the same page in the other language.
 
 ## Layout and visual design
 
@@ -106,6 +105,7 @@ The sidebar stays still during a page change; the card and the starfield move.
 **Mobile (below 64em)**
 
 - The sidebar becomes a compact header with the name, the language switch and the theme toggle; it scrolls away with the page. (The owner decided in phase 1 to keep the language switch and theme toggle here rather than in the nav island, for now.)
+- While the blog is shown, the nav island leaves out Home (since phase 2, the owner's choice): four links don't fit on one row in Dutch, and the name in the header already links to the home page. The desktop sidebar keeps all four.
 - The navigation is a "nav island" (changed in phase 1, at the owner's request): a partly see-through, blurred pill fixed to the bottom of the screen, within thumb reach, clear of the iPhone home indicator (`env(safe-area-inset-bottom)`). It stays put during a page transition, like the desktop sidebar; only its current-page marker slides to the new item. Links are at least 44 px tall, and pages leave room at the bottom so the island never covers content.
 - The footer sits below the card.
 - The card is full width with a 16 px margin on both sides and 24 px padding.
@@ -403,7 +403,7 @@ All content lives as files in the repo, in Dutch and English, and is validated a
 | `lab` | `src/content/lab/{nl,en}/*.mdx` | `title`, `description`, `date`, `draft` |
 | `experience` | `src/content/experience.json` | `company`, `role` (nl + en), `start`, `end?`, `summary` (nl + en), `stack[]` |
 
-`/now` and `/uses` are standalone MDX pages, one per language (`src/pages/now.mdx` and `src/pages/en/now.mdx`, and the same for `uses`), each with an `updated` date in the frontmatter.
+`/now` is a standalone MDX page, one per language (`src/pages/now.mdx` and `src/pages/en/now.mdx`), with an `updated` date in the frontmatter. (A separate `/uses` page for the setup and homelab was dropped in phase 2, at the owner's request; that content goes on `/now`.)
 
 ```ts
 // src/content.config.ts (excerpt)
@@ -452,6 +452,7 @@ export const collections = { projects, experience /*, posts, lab */ };
 **Rules**
 
 - Items with `draft: true` are only visible in development, never in the production build.
+- The blog stays hidden until a post is published (since phase 2, the owner's choice): without one there are no `/blog` pages, no Blog link, no latest posts on the home page and no feed link in `<head>`. The feed itself is still built, empty. The placeholder first post is a draft until the owner writes it.
 - The language is the subfolder (`nl/` or `en/`) and the slug is the file name, so `nl/my-project.mdx` and `en/my-project.mdx` are the two versions of one project.
 - Every project, post and experiment exists in both languages. The build fails when a translation is missing, unless the item is `draft: true`.
 - Projects are sorted by `date`, newest first; the homepage shows at most 3 projects with `featured: true`.
@@ -467,7 +468,7 @@ The owner supplies the real copy in both languages. Until then, the builder uses
 - [ ] Projects 2 and 3: work or side projects, described as problem, approach and result.
 - [ ] Work experience for `/about`.
 - [ ] First post (phase 2): "Hoe ik deze site bouwde" / "How I built this site".
-- [ ] `/uses`: setup, tools and the homelab.
+- [ ] `/now`: current work, and the setup, tools and the homelab.
 
 ## Performance, accessibility and SEO
 
@@ -572,15 +573,18 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │   │   │   ├── ExperienceTimeline.astro
 │   │   │   ├── ThemeScript.astro # inline in <head>: stored theme before first paint
 │   │   │   └── Seo.astro         # meta, canonical, hreflang, OG, JSON-LD
-│   │   └── views/                # one view per page, shared by both languages
+│   │   └── views/                # one view per page, shared by both languages; MdxPageView.astro is the layout of /now
 │   ├── islands/                  # React only, only what's interactive
 │   │   └── CommandPalette.tsx
 │   ├── lib/                      # the logic: components only pass props and render
+│   │   ├── collections.ts        # slug and language of a projects/posts entry; drafts
 │   │   ├── date.ts               # formatDate, isoDate, newestFirst
 │   │   ├── experience.ts         # work experience, newest first
 │   │   ├── images.ts             # loading attributes
 │   │   ├── navigation.ts         # nav links and which one is current
+│   │   ├── posts.ts              # posts per language, newest first; latest, paths
 │   │   ├── projects.ts           # projects per language, sorted, drafts filtered; paths, links
+│   │   ├── rss.ts                # the RSS feed per language, and where it is
 │   │   ├── seo.ts                # titles, absolute URLs, alternates, JSON-LD
 │   │   ├── site.ts               # social links, copyright line
 │   │   ├── transitions.ts        # custom transition animations; focus after navigation
@@ -590,12 +594,10 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │   │   ├── about.astro
 │   │   ├── projects/index.astro
 │   │   ├── projects/[...slug].astro
-│   │   ├── blog/index.astro
-│   │   ├── blog/[...slug].astro
+│   │   ├── blog/[...slug].astro    # the list at /blog/ and each post; no pages without posts
 │   │   ├── lab/index.astro
 │   │   ├── lab/[...slug].astro
 │   │   ├── now.mdx
-│   │   ├── uses.mdx
 │   │   ├── 404.astro             # one page, both languages
 │   │   ├── robots.txt.ts         # generated, so the sitemap URL follows `site`
 │   │   ├── version.json.ts       # the commit of the build, for CI
@@ -610,6 +612,7 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │       └── transitions.css
 └── tests/                        # Playwright
     ├── fixtures.ts               # fails a test on any console error
+    ├── blog.spec.ts              # the blog hidden without posts; the RSS feed per language
     ├── navigation.spec.ts
     ├── theme.spec.ts
     └── visual.spec.ts            # screenshots of every page, compared with earlier ones
@@ -641,7 +644,7 @@ Four phases, each ending with a working, deployed site; phase 1 is the first ver
 flowchart LR
   F0["<b>Phase 0 · Foundation</b><br/>Setup and tooling<br/>Design tokens<br/>Base layout and i18n<br/>Preview deploys<br/><br/><i>Gate: checks green,<br/>preview works</i>"]
   F1["<b>Phase 1 · Core, goes live</b><br/>5 pages in NL and EN<br/>Transitions<br/>Theme switch<br/>SEO and a11y basics<br/><br/><i>Gate: Lighthouse ≥ 95,<br/>live on domain</i>"]
-  F2["<b>Phase 2 · 3D and content</b><br/>3D background<br/>Blog and RSS<br/>/now and /uses<br/>Latest posts on home<br/><br/><i>Gate: budget met<br/>with 3D</i>"]
+  F2["<b>Phase 2 · 3D and content</b><br/>3D background<br/>Blog and RSS<br/>/now<br/>Latest posts on home<br/><br/><i>Gate: budget met<br/>with 3D</i>"]
   F3["<b>Phase 3 · Extras</b><br/>Command palette<br/>Lab pages<br/>OG images<br/>Live data (optional)<br/><br/><i>Gate: budget met,<br/>all keyboard operable</i>"]
   F0 --> F1 --> F2 --> F3
   classDef live stroke:#3B5BDB,stroke-width:3px
@@ -676,7 +679,7 @@ Done on Oct 18, 2026 in [PR #6](https://github.com/lucieneu/personal-website/pul
 
 - [ ] 3D background as described in the 3D background section, including the fallback and exceptions.
 - [ ] Blog: `posts` collection, `/blog`, `/blog/[slug]`, and an RSS feed per language.
-- [ ] Pages `/now` and `/uses` in both languages.
+- [ ] The page `/now` in both languages (`/uses` dropped at the owner's request, Oct 22, 2026; its content goes on `/now`).
 - [ ] The homepage shows the latest 3 posts.
 - [ ] Absolute imports, at the owner's request (Oct 20, 2026): a path alias in `tsconfig.json` (for example `@/components/atoms/Link.astro` and `@/i18n/utils`) instead of relative imports such as `../../i18n/utils`. Astro and Vite read the aliases from `tsconfig.json`. Change every import at once, in its own PR.
 - [ ] Move the one-time Cloudflare setup (the Workers Builds steps and the reller.nl domain steps, all done) from the README to `docs/cloudflare-setup.md`, as a reference for setting it up again, at the owner's request (Oct 21, 2026). The README keeps a short Deploys section that links to it.

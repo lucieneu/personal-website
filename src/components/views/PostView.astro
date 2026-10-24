@@ -1,0 +1,48 @@
+---
+// One post in either language: title, dates, tags and the body.
+import DateTime from '@/components/atoms/DateTime.astro';
+import Link from '@/components/atoms/Link.astro';
+import MetaItem from '@/components/molecules/MetaItem.astro';
+import MetaList from '@/components/molecules/MetaList.astro';
+import Tags from '@/components/molecules/Tags.astro';
+import { localePath, pageLang } from '@/i18n/utils';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import type { Post } from '@/lib/posts';
+import { render } from 'astro:content';
+import styles from './PostView.module.css';
+
+interface Props {
+  post: Post;
+}
+
+const { post } = Astro.props;
+const { title, description, pubDate, updatedDate, tags } = post.data;
+const { lang, t } = pageLang(Astro.currentLocale);
+const { Content } = await render(post);
+---
+
+<BaseLayout title={title} description={description} ogType="article">
+  <p class={styles.back}>
+    <Link href={localePath(lang, 'blog')} arrow="back">
+      {t('post.back')}
+    </Link>
+  </p>
+
+  <h1>{title}</h1>
+
+  <MetaList class={styles.meta}>
+    <MetaItem label={t('post.published')}>
+      <DateTime date={pubDate} display="day" />
+    </MetaItem>
+    {updatedDate && (
+      <MetaItem label={t('post.updated')}>
+        <DateTime date={updatedDate} display="day" />
+      </MetaItem>
+    )}
+  </MetaList>
+  <Tags items={tags} label={t('post.tags')} />
+
+  <div class={styles.body}>
+    <Content />
+  </div>
+</BaseLayout>

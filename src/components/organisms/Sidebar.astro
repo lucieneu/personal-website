@@ -2,6 +2,7 @@
 import Link from '@/components/atoms/Link.astro';
 import LanguageSwitch from '@/components/molecules/LanguageSwitch.astro';
 import MainNav from '@/components/molecules/MainNav.astro';
+import SecondaryNav from '@/components/molecules/SecondaryNav.astro';
 import ThemeToggle from '@/components/molecules/ThemeToggle.astro';
 import SiteFooter from '@/components/organisms/SiteFooter.astro';
 import type { Lang } from '@/i18n/ui';
@@ -28,6 +29,8 @@ const { lang, t } = pageLang(Astro.currentLocale);
 
     {/* On mobile it's an island at the bottom of the screen, outside the header. */}
     <MainNav class={styles.nav} />
+    {/* On mobile the secondary links are in the footer below the card. */}
+    <SecondaryNav class={styles.secondaryNav} />
 
     <div class={styles.controls}>
       <LanguageSwitch targets={languageTargets} />
