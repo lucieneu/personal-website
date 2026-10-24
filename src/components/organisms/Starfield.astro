@@ -1,0 +1,27 @@
+---
+// The card starfield behind the page (src/lib/starfield). The container persists across
+// navigations, so the field keeps moving while the card changes. It has no view transition name
+// of its own: it's part of the page's snapshot, whose new state is live during a transition (and
+// a name of its own crashed WebKit after a few dozen navigations). Until the script has run, and
+// without JavaScript, the page shows its plain background.
+import styles from './Starfield.module.css';
+---
+
+<div class={styles.starfield} data-starfield aria-hidden="true" transition:persist="starfield">
+  <canvas class={styles.canvas}></canvas>
+</div>
+
+<script>
+  // Off the critical path: load the starfield once the browser is idle. With Data Saver on,
+  // the page keeps its plain background.
+  const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+  if (!connection?.saveData) {
+    const start = () =>
+      import('@/lib/starfield').then(({ startStarfield }) => {
+        const canvas = document.querySelector<HTMLCanvasElement>('[data-starfield] canvas');
+        if (canvas) startStarfield(canvas);
+      });
+    if ('requestIdleCallback' in window) requestIdleCallback(start);
+    else setTimeout(start, 1000);
+  }
+</script>

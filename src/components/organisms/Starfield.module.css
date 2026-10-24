@@ -1,0 +1,30 @@
+/* Behind everything else on the page. z-index -1 instead of 0 keeps the sidebar and the card
+   above it without giving the layout a stacking context (which would trap the fixed nav island);
+   the body's background is painted on the viewport, below it. */
+.starfield {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  /* The stars' color; the script reads the resolved value. */
+  color: var(--color-text);
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 600ms ease-out;
+}
+
+/* Set by the script once the first frame is drawn. */
+.starfield[data-state] .canvas {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas {
+    transition: none;
+  }
+}

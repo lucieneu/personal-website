@@ -4,6 +4,7 @@ import ContentCard from '@/components/organisms/ContentCard.astro';
 import Seo from '@/components/organisms/Seo.astro';
 import Sidebar from '@/components/organisms/Sidebar.astro';
 import SiteFooter from '@/components/organisms/SiteFooter.astro';
+import Starfield from '@/components/organisms/Starfield.astro';
 import ThemeScript from '@/components/organisms/ThemeScript.astro';
 import { isHomePath, languagePaths, pageLang } from '@/i18n/utils';
 import { pageTitle } from '@/lib/seo';
@@ -55,6 +56,7 @@ const { alternates, targets } = languagePaths(Astro.url.pathname, !notFound);
     <ClientRouter />
   </head>
   <body>
+    <Starfield />
     <Link class={styles.skipLink} href="#content" underline={false}>
       {t('skip.link')}
     </Link>

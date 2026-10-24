@@ -22,6 +22,8 @@ for (const colorScheme of ['light', 'dark'] as const) {
     for (const path of paths) {
       test(`${path} looks the same`, async ({ page }) => {
         await page.goto(path);
+        // The starfield is hidden: its stars are random and moving.
+        await page.addStyleTag({ content: '[data-starfield] { visibility: hidden; }' });
         // Images are masked: lazy ones may still be loading.
         await expect(page).toHaveScreenshot(`${nameOf(path)}-${colorScheme}.png`, {
           fullPage: true,
