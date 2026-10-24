@@ -4,15 +4,15 @@ Oct 18, 2026 · @Lucien
 
 ## Goals and principles
 
-A fast, personal website that shows who I am and what I build. Page changes feel like an app, and one subtle 3D scene is the recognizable signature element.
+A fast, personal website that shows who I am and what I build. Page changes feel like an app, and one subtle background, the card starfield, is the recognizable signature element.
 
 The structure is calm and clean, like [Brittany Chiang](https://brittanychiang.com). The playful, personal touch comes from [Lynn Fisher](https://lynnandtonic.com).
 
 **Goals**
 
 - **Fast:** static HTML, no JavaScript that blocks the first render.
-- **Smooth:** the sidebar stays put, the content card morphs and the content crossfades on every navigation.
-- **Personal:** one signature element (the 3D scene) instead of effects everywhere.
+- **Smooth:** the sidebar stays put; on every navigation the old card falls away to the bottom and the new one drops in from the top.
+- **Personal:** one signature element (the card starfield) instead of effects everywhere.
 - **Bilingual:** all content in Dutch and English from the first live version; Dutch is the default.
 - **Maintainable:** a new project or post is a single Markdown/MDX file per language.
 
@@ -33,8 +33,8 @@ Astro with static output, and React only for the parts that are truly interactiv
 | --- | --- | --- |
 | Framework | Astro, latest stable version, `output: 'static'` | HTML-first, islands, built-in view transitions |
 | Language | TypeScript, `strict` | Type-safe content schemas and components |
-| Interactive islands | React via `@astrojs/react` | The owner's expertise; required for React Three Fiber |
-| 3D | `three`, `@react-three/fiber`, `@react-three/drei` (only the helpers needed) | Declarative 3D in React |
+| Interactive islands | React via `@astrojs/react` | The owner's expertise |
+| Background | Canvas 2D + CSS 3D transforms, self-built, no library (changed in phase 2 from three.js + React Three Fiber) | The card starfield needs only small shapes and perspective math: a few kB instead of a 250 kB 3D chunk |
 | Content | Markdown/MDX via `@astrojs/mdx` + content collections with Zod schemas | One file per project or post per language, validated at build time |
 | i18n | Astro's built-in i18n routing | No extra dependency; locale-aware URLs and `Astro.currentLocale` |
 | Styling | CSS custom properties (design tokens) + a CSS Module per component (`Component.module.css`, since phase 1, at the owner's request) | No runtime CSS, full control over the design, styles in their own files |
@@ -44,7 +44,7 @@ Astro with static output, and React only for the parts that are truly interactiv
 | Quality | ESLint, Prettier + `prettier-plugin-astro`, `astro check`, a Husky pre-push hook that runs them all (added Oct 18, 2026) | Consistent code, type errors caught before a push or deploy |
 | Tests | Playwright | Smoke tests, navigation with transitions, and screenshot comparisons for refactors (`toHaveScreenshot`, since phase 2) |
 
-**Preact is out of scope for version 1.** It can be evaluated later for small islands. The 3D scene always stays React, because React Three Fiber runs on `react-reconciler` and does not work with Preact.
+**Preact is out of scope for version 1.** It can be evaluated later for small islands. The starfield isn't an island: it's a plain script, so it doesn't depend on React or Preact.
 
 ## Pages and routes
 
@@ -83,18 +83,18 @@ export default defineConfig({
 
 ## Layout and visual design
 
-A fixed sidebar on the left and one content card on the right, with the 3D scene as a background layer that is visible around both.
+A fixed sidebar on the left and one content card on the right, with the card starfield as a background layer that is visible around both.
 
-**Only the content card animates on navigation** (desktop layout, back to front)
+**On navigation the card is handed off, and the starfield plays along** (desktop layout, back to front; since phase 2)
 
 | Layer | Contents | On a page change | Animates |
 | --- | --- | --- | --- |
-| 0 · 3D scene | Background on every page | Persists and keeps running during the transition | No |
+| 0 · Card starfield (canvas) | Tiny card-shaped stars on every page | Persists and keeps running; one star leaves and one returns (sections 1 and 4 in Page transitions) | **Yes**, in the background |
 | 1 · Sidebar | Name, intro, navigation and theme toggle | Replaced, without animation | No |
-| 2 · Content card: frame | The card itself | The frame morphs to the new height in 300 ms | **Yes** |
-| 2 · Content card: content (captured separately) | The text in the card | Old content fades out in 150 ms; new content fades in and slides up 8 px (250 ms). So the text doesn't distort during the morph. | **Yes** |
+| 2 · Content card, old | The card with its content | Falls away to the bottom and fades (section 3) | **Yes** |
+| 2 · Content card, new | The card with its content | Drops in from the top and fades in, content visible from the start (section 2) | **Yes** |
 
-The 3D scene and the sidebar stay still during a page change; only the card's frame and content move.
+The sidebar stays still during a page change; the card and the starfield move.
 
 **Desktop (64em and up: 1024 px at the default font size)**
 
@@ -111,7 +111,7 @@ The 3D scene and the sidebar stay still during a page change; only the card's fr
 - The card is full width with a 16 px margin on both sides and 24 px padding.
 - No horizontal scrolling, not even with long code blocks (those scroll within their own block).
 
-**Visual direction:** calm, plenty of whitespace and clear typography. The personality lives in the 3D scene, the theme switch and small micro-interactions, not in busy decoration.
+**Visual direction:** calm, plenty of whitespace and clear typography. The personality lives in the card starfield, the theme switch and small micro-interactions, not in busy decoration.
 
 **Design tokens (proposal, open to change)**
 
@@ -122,7 +122,7 @@ The 3D scene and the sidebar stay still during a page change; only the card's fr
 | `--color-text` | `#E6E9EF` | `#1A1D24` | Body text and headings |
 | `--color-text-muted` | `#8B93A7` | `#5B6170` | Dates, labels, secondary text |
 | `--color-border` | `#1F2737` | `#E3E4E0` | Card borders and dividers |
-| `--color-accent` | `#7C9CFF` | `#3B5BDB` | Links, active navigation, 3D accent |
+| `--color-accent` | `#7C9CFF` | `#3B5BDB` | Links, active navigation |
 
 - **Spacing:** a scale based on 4 px (4, 8, 12, 16, 24, 32, 48, 64), plus a 2 px half step.
 - **Radius:** 16 px for the card, 8 px for smaller elements.
@@ -133,40 +133,49 @@ The 3D scene and the sidebar stay still during a page change; only the card's fr
 
 ## Page transitions
 
-On every navigation the sidebar stays put, the card's frame morphs to the new height in 300 ms, and the content crossfades. Meanwhile the 3D scene simply keeps running.
+On every navigation the sidebar stays put and the content card is handed off: the old card falls away to the bottom and the new card drops in from the top. Meanwhile the card starfield keeps running and plays along: one star leaves the field before the new card arrives, and one returns to it after the old card has gone. (Since phase 2; this replaces the phase 1 morph of the card's frame. The timings were tuned in a prototype with the owner on Oct 24, 2026.)
+
+**The four sections**
+
+| # | What | Where | Time | Movement | Easing |
+| --- | --- | --- | --- | --- | --- |
+| 1 | A star leaves the background | Starfield canvas | 0–200 ms | A star near the sidebar grows to 32 px tall, drifts 30 px sideways and leaves past the top edge | Ease-in (quadratic) |
+| 2 | The new card arrives | View transition, `::view-transition-new(content-card)` | 200–600 ms | From 40vh above, `scale(0.8)` and `rotateX(40deg)` to its place; fades in during the first 55%. The content is visible from the start (no empty card) | Ease-out (cubic) |
+| 3 | The old card leaves | View transition, `::view-transition-old(content-card)` | 0–300 ms | Falls 80vh down to `scale(0.8)` and `rotateX(-40deg)`; fades out quickly at first while the fall speeds up | Movement ease-in (quadratic), fade ease-out (quadratic) |
+| 4 | A star returns to the background | Starfield canvas | 330–1230 ms | A card outline flows in from below the bottom edge, travels low and rises late into the starfield next to the card, shrinking until it's a star | In-out (cubic) |
+
+Both cards use `perspective(1000px)`. The text of the new page is readable after about 420 ms and the cards are settled at 600 ms. Sections 1 and 4 are not part of the view transition: the page is usable at 600 ms, and the background settles on its own until 1230 ms. The canvas side of sections 1 and 4 is described under 3D background: card starfield.
 
 **How it works**
 
 1. `<ClientRouter />` from `astro:transitions` is in the `<head>` of `BaseLayout.astro`.
 2. The sidebar gets `transition:name="sidebar"` and `transition:animate="none"`. It is still replaced (so the active link is correct), but without animation.
-3. The card's frame (`<main>`) gets `transition:name="content-card"` with the browser's default morph. The frame itself contains no text, so it may stretch during the morph.
-4. The card's content gets its own `transition:name="content-body"` with a custom fade. Because the content is captured separately, the text doesn't distort during the morph.
-5. The 3D scene's container gets `transition:persist="scene"` plus its own `transition:name` with `transition:animate="none"`, so the canvas stays live.
-6. On mobile (since phase 1): the nav island gets `view-transition-name: nav-island` with no animation, and its current-page marker gets `nav-marker`, which morphs from the old item to the new one with the card's timing. The footer below the card gets `site-footer` with the card's timing, so it follows the card's bottom edge. The sidebar's own name is turned off on mobile: an element with a view-transition-name is a stacking context, which would put the fixed island below the card.
+3. The card (`<main>`) gets `transition:name="content-card"` with the custom `cardHandoff` animation (sections 2 and 3). Its group doesn't animate (no morph): the old and new snapshots move independently, each at its own size. The content is part of the card's snapshot, so it needs no name of its own.
+4. The starfield's container gets `transition:persist="starfield"` plus its own `transition:name` with `transition:animate="none"`, so the canvas stays live.
+5. The starfield starts sections 1 and 4 on `astro:after-swap`, which runs right before the view transition's animations start. Check in DevTools (Animations panel and a performance recording) that the canvas and the cards line up.
+6. On mobile (since phase 1): the nav island gets `view-transition-name: nav-island` with no animation, and its current-page marker gets `nav-marker`, which slides from the old item to the new one. The footer below the card gets `site-footer` and moves with the cards. The sidebar's own name is turned off on mobile: an element with a view-transition-name is a stacking context, which would put the fixed island below the card.
 
 ```astro
 ---
 // src/layouts/BaseLayout.astro (excerpt)
 import { ClientRouter } from 'astro:transitions';
-import { contentFade } from '@/lib/transitions';
+import { cardHandoff } from '@/lib/transitions';
 ---
 <html lang={Astro.currentLocale}>
   <head>
     <ClientRouter />
   </head>
   <body>
-    <div class="scene" transition:persist="scene" transition:name="scene" transition:animate="none" aria-hidden="true">
-      <!-- SceneLoader, see 3D background -->
+    <div class="starfield" transition:persist="starfield" transition:name="starfield" transition:animate="none" aria-hidden="true">
+      <!-- Starfield, see 3D background: card starfield -->
     </div>
 
     <aside transition:name="sidebar" transition:animate="none">
       <!-- name, intro, navigation, language switch, theme toggle -->
     </aside>
 
-    <main class="card" transition:name="content-card" transition:animate="initial">
-      <div class="card-body" transition:name="content-body" transition:animate={contentFade}>
-        <slot />
-      </div>
+    <main class="card" transition:name="content-card" transition:animate={cardHandoff}>
+      <slot />
     </main>
   </body>
 </html>
@@ -176,28 +185,47 @@ import { contentFade } from '@/lib/transitions';
 // src/lib/transitions.ts
 import type { TransitionDirectionalAnimations } from 'astro';
 
-const pair = {
-  old: { name: 'content-out', duration: '150ms', easing: 'ease-in', fillMode: 'both' },
-  new: { name: 'content-in', duration: '250ms', delay: '100ms', easing: 'ease-out', fillMode: 'both' },
+const easeIn = 'cubic-bezier(0.11, 0, 0.5, 0)';
+const easeOut = 'cubic-bezier(0.33, 1, 0.68, 1)';
+const fadeOut = 'cubic-bezier(0.5, 1, 0.89, 1)';
+
+const handoff = {
+  old: [
+    { name: 'card-out', duration: '300ms', easing: easeIn, fillMode: 'both' },
+    { name: 'card-out-fade', duration: '300ms', easing: fadeOut, fillMode: 'both' },
+  ],
+  new: [
+    { name: 'card-in', duration: '400ms', delay: '200ms', easing: easeOut, fillMode: 'both' },
+    { name: 'card-in-fade', duration: '400ms', delay: '200ms', easing: 'linear', fillMode: 'both' },
+  ],
 };
 
-export const contentFade: TransitionDirectionalAnimations = {
-  forwards: pair,
-  backwards: pair,
+export const cardHandoff: TransitionDirectionalAnimations = {
+  forwards: handoff,
+  backwards: handoff, // open point: mirror it for the back button?
 };
 ```
 
 ```css
 /* src/styles/transitions.css */
-@keyframes content-out { to { opacity: 0; } }
-@keyframes content-in { from { opacity: 0; transform: translateY(8px); } }
-
-::view-transition-group(content-card) {
-  animation-duration: 300ms;
-  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+@keyframes card-out {
+  to { transform: perspective(1000px) translateY(80vh) rotateX(-40deg) scale(0.8); }
 }
+@keyframes card-out-fade { to { opacity: 0; } }
+@keyframes card-in {
+  from { transform: perspective(1000px) translateY(-40vh) rotateX(40deg) scale(0.8); }
+}
+@keyframes card-in-fade {
+  from { opacity: 0; }
+  55% { opacity: 1; }
+}
+
+/* No morph: each snapshot keeps its own size */
+::view-transition-group(content-card) { animation: none; }
+
+/* A long card turns around the middle of the screen, not the middle of the page */
 ::view-transition-old(content-card),
-::view-transition-new(content-card) { height: 100%; }
+::view-transition-new(content-card) { transform-origin: 50% 50vh; }
 
 /* Don't animate the rest of the page (background only); the group too, since phase 1 */
 ::view-transition-group(root),
@@ -220,65 +248,85 @@ export const contentFade: TransitionDirectionalAnimations = {
 - Switching language is a normal navigation with the same transition. The `lang` attribute on `<html>` comes from the new page; check that it is updated after a client-side navigation, because screen readers rely on it.
 - Every `transition:name` is unique per page. Two elements with the same name on one page break the transition.
 - Astro's default animations may need to be overridden; check in DevTools (Animations panel) which animation actually runs.
+- A click during a transition starts the next navigation right away (the browser skips the running view transition). The starfield then finishes sections 1 and 4 of the previous navigation at once: the leaving star is gone and the returning star is a regular star at its spot.
 
 **Acceptance criteria**
 
 - [ ] When navigating between any two pages, the sidebar doesn't move.
-- [ ] The card's frame changes height smoothly; the text doesn't distort.
-- [ ] The whole transition takes at most 350 ms.
+- [ ] The old card falls away to the bottom and the new card drops in from the top, with the timings in the table; the cards are settled within 600 ms.
+- [ ] Navigation never waits for the starfield: links and scrolling work while sections 1 and 4 are still running.
+- [ ] Sections 1 and 4 start and end fully outside the viewport: no corner of a star card pops in or out at an edge.
+- [ ] The returning star (section 4) becomes a regular star at the same spot, without a jump.
+- [ ] Clicking another link mid-transition starts the new navigation right away, without leftover cards or stars.
 - [ ] The browser's back button plays the same transition and restores the scroll position.
-- [ ] With `prefers-reduced-motion: reduce`, the page changes without animation.
+- [ ] With `prefers-reduced-motion: reduce`, the page changes without animation and sections 1 and 4 don't play.
 - [ ] Without JavaScript, navigation works through regular page loads.
 - [ ] In a browser without the View Transitions API, navigation works without console errors.
-- [ ] The 3D scene keeps running during the transition, without flashing or ghosting.
+- [ ] The starfield keeps running during the transition, without flashing or ghosting.
 - [ ] After navigation, the new page is announced to screen readers and focus is at the top of the new content.
 - [ ] After switching language, `lang` on `<html>` matches the new page.
 
-## 3D background
+**Open points (decide while building)**
 
-One subtle 3D scene behind the content, on every page, that keeps running during navigation and never delays the first render.
+- Back button: the same direction as a forward navigation (the default above), or mirrored, with the new card coming up from the bottom?
+- Phones: the same hand-off with shorter distances, and a more opaque card (about 85%) so the starfield doesn't hurt readability? Or only a short crossfade?
+- Switching language: the same hand-off, or a calmer crossfade, since the page stays the same?
 
-**Concept (first proposal):** one abstract object or a small group of shapes in the accent color. It rotates slowly and tilts slightly with the mouse position. The exact concept is an open question for the owner.
+## 3D background: card starfield
+
+One subtle, self-built background behind the content, on every page: a field of tiny card-shaped "stars" that slowly moves like space. It keeps running during navigation, plays along with the card hand-off (sections 1 and 4 in Page transitions) and never delays the first render. (Decided Oct 24, 2026, replacing the three.js scene from the first proposal. A horizon glow on top of it is parked as an idea in issue #14.)
+
+**The field**
+
+- About 500 stars. Each one is a small card: a rounded rectangle with the content card's aspect ratio, about 1–7 px tall.
+- Each star is a point in 3D, with a depth `z` between 0.35 and 3, drawn with simple perspective: its screen position is the screen center plus its position / `z` × 0.6 × the viewport height, and its height is 2.6 px / `z`.
+- Space-like movement: the stars drift slowly toward the viewer (0.02 depth units per second). A star that gets too close comes back far away at a random spot. The whole field rolls slowly, one turn every 2.5 minutes, and every star turns with it.
+- Each star has its own brightness (15–100%) and a soft twinkle (±20%). Stars fade out near the front and the back, so none pops in or out.
+- Color: `--color-text` (light stars on dark, dark stars on light). The content card is 92% opaque, so the field shows faintly through it.
+- No mouse tilt (dropped from the first proposal).
+
+**The hand-off items (sections 1 and 4)**
+
+- Both items use `--color-text-muted` at most 55% opacity. While they're larger than about 4 px they're drawn as the outline of an empty card; smaller, they're a filled star.
+- While an item is taller than 8 px it's drawn in front of the card; once it's smaller, it's drawn behind it, in the field. So the starfield uses two canvases: the field behind everything, and a second one above the card (`pointer-events: none`) that only draws during these items.
+- **Section 1 (0–200 ms):** picks a star near the sidebar, in the upper half, at a depth between 0.9 and 2.2. It grows on a log scale to 32 px tall, drifts 30 px sideways and leaves past the top edge (ease-in). Its end point is half the item's diagonal plus 6 px above the edge, so the turned card never shows a corner.
+- **Section 4 (330–1230 ms):** picks a target spot in the visible part of the field next to the card (on desktop: the sidebar column, 30–70% down) and adds a hidden star there at depth 1.6. A 48 px tall card outline starts below the bottom edge (half its diagonal plus 6 px below it), about 30% of the viewport width to the right of the target. It follows a curve that travels low and rises late: a quadratic curve whose control point is 75% of the way from the middle of the straight line to a point below the target, at 90% of the viewport height. It shrinks on a log scale to the star's size and fades to the star's brightness in its last 40% (in-out easing). At the end the hidden star shows at exactly that spot.
+- The field keeps the same number of stars: section 1 removes a star, section 4 adds one.
 
 **Loading strategy**
 
-1. The page first shows a static fallback: a CSS gradient or a poster image (AVIF/WebP) of the scene.
-2. `SceneLoader.tsx` is loaded with `client:only="react"`, because WebGL can't render on the server.
-3. `SceneLoader` waits for `requestIdleCallback` (fallback: a 1 s `setTimeout`) and only then loads `SceneCanvas.tsx` via `React.lazy(() => import(...))`. This puts three.js in a separate chunk that doesn't affect the first render.
-4. Once the first frame has rendered, the canvas fades in over the fallback in 600 ms.
+1. Without JavaScript, and until the script has run, the page shows the plain `--color-bg` background. No fallback image is needed.
+2. `Starfield.astro` renders the canvases in the persisted container, plus a small `<script>` that waits for `requestIdleCallback` (fallback: a 1 s `setTimeout`) and then imports `@/lib/starfield` dynamically, so the starfield stays off the critical path.
+3. Once the first frame has rendered, the canvas fades in over 600 ms.
 
-```astro
-<div class="scene" transition:persist="scene" transition:name="scene" transition:animate="none" aria-hidden="true">
-  <SceneLoader client:only="react" />
-</div>
-```
+The logic lives in `src/lib/starfield/` as plain TypeScript, with no React: the field (stars, projection, drift), the hand-off items (sections 1 and 4) and the drawing. The math (projection, curves, easing) is pure functions, so it can be unit tested.
 
-**Placement:** `position: fixed; inset: 0; z-index: 0`, with the sidebar and card above it. The container has `pointer-events: none`; the mouse position is read through a `pointermove` listener on `window`.
+**Placement:** `position: fixed; inset: 0; z-index: 0`, with the sidebar and card above it, and the hand-off canvas above the card. Both canvases have `pointer-events: none`.
 
 **Performance rules**
 
-- Device pixel ratio capped at `[1, 1.5]` via `dpr` on the `<Canvas>`.
+- Device pixel ratio capped at 1.5.
 - Rendering pauses when the tab is hidden (`visibilitychange`).
-- No post-processing in version 1.
-- The 3D chunk (three + R3F + the drei helpers used) is at most 250 kB gzip.
-- Target: a steady 60 fps on an average laptop, with no noticeable effect on scrolling.
+- One `requestAnimationFrame` loop, with no allocations per frame.
+- The starfield script is at most 10 kB gzip.
+- Target: a steady 60 fps on an average laptop and a mid-range phone, with no noticeable effect on scrolling.
 
-**When the scene does *not* load (static fallback only)**
+**When the starfield does *not* run**
 
-- `prefers-reduced-motion: reduce`: the scene shows a single still frame or only the fallback.
-- Screen width below 768 px.
-- `navigator.connection.saveData` is `true`.
-- WebGL is not available.
+- `prefers-reduced-motion: reduce`: one still frame, with no drift and no hand-off items.
+- `navigator.connection.saveData` is `true`: only the plain background.
+- Canvas 2D is not available: only the plain background.
+- Phones: an open point (see Page transitions). Canvas 2D is light enough to run there, unlike the WebGL scene of the first proposal.
 
-**Theme:** the scene reads `--color-accent` and `--color-bg` from the CSS and updates its colors when `data-theme` changes (via a `MutationObserver` on `<html>` or a custom `theme-change` event). Because the tokens are `light-dark()` values, `getPropertyValue('--color-accent')` returns the `light-dark(…)` text, not a color: read the computed `color` or `background-color` of an element that uses the token instead.
+**Theme:** the starfield reads `--color-text` and `--color-text-muted` and updates its colors when `data-theme` changes (via a `MutationObserver` on `<html>` or a custom `theme-change` event). Because the tokens are `light-dark()` values, `getPropertyValue('--color-text')` returns the `light-dark(…)` text, not a color: read the computed `color` of an element that uses the token instead.
 
 **Acceptance criteria**
 
-- [ ] The LCP of a page with and without 3D differs by less than 100 ms.
-- [ ] The scene doesn't restart on navigation, including when switching language; the rotation continues seamlessly.
-- [ ] Each of the four exceptions above shows only the fallback, without errors.
-- [ ] When the theme changes, the scene follows within one frame.
-- [ ] The scene is decorative (`aria-hidden="true"`) and not reachable by keyboard.
+- [ ] The LCP of a page with and without the starfield differs by less than 100 ms.
+- [ ] The starfield doesn't restart on navigation, including when switching language; the drift and the roll continue seamlessly.
+- [ ] Each of the exceptions above shows the right state, without errors.
+- [ ] When the theme changes, the starfield follows within one frame.
+- [ ] The starfield is decorative (`aria-hidden="true"`) and not reachable by keyboard.
 
 ## Other interactive parts
 
@@ -424,8 +472,8 @@ A phase is only finished when the site stays within these budgets, measured on a
 | Cumulative Layout Shift | ≤ 0.05 |
 | Interaction to Next Paint | ≤ 200 ms |
 | JavaScript that blocks the first render | 0 kB (only the inline theme script, < 1 kB) |
-| Total JavaScript after idle, without 3D | ≤ 100 kB gzip |
-| 3D chunk, loaded only after idle | ≤ 250 kB gzip |
+| Total JavaScript after idle, without the starfield | ≤ 100 kB gzip |
+| Starfield script, loaded only after idle | ≤ 10 kB gzip |
 | CSS per page | ≤ 30 kB gzip |
 | Fonts | At most 2 files, `woff2`, Latin subset, `font-display: swap` |
 
@@ -516,10 +564,7 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 │   │   │   └── Seo.astro         # meta, canonical, hreflang, OG, JSON-LD
 │   │   └── views/                # one view per page, shared by both languages
 │   ├── islands/                  # React only, only what's interactive
-│   │   ├── CommandPalette.tsx
-│   │   └── scene/
-│   │       ├── SceneLoader.tsx   # waits for idle, lazy import
-│   │       └── SceneCanvas.tsx   # R3F Canvas and objects
+│   │   └── CommandPalette.tsx
 │   ├── lib/                      # the logic: components only pass props and render
 │   │   ├── date.ts               # formatDate, isoDate, newestFirst
 │   │   ├── experience.ts         # work experience, newest first
@@ -633,7 +678,7 @@ Done on Oct 18, 2026 in [PR #6](https://github.com/lucieneu/personal-website/pul
 - [ ] Lab: `lab` collection, `/lab` and `/lab/[slug]`, with at least one experiment in both languages.
 - [ ] Generated OG images per post.
 - [ ] Optional: live-data widget, once the owner has chosen the source.
-- [ ] Optional: evaluate whether small islands can move to Preact (not the 3D scene).
+- [ ] Optional: evaluate whether small islands can move to Preact.
 - [ ] Optional (idea from phase 1): morph between the desktop and mobile layouts when the window crosses 1024 px, with the sidebar's navigation folding into the nav island. The layout switch is instant until then. This needs a small script to switch the layout (an attribute on `<html>`, with the media queries kept as the fallback without JavaScript), because by the time the breakpoint change is reported the new layout is already in place. It won't play while a window edge is being dragged (browsers cancel a view transition while the viewport keeps resizing), only on an iPad rotation, a window snap or a zoom change.
 - [ ] **Gate:** budgets met, all new parts keyboard operable.
 
@@ -673,7 +718,7 @@ Unchecked items are still open; the first four items are needed before phase 1, 
 - [ ] **Font:** which sans and which mono? Proposal: Inter Variable and JetBrains Mono, or Geist and Geist Mono. (Inter + JetBrains Mono are used temporarily since phase 0.)
 - [ ] **Accent color:** keep the proposed blue, or a color of your own? (The proposed blue is used temporarily since phase 0.)
 - [ ] **Projects:** which 3 projects go on the site in phase 1?
-- [ ] **3D concept:** an abstract object, particles, or a small 3D version of your desk or setup?
+- [x] **3D concept:** a card starfield: tiny card-shaped stars that play along with the page transition (decided Oct 24, 2026; see 3D background: card starfield).
 - [ ] **Styling:** custom CSS with tokens (proposal) or Tailwind after all?
 - [ ] **Hosting:** Cloudflare (proposal) or your own homelab? (Cloudflare is used temporarily since phase 0; see Deployment and hosting.)
 - [ ] **Analytics:** none, or privacy-friendly without cookies (for example Cloudflare Web Analytics, Plausible or a self-hosted Umami)?
