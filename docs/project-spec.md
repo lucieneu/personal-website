@@ -189,20 +189,21 @@ const easeIn = 'cubic-bezier(0.11, 0, 0.5, 0)';
 const easeOut = 'cubic-bezier(0.33, 1, 0.68, 1)';
 const fadeOut = 'cubic-bezier(0.5, 1, 0.89, 1)';
 
-const handoff = {
+// Forwards the cards move down (`card-out`, `card-in`); backwards they move up (`-up`)
+const handoff = (suffix: '' | '-up') => ({
   old: [
-    { name: 'card-out', duration: '300ms', easing: easeIn, fillMode: 'both' },
+    { name: `card-out${suffix}`, duration: '300ms', easing: easeIn, fillMode: 'both' },
     { name: 'card-out-fade', duration: '300ms', easing: fadeOut, fillMode: 'both' },
   ],
   new: [
-    { name: 'card-in', duration: '400ms', delay: '200ms', easing: easeOut, fillMode: 'both' },
+    { name: `card-in${suffix}`, duration: '400ms', delay: '200ms', easing: easeOut, fillMode: 'both' },
     { name: 'card-in-fade', duration: '400ms', delay: '200ms', easing: 'linear', fillMode: 'both' },
   ],
-};
+});
 
 export const cardHandoff: TransitionDirectionalAnimations = {
-  forwards: handoff,
-  backwards: handoff, // open point: mirror it for the back button?
+  forwards: handoff(''),
+  backwards: handoff('-up'),
 };
 ```
 
@@ -214,6 +215,13 @@ export const cardHandoff: TransitionDirectionalAnimations = {
 @keyframes card-out-fade { to { opacity: 0; } }
 @keyframes card-in {
   from { transform: perspective(1000px) translateY(-40vh) rotateX(40deg) scale(0.8); }
+}
+/* Back button: the same, mirrored top to bottom */
+@keyframes card-out-up {
+  to { transform: perspective(1000px) translateY(-80vh) rotateX(40deg) scale(0.8); }
+}
+@keyframes card-in-up {
+  from { transform: perspective(1000px) translateY(40vh) rotateX(-40deg) scale(0.8); }
 }
 @keyframes card-in-fade {
   from { opacity: 0; }
@@ -258,7 +266,8 @@ export const cardHandoff: TransitionDirectionalAnimations = {
 - [ ] Sections 1 and 4 start and end fully outside the viewport: no corner of a star card pops in or out at an edge.
 - [ ] The returning star (section 4) becomes a regular star at the same spot, without a jump.
 - [ ] Clicking another link mid-transition starts the new navigation right away, without leftover cards or stars.
-- [ ] The browser's back button plays the same transition and restores the scroll position.
+- [ ] The browser's back button plays the mirrored transition (old card up and out, new card up from the bottom, stars mirrored too) and restores the scroll position.
+- [ ] On phones, sections 1 and 4 run along a side edge of the screen and their stars stay visible next to the card.
 - [ ] With `prefers-reduced-motion: reduce`, the page changes without animation and sections 1 and 4 don't play.
 - [ ] Without JavaScript, navigation works through regular page loads.
 - [ ] In a browser without the View Transitions API, navigation works without console errors.
@@ -266,11 +275,11 @@ export const cardHandoff: TransitionDirectionalAnimations = {
 - [ ] After navigation, the new page is announced to screen readers and focus is at the top of the new content.
 - [ ] After switching language, `lang` on `<html>` matches the new page.
 
-**Open points (decide while building)**
+**Back button: mirrored** (decided Oct 24, 2026). Going back plays the whole hand-off upside down: the old card rises out past the top, the new card comes up from below, the leaving star (section 1) goes out past the bottom edge, and the returning star (section 4) comes in from the top edge and drops late into place. The timings stay the same. Astro passes the direction to `transition:animate` (`backwards`); the starfield reads it from `event.direction` in `astro:before-preparation` (`'back'`).
 
-- Back button: the same direction as a forward navigation (the default above), or mirrored, with the new card coming up from the bottom?
-- Phones: the same hand-off with shorter distances, and a more opaque card (about 85%) so the starfield doesn't hurt readability? Or only a short crossfade?
-- Switching language: the same hand-off, or a calmer crossfade, since the page stays the same?
+**Phones: the same hand-off** (decided Oct 24, 2026). On phones the card covers almost the whole width, so sections 1 and 4 run along a side edge of the screen, where the user can see them: section 1 picks a star in the outer strip at the side, and section 4 flows in from the bottom corner on that side and ends in the side margin or the header area, not behind the card. Check on a real phone that the card's distances (80vh and 40vh) still feel right on a tall screen.
+
+**Open point:** switching language: the same hand-off, or a calmer crossfade, since the page stays the same? (Not decided yet; the default is the same hand-off.)
 
 ## 3D background: card starfield
 
@@ -289,8 +298,8 @@ One subtle, self-built background behind the content, on every page: a field of 
 
 - Both items use `--color-text-muted` at most 55% opacity. While they're larger than about 4 px they're drawn as the outline of an empty card; smaller, they're a filled star.
 - While an item is taller than 8 px it's drawn in front of the card; once it's smaller, it's drawn behind it, in the field. So the starfield uses two canvases: the field behind everything, and a second one above the card (`pointer-events: none`) that only draws during these items.
-- **Section 1 (0–200 ms):** picks a star near the sidebar, in the upper half, at a depth between 0.9 and 2.2. It grows on a log scale to 32 px tall, drifts 30 px sideways and leaves past the top edge (ease-in). Its end point is half the item's diagonal plus 6 px above the edge, so the turned card never shows a corner.
-- **Section 4 (330–1230 ms):** picks a target spot in the visible part of the field next to the card (on desktop: the sidebar column, 30–70% down) and adds a hidden star there at depth 1.6. A 48 px tall card outline starts below the bottom edge (half its diagonal plus 6 px below it), about 30% of the viewport width to the right of the target. It follows a curve that travels low and rises late: a quadratic curve whose control point is 75% of the way from the middle of the straight line to a point below the target, at 90% of the viewport height. It shrinks on a log scale to the star's size and fades to the star's brightness in its last 40% (in-out easing). At the end the hidden star shows at exactly that spot.
+- **Section 1 (0–200 ms):** picks a star near the sidebar (on phones: in the outer strip at one side), in the upper half, at a depth between 0.9 and 2.2. It grows on a log scale to 32 px tall, drifts 30 px sideways and leaves past the top edge (ease-in). Its end point is half the item's diagonal plus 6 px above the edge, so the turned card never shows a corner.
+- **Section 4 (330–1230 ms):** picks a target spot in the visible part of the field next to the card (on desktop: the sidebar column, 30–70% down; on phones: the side margin or the header area on the same side as section 1) and adds a hidden star there at depth 1.6. A 48 px tall card outline starts below the bottom edge (half its diagonal plus 6 px below it), about 30% of the viewport width to the right of the target. It follows a curve that travels low and rises late: a quadratic curve whose control point is 75% of the way from the middle of the straight line to a point below the target, at 90% of the viewport height. It shrinks on a log scale to the star's size and fades to the star's brightness in its last 40% (in-out easing). At the end the hidden star shows at exactly that spot.
 - The field keeps the same number of stars: section 1 removes a star, section 4 adds one.
 
 **Loading strategy**
@@ -316,7 +325,8 @@ The logic lives in `src/lib/starfield/` as plain TypeScript, with no React: the 
 - `prefers-reduced-motion: reduce`: one still frame, with no drift and no hand-off items.
 - `navigator.connection.saveData` is `true`: only the plain background.
 - Canvas 2D is not available: only the plain background.
-- Phones: an open point (see Page transitions). Canvas 2D is light enough to run there, unlike the WebGL scene of the first proposal.
+
+Phones get the starfield too (Canvas 2D is light enough, unlike the WebGL scene of the first proposal), with sections 1 and 4 along a side edge (see Page transitions).
 
 **Theme:** the starfield reads `--color-text` and `--color-text-muted` and updates its colors when `data-theme` changes (via a `MutationObserver` on `<html>` or a custom `theme-change` event). Because the tokens are `light-dark()` values, `getPropertyValue('--color-text')` returns the `light-dark(…)` text, not a color: read the computed `color` of an element that uses the token instead.
 
