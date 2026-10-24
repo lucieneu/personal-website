@@ -83,15 +83,15 @@ test('a phone gets as many stars per area as a desktop, not the same number', as
       for (let i = 3; i < data.length; i += 4) if (data[i]! > 0) pixels++;
       return pixels / (canvas.width * canvas.height);
     });
-  // Without the intro (not the first page of the visit), so every star is there at once.
-  await page.addInitScript(() => sessionStorage.setItem('starfield-seen', '1'));
+  // With reduced motion every star is there at once (no intro), and stays put.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
-  await expect(starfield(page)).toHaveAttribute('data-state', 'running');
+  await expect(starfield(page)).toHaveAttribute('data-state', 'still');
   const desktop = await lit();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();
-  await expect(starfield(page)).toHaveAttribute('data-state', 'running');
+  await expect(starfield(page)).toHaveAttribute('data-state', 'still');
   // The same count would make the phone about 4× as dense.
   const ratio = (await lit()) / desktop;
   expect(ratio).toBeGreaterThan(0.75);

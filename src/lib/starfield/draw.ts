@@ -1,5 +1,5 @@
 // Draws the stars onto a canvas, every star a tiny card: the moving field, turned by its roll,
-// and the fixed stars, on a canvas of their own that is only redrawn when something changes.
+// and the fixed stars, on a canvas of their own that is redrawn only a few times a second.
 import {
   CARD_ASPECT,
   type Field,
@@ -96,8 +96,8 @@ export function drawField(
 }
 
 /**
- * Draws the fixed stars at `seconds` on a canvas like drawField's. They don't move, so this is
- * only needed while they fade in, and on a resize or theme change.
+ * Draws the fixed stars at `seconds` on a canvas like drawField's. They don't move, only fade in
+ * and out slowly, so this runs a few times a second (and on a resize or theme change).
  */
 export function drawFixed(
   ctx: CanvasRenderingContext2D,

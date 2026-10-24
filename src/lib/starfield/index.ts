@@ -11,6 +11,8 @@ import {
   fixedCount,
   type FixedStars,
   reachOf,
+  renewField,
+  renewFixed,
   reveal,
   starCount,
 } from '@/lib/starfield/field';
@@ -19,29 +21,23 @@ import {
 const MAX_DPR = 1.5;
 /** After a long pause (a background tab, a debugger) the field moves on by at most this much. */
 const MAX_STEP = 0.1;
-/** On the first page of a visit the stars appear one by one over this many seconds (+ FADE_IN). */
+/** On a page load the stars appear one by one over this many seconds (+ FADE_IN). */
 const INTRO = 7;
 /** Stars added by a larger window appear over this many seconds (+ FADE_IN). */
 const GROW = 1;
-const SEEN_KEY = 'starfield-seen';
-
-/** Whether this is the first page of the visit; remembers that it isn't, from now on. */
-function firstView() {
-  try {
-    if (sessionStorage.getItem(SEEN_KEY)) return false;
-    sessionStorage.setItem(SEEN_KEY, '1');
-  } catch {
-    // Storage is blocked: play the intro on every full page load.
-  }
-  return true;
-}
+/**
+ * The fixed stars only change while some fade in or out, which is slow, so their canvas is
+ * redrawn on every this-many-th frame (15 times a second at 60 fps).
+ */
+const FIXED_EVERY = 4;
 
 /**
- * Starts the starfield in `container`: the fixed stars on its `[data-fixed]` canvas, redrawn only
- * when something changes, and the moving field on its `[data-moving]` canvas, in the color of the
- * container (which uses --color-text). The number of stars follows the screen's area. On the
- * first page of a visit the stars fade in one by one. With reduced motion the field is one still
- * frame, with every star at once. Sets `data-state` on the container to `running` or `still`
+ * Starts the starfield in `container`: the fixed stars on its `[data-fixed]` canvas, redrawn a
+ * few times a second, and the moving field on its `[data-moving]` canvas, in the color of the
+ * container (which uses --color-text). The number of stars follows the screen's area. On a page
+ * load (not on a client-side navigation: the container persists) the stars fade in one by one,
+ * and from then on some fade out and return elsewhere. With reduced motion the field is one
+ * still frame, with every star at once. Sets `data-state` on the container to `running` or `still`
  * once the first frame is drawn, which fades the canvases in.
  * Without Canvas 2D it does nothing, and the page keeps its plain background.
  */
@@ -59,8 +55,6 @@ export function startStarfield(container: HTMLElement) {
   let color = '';
   let field: Field | undefined;
   let fixedStars: FixedStars | undefined;
-  /** Until when the fixed stars are still fading in, so their canvas must be redrawn. */
-  let fixedUntil = 0;
   let seconds = 0;
   let last: number | undefined;
   let frame = 0;
@@ -76,8 +70,8 @@ export function startStarfield(container: HTMLElement) {
   /** Lets stars `from` up to `to` appear over `spread` seconds from now (0: at once). */
   function appear(stars: Field | FixedStars, from: number, to: number, spread: number) {
     // At once: already faded in (the canvas itself still fades in on the first frame).
-    if (reduced || spread === 0) reveal(stars.appear, from, to, seconds - FADE_IN, 0);
-    else reveal(stars.appear, from, to, seconds, spread);
+    if (reduced || spread === 0) reveal(stars, from, to, seconds - FADE_IN, 0);
+    else reveal(stars, from, to, seconds, spread);
   }
 
   function resize() {
@@ -91,20 +85,16 @@ export function startStarfield(container: HTMLElement) {
     if (!field || !fixedStars) {
       field = createField(width, height);
       fixedStars = createFixedStars(width, height);
-      const spread = firstView() ? INTRO : 0;
-      appear(field, 0, field.count, spread);
-      appear(fixedStars, 0, fixedStars.count, spread);
-      fixedUntil = spread + FADE_IN;
+      appear(field, 0, field.count, INTRO);
+      appear(fixedStars, 0, fixedStars.count, INTRO);
     } else {
       // A larger window gets more stars, which fade in; a smaller one draws fewer.
       field.reach = reachOf(width, height);
       const stars = starCount(width, height);
       const fixedStarsNow = fixedCount(width, height);
       if (stars > field.count) appear(field, field.count, stars, GROW);
-      if (fixedStarsNow > fixedStars.count) {
+      if (fixedStarsNow > fixedStars.count)
         appear(fixedStars, fixedStars.count, fixedStarsNow, GROW);
-        fixedUntil = seconds + GROW + FADE_IN;
-      }
       field.count = stars;
       fixedStars.count = fixedStarsNow;
     }
@@ -117,16 +107,17 @@ export function startStarfield(container: HTMLElement) {
     drawAll();
   }
 
+  let frames = 0;
   function tick(now: number) {
-    // The fixed stars only change while they fade in; the first frame after that settles them.
-    const fixedChanging = seconds <= fixedUntil;
     if (last !== undefined) {
       const step = Math.min((now - last) / 1000, MAX_STEP);
       seconds += step;
       drift(field!, step);
+      renewField(field!, seconds);
+      renewFixed(fixedStars!, seconds);
     }
     last = now;
-    if (fixedChanging) drawAll();
+    if (frames++ % FIXED_EVERY === 0) drawAll();
     else draw();
     frame = requestAnimationFrame(tick);
   }
