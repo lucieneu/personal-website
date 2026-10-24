@@ -151,7 +151,7 @@ Both cards use `perspective(1000px)`. The text of the new page is readable after
 1. `<ClientRouter />` from `astro:transitions` is in the `<head>` of `BaseLayout.astro`.
 2. The sidebar gets `transition:name="sidebar"` and `transition:animate="none"`. It is still replaced (so the active link is correct), but without animation.
 3. The card (`<main>`) gets `transition:name="content-card"` with the custom `cardHandoff` animation (sections 2 and 3). Its group doesn't animate (no morph): the old and new snapshots move independently, each at its own size. The content is part of the card's snapshot, so it needs no name of its own.
-4. The starfield's container gets `transition:persist="starfield"`, so the canvas and its state survive the swap. It has no `transition:name` of its own (changed while building it, Oct 24, 2026): it's part of the root snapshot, whose new state is live and covers the old one, so the canvas keeps moving during the transition, and a name of its own crashed WebKit after a few dozen navigations.
+4. The starfield's container gets `transition:persist="starfield"`, so the canvas and its state survive the swap. It has no `transition:name` of its own (changed while building it, Oct 24, 2026): it's part of the root snapshot, whose new state is live and covers the old one, so the canvas keeps moving during the transition.
 5. The starfield starts sections 1 and 4 on `astro:after-swap`, which runs right before the view transition's animations start. Check in DevTools (Animations panel and a performance recording) that the canvas and the cards line up.
 6. On mobile (since phase 1): the nav island gets `view-transition-name: nav-island` with no animation, and its current-page marker gets `nav-marker`, which slides from the old item to the new one. The footer below the card gets `site-footer` and moves with the cards. The sidebar's own name is turned off on mobile: an element with a view-transition-name is a stacking context, which would put the fixed island below the card.
 
@@ -287,9 +287,11 @@ One subtle, self-built background behind the content, on every page: a field of 
 
 **The field**
 
-- About 500 stars. Each one is a small card: a rounded rectangle with the content card's aspect ratio, about 1–7 px tall.
+- About 1500 moving stars (raised from 500 at the owner's request, Oct 24, 2026). Each one is a small card: a rounded rectangle with the content card's aspect ratio, about 1–7 px tall.
 - Each star is a point in 3D, with a depth `z` between 0.35 and 3, drawn with simple perspective: its screen position is the screen center plus its position / `z` × 0.6 × the viewport height, and its height is 2.6 px / `z`.
-- Space-like movement: the stars drift slowly toward the viewer (0.02 depth units per second). A star that gets too close comes back far away at a random spot. The whole field rolls slowly, one turn every 2.5 minutes, and every star turns with it.
+- Space-like movement: the stars drift slowly toward the viewer (0.004 depth units per second). A star that gets too close comes back far away at a random spot. The whole field rolls slowly, one turn every 10 minutes, and every star turns with it. (Slowed from 0.02 and 2.5 minutes at the owner's request, Oct 24, 2026.)
+- About 1000 fixed stars that don't move at all (added at the owner's request, Oct 24, 2026): dimmer (10–60%) and small (like a moving star at depth 1.2–3), on a canvas of their own below the moving field. They're drawn once, and again only on a resize or a theme change, so they cost nothing per frame.
+- Stars are filled in batches by opacity (20 steps), one fill per step instead of one per star: the main cost on slow devices. With a 6× slowed CPU the field takes about 2–3 ms per frame.
 - Each star has its own brightness (15–100%) and a soft twinkle (±20%). Stars fade out near the front and the back, so none pops in or out.
 - Color: `--color-text` (light stars on dark, dark stars on light). The content card is 92% opaque, so the field shows faintly through it.
 - No mouse tilt (dropped from the first proposal).

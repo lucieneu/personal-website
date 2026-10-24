@@ -1,8 +1,8 @@
-// Runs the card starfield on the canvas that Starfield.astro renders. Loaded on idle by that
+// Runs the card starfield on the canvases that Starfield.astro renders. Loaded on idle by that
 // component's script, so it's never on the critical path. Its container persists across
 // navigations, so this runs once per visit and the field keeps moving while pages change.
-import { drawField } from '@/lib/starfield/draw';
-import { createField, drift, type Field, reachOf } from '@/lib/starfield/field';
+import { drawField, drawFixed } from '@/lib/starfield/draw';
+import { createField, createFixedStars, drift, type Field, reachOf } from '@/lib/starfield/field';
 
 /** Device pixels per CSS px, at most; more costs fill rate without looking sharper on stars. */
 const MAX_DPR = 1.5;
@@ -10,17 +10,21 @@ const MAX_DPR = 1.5;
 const MAX_STEP = 0.1;
 
 /**
- * Starts the field on `canvas`, in the `color` of its container (which uses --color-text).
- * With reduced motion the field is one still frame. Sets `data-state` on the container to
- * `running` or `still` once the first frame is drawn, which fades the canvas in.
+ * Starts the starfield in `container`: the fixed stars on its `[data-fixed]` canvas, drawn once,
+ * and the moving field on its `[data-moving]` canvas, in the color of the container (which uses
+ * --color-text). With reduced motion the field is one still frame. Sets `data-state` on the
+ * container to `running` or `still` once the first frame is drawn, which fades the canvases in.
  * Without Canvas 2D it does nothing, and the page keeps its plain background.
  */
-export function startStarfield(canvas: HTMLCanvasElement) {
-  const ctx = canvas.getContext('2d');
-  const container = canvas.parentElement;
-  if (!ctx || !container) return;
+export function startStarfield(container: HTMLElement) {
+  const moving = container.querySelector<HTMLCanvasElement>('[data-moving]');
+  const fixed = container.querySelector<HTMLCanvasElement>('[data-fixed]');
+  const ctx = moving?.getContext('2d');
+  const fixedCtx = fixed?.getContext('2d');
+  if (!moving || !fixed || !ctx || !fixedCtx) return;
 
-  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fixedStars = createFixedStars();
   let width = 0;
   let height = 0;
   let dpr = 1;
@@ -33,22 +37,28 @@ export function startStarfield(canvas: HTMLCanvasElement) {
   const draw = () => {
     if (field) drawField(ctx, field, seconds, width, height, dpr, color);
   };
+  const drawAll = () => {
+    drawFixed(fixedCtx, fixedStars, width, height, dpr, color);
+    draw();
+  };
 
   function resize() {
-    width = canvas.clientWidth;
-    height = canvas.clientHeight;
+    width = moving!.clientWidth;
+    height = moving!.clientHeight;
     dpr = Math.min(devicePixelRatio, MAX_DPR);
-    canvas.width = Math.round(width * dpr);
-    canvas.height = Math.round(height * dpr);
+    for (const canvas of [moving!, fixed!]) {
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+    }
     if (field) field.reach = reachOf(width, height);
     else field = createField(width, height);
-    draw();
+    drawAll();
   }
 
   // Every color token is a light-dark() value, so read the resolved color, not the property.
   function readColor() {
-    color = getComputedStyle(container!).color;
-    draw();
+    color = getComputedStyle(container).color;
+    drawAll();
   }
 
   function tick(now: number) {
@@ -64,15 +74,15 @@ export function startStarfield(canvas: HTMLCanvasElement) {
 
   readColor();
   resize();
-  new ResizeObserver(resize).observe(canvas);
+  new ResizeObserver(resize).observe(moving);
   // The theme toggle sets data-theme on <html>; without it, the OS preference applies.
   new MutationObserver(readColor).observe(document.documentElement, {
     attributeFilter: ['data-theme'],
   });
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readColor);
 
-  container.dataset.state = still ? 'still' : 'running';
-  if (still) return;
+  container.dataset.state = reduced ? 'still' : 'running';
+  if (reduced) return;
 
   frame = requestAnimationFrame(tick);
   // Pause while the tab is hidden; on return the field continues where it was.

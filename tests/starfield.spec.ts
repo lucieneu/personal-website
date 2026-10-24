@@ -4,13 +4,14 @@ import { clickLink, expect, test } from './fixtures';
 
 const starfield = (page: import('@playwright/test').Page) => page.locator('[data-starfield]');
 
-/** Whether the canvas has any star drawn on it. */
+/** Whether both canvases (the fixed and the moving stars) have stars drawn on them. */
 const hasStars = (page: import('@playwright/test').Page) =>
-  page.evaluate(() => {
-    const canvas = document.querySelector<HTMLCanvasElement>('[data-starfield] canvas')!;
-    const { data } = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height);
-    return data.some((value, i) => i % 4 === 3 && value > 0);
-  });
+  page.evaluate(() =>
+    [...document.querySelectorAll<HTMLCanvasElement>('[data-starfield] canvas')].every((canvas) => {
+      const { data } = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height);
+      return data.some((value, i) => i % 4 === 3 && value > 0);
+    }),
+  );
 
 test('the starfield runs behind the page and is hidden from assistive technology', async ({
   page,

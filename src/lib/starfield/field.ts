@@ -2,14 +2,14 @@
 // screen. Pure functions over typed arrays, so a frame allocates nothing and the math can be
 // tested without a canvas. Spec: "3D background: card starfield" in docs/project-spec.md.
 
-export const STAR_COUNT = 500;
+export const STAR_COUNT = 1500;
 /** Depth range; a star nearer than Z_NEAR comes back at Z_FAR. */
 export const Z_NEAR = 0.35;
 export const Z_FAR = 3;
 /** Depth units per second toward the viewer. */
-const DRIFT = 0.02;
-/** One full roll of the field, in seconds (2.5 minutes). */
-const ROLL_PERIOD = 150;
+const DRIFT = 0.004;
+/** One full roll of the field, in seconds (10 minutes). */
+const ROLL_PERIOD = 600;
 /** At depth 1, one unit of position is this fraction of the viewport height. */
 const SPREAD = 0.6;
 /** A star's height in px at depth 1. */
@@ -85,6 +85,35 @@ export const scaleAt = (z: number, height: number) => (SPREAD * height) / z;
 
 /** A star's height in px at depth `z`. */
 export const starHeight = (z: number) => STAR_HEIGHT / z;
+
+/** Stars that don't move at all: a still, dimmer layer far behind the moving field. */
+export const FIXED_COUNT = 1000;
+
+export interface FixedStars {
+  /** Position as a fraction of the screen's width and height. */
+  x: Float32Array;
+  y: Float32Array;
+  /** Height in px, like a moving star at depth 1.2–3. */
+  height: Float32Array;
+  /** 0.1–0.6: dimmer than the moving stars. */
+  opacity: Float32Array;
+}
+
+export function createFixedStars(random = Math.random): FixedStars {
+  const stars: FixedStars = {
+    x: new Float32Array(FIXED_COUNT),
+    y: new Float32Array(FIXED_COUNT),
+    height: new Float32Array(FIXED_COUNT),
+    opacity: new Float32Array(FIXED_COUNT),
+  };
+  for (let i = 0; i < FIXED_COUNT; i++) {
+    stars.x[i] = random();
+    stars.y[i] = random();
+    stars.height[i] = starHeight(1.2 + random() * (Z_FAR - 1.2));
+    stars.opacity[i] = 0.1 + random() * 0.5;
+  }
+  return stars;
+}
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
