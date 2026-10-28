@@ -20,7 +20,7 @@
   margin-top: var(--space-6);
 }
 
-/* Below the card it follows the card's bottom edge while the card morphs, and leaves room
+/* Below the card it fades out and in with the card's hand-off (transitions.css), and leaves room
    for the nav island, so the island never covers it. */
 .placementPage {
   padding: var(--space-6) var(--space-4)

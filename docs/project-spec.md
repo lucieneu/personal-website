@@ -140,8 +140,8 @@ On every navigation the sidebar stays put and the content card is handed off: th
 | # | What | Where | Time | Movement | Easing |
 | --- | --- | --- | --- | --- | --- |
 | 1 | A star leaves the background | Starfield canvas | 0–200 ms | A star near the sidebar grows to 32 px tall, drifts 30 px sideways and leaves past the top edge | Ease-in (quadratic) |
-| 2 | The new card arrives | View transition, `::view-transition-new(content-card)` | 200–600 ms | From 40vh above, `scale(0.8)` and `rotateX(40deg)` to its place; fades in during the first 55%. The content is visible from the start (no empty card) | Ease-out (cubic) |
-| 3 | The old card leaves | View transition, `::view-transition-old(content-card)` | 0–300 ms | Falls 80vh down to `scale(0.8)` and `rotateX(-40deg)`; fades out quickly at first while the fall speeds up | Movement ease-in (quadratic), fade ease-out (quadratic) |
+| 2 | The new card arrives | View transition, `::view-transition-new(card-a/b)` | 200–600 ms | From 40vh above, `scale(0.8)` and `rotateX(40deg)` to its place; fades in during the first 55%. The content is visible from the start (no empty card) | Ease-out (cubic) |
+| 3 | The old card leaves | View transition, `::view-transition-old(card-a/b)` | 0–300 ms | Falls 80vh down to `scale(0.8)` and `rotateX(-40deg)`; fades out quickly at first while the fall speeds up | Movement ease-in (quadratic), fade ease-out (quadratic) |
 | 4 | A star returns to the background | Starfield canvas | 330–1230 ms | A card outline flows in from below the bottom edge, travels low and rises late into the starfield next to the card, shrinking until it's a star | In-out (cubic) |
 
 Both cards use `perspective(1000px)`. The text of the new page is readable after about 420 ms and the cards are settled at 600 ms. Sections 1 and 4 are not part of the view transition: the page is usable at 600 ms, and the background settles on its own until 1230 ms. The canvas side of sections 1 and 4 is described under 3D background: card starfield.
@@ -150,16 +150,15 @@ Both cards use `perspective(1000px)`. The text of the new page is readable after
 
 1. `<ClientRouter />` from `astro:transitions` is in the `<head>` of `BaseLayout.astro`.
 2. The sidebar gets `transition:name="sidebar"` and `transition:animate="none"`. It is still replaced (so the active link is correct), but without animation.
-3. The card (`<main>`) gets `transition:name="content-card"` with the custom `cardHandoff` animation (sections 2 and 3). Its group doesn't animate (no morph): the old and new snapshots move independently, each at its own size. The content is part of the card's snapshot, so it needs no name of its own.
+3. The card (`<main>`) gets one of two view transition names, `card-a` or `card-b`, alternating on every navigation (changed while building it, Oct 28, 2026; the first proposal used one name, `content-card`, with Astro's `transition:animate`). With different names the old and new card aren't paired, so there's no morph and each moves from its own place at its own size: with one shared name the old card would first jump to the new card's position, which shows when the old page was scrolled. The animations (sections 2 and 3) are plain CSS on `::view-transition-old/new(card-a/b)`, mirrored under `html[data-astro-transition='back']`. Each card turns around the middle of the screen: its distance from the top of the screen is passed to the CSS as `--old-card-top` and `--new-card-top`. The content is part of the card's snapshot, so it needs no name of its own.
 4. The starfield's container gets `transition:persist="starfield"`, so the canvas and its state survive the swap. It has no `transition:name` of its own (changed while building it, Oct 24, 2026): it's part of the root snapshot, whose new state is live and covers the old one, so the canvas keeps moving during the transition.
 5. The starfield starts sections 1 and 4 on `astro:after-swap`, which runs right before the view transition's animations start. Check in DevTools (Animations panel and a performance recording) that the canvas and the cards line up.
-6. On mobile (since phase 1): the nav island gets `view-transition-name: nav-island` with no animation, and its current-page marker gets `nav-marker`, which slides from the old item to the new one. The footer below the card gets `site-footer` and moves with the cards. The sidebar's own name is turned off on mobile: an element with a view-transition-name is a stacking context, which would put the fixed island below the card.
+6. On mobile (since phase 1): the nav island gets `view-transition-name: nav-island` with no animation, and its current-page marker gets `nav-marker`, which slides from the old item to the new one. The footer below the card gets `site-footer`; it fades out with the old card and in with the new one, without moving (Oct 28, 2026). The sidebar's own name is turned off on mobile: an element with a view-transition-name is a stacking context, which would put the fixed island below the card.
 
 ```astro
 ---
 // src/layouts/BaseLayout.astro (excerpt)
 import { ClientRouter } from 'astro:transitions';
-import { cardHandoff } from '@/lib/transitions';
 ---
 <html lang={Astro.currentLocale}>
   <head>
@@ -174,37 +173,19 @@ import { cardHandoff } from '@/lib/transitions';
       <!-- name, intro, navigation, language switch, theme toggle -->
     </aside>
 
-    <main class="card" transition:name="content-card" transition:animate={cardHandoff}>
+    <!-- view-transition-name: card-a in CSS; the next page's card gets card-b, and so on -->
+    <main class="card">
       <slot />
     </main>
   </body>
 </html>
-```
 
-```ts
-// src/lib/transitions.ts
-import type { TransitionDirectionalAnimations } from 'astro';
+<script>
+  import { prepareCardHandoff } from '@/lib/transitions';
 
-const easeIn = 'cubic-bezier(0.11, 0, 0.5, 0)';
-const easeOut = 'cubic-bezier(0.33, 1, 0.68, 1)';
-const fadeOut = 'cubic-bezier(0.5, 1, 0.89, 1)';
-
-// Forwards the cards move down (`card-out`, `card-in`); backwards they move up (`-up`)
-const handoff = (suffix: '' | '-up') => ({
-  old: [
-    { name: `card-out${suffix}`, duration: '300ms', easing: easeIn, fillMode: 'both' },
-    { name: 'card-out-fade', duration: '300ms', easing: fadeOut, fillMode: 'both' },
-  ],
-  new: [
-    { name: `card-in${suffix}`, duration: '400ms', delay: '200ms', easing: easeOut, fillMode: 'both' },
-    { name: 'card-in-fade', duration: '400ms', delay: '200ms', easing: 'linear', fillMode: 'both' },
-  ],
-});
-
-export const cardHandoff: TransitionDirectionalAnimations = {
-  forwards: handoff(''),
-  backwards: handoff('-up'),
-};
+  // On astro:before-swap: the other name for the new card, and both cards' tops for the CSS.
+  prepareCardHandoff();
+</script>
 ```
 
 ```css
@@ -228,12 +209,29 @@ export const cardHandoff: TransitionDirectionalAnimations = {
   55% { opacity: 1; }
 }
 
-/* No morph: each snapshot keeps its own size */
-::view-transition-group(content-card) { animation: none; }
+/* Old card: falls away in 300 ms (movement ease-in, fade ease-out). The names alternate, so
+   the old and new card are never paired: no morph, each moves from its own place. */
+::view-transition-old(card-a),
+::view-transition-old(card-b) {
+  animation:
+    card-out 300ms cubic-bezier(0.11, 0, 0.5, 0) both,
+    card-out-fade 300ms cubic-bezier(0.5, 1, 0.89, 1) both;
+  /* A long card turns around the middle of the screen, not the middle of the card */
+  transform-origin: 50% calc(50vh - var(--old-card-top, 0px));
+}
 
-/* A long card turns around the middle of the screen, not the middle of the page */
-::view-transition-old(content-card),
-::view-transition-new(content-card) { transform-origin: 50% 50vh; }
+/* New card: drops in from 200 to 600 ms (ease-out), content visible from the start */
+::view-transition-new(card-a),
+::view-transition-new(card-b) {
+  animation:
+    card-in 400ms cubic-bezier(0.33, 1, 0.68, 1) 200ms both,
+    card-in-fade 400ms linear 200ms both;
+  transform-origin: 50% calc(50vh - var(--new-card-top, 0px));
+}
+
+/* Back: mirrored (and the same for card-b) */
+html[data-astro-transition='back']::view-transition-old(card-a) { animation-name: card-out-up, card-out-fade; }
+html[data-astro-transition='back']::view-transition-new(card-a) { animation-name: card-in-up, card-in-fade; }
 
 /* Don't animate the rest of the page (background only); the group too, since phase 1 */
 ::view-transition-group(root),

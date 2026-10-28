@@ -6,6 +6,8 @@
   border-radius: var(--radius-card);
   /* 92% opaque, so the starfield shows faintly through it. */
   background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  /* The first of its two alternating names (src/lib/transitions.ts). */
+  view-transition-name: card-a;
 }
 
 /* Focus lands here after a navigation; the card isn't a control, so it gets no outline. */

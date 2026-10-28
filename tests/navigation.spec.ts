@@ -103,7 +103,7 @@ test('client-side navigation through every page in both languages', async ({ pag
   }
 });
 
-test('page transition: only the card animates, within 350 ms', async ({ page }) => {
+test('page transition: the card is handed off, settled within 600 ms', async ({ page }) => {
   await page.goto('/');
   test.skip(
     !(await page.evaluate(() => 'startViewTransition' in document)),
@@ -114,14 +114,23 @@ test('page transition: only the card animates, within 350 ms', async ({ page }) 
   await clickLink(page, '/projects/');
   const running = await animations();
 
+  // The old card (card-a, the name on a fresh page load) falls out and the new one (card-b)
+  // drops in; nothing else moves on its own.
+  const names = running.map((animation) => `${animation.pseudo} ${animation.name}`);
+  expect(names).toEqual(
+    expect.arrayContaining([
+      '::view-transition-old(card-a) card-out',
+      '::view-transition-new(card-b) card-in',
+    ]),
+  );
   const pseudos = running.map((animation) => animation.pseudo);
-  expect(pseudos).toEqual(expect.arrayContaining(['::view-transition-group(content-card)']));
   expect(pseudos.filter((pseudo) => pseudo.includes('(sidebar)'))).toEqual([]);
   expect(pseudos.filter((pseudo) => pseudo.includes('(root)'))).toEqual([]);
-  expect(Math.max(...running.map((animation) => animation.end))).toBeLessThanOrEqual(350);
+  const settled = Math.max(...running.map((animation) => animation.end));
+  expect(Math.round(settled)).toBeLessThanOrEqual(600);
 });
 
-test('Back plays the transition and restores the scroll position', async ({ page }) => {
+test('Back plays the mirrored transition and restores the scroll position', async ({ page }) => {
   await page.goto('/projects/');
   await markDocument(page);
   // Halfway down; how far the page scrolls depends on the screen size.
@@ -132,12 +141,20 @@ test('Back plays the transition and restores the scroll position', async ({ page
   expect(scrolled).toBeGreaterThan(50);
 
   // Through the navigation, which is always on screen: clicking a link elsewhere would make
-  // Playwright scroll it into view first and change the position to restore.
+  // Playwright scroll it into view first and change the position to restore. Recording the
+  // animations also waits until the transition is over, so Back doesn't cut it short.
+  let animations = await recordViewTransition(page);
   await clickLink(page, '/about/');
+  await animations();
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
 
+  animations = await recordViewTransition(page);
   await page.goBack();
   await page.waitForURL('**/projects/');
+  const hasViewTransitions = await page.evaluate(() => 'startViewTransition' in document);
+  const names = (await animations()).map((animation) => animation.name);
+  if (hasViewTransitions)
+    expect(names).toEqual(expect.arrayContaining(['card-out-up', 'card-in-up']));
   expect(await isSameDocument(page)).toBe(true);
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(scrolled);
 });

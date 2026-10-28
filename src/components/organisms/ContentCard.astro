@@ -1,20 +1,14 @@
 ---
-// The card is split into a frame (<main>) and a body, each with its own view transition: the
-// frame morphs to the new height, while the body (captured separately, so the text never
-// stretches) crossfades. Timing is in src/lib/transitions.ts and src/styles/transitions.css.
-import { contentFade } from '@/lib/transitions';
+// The card is handed off on every navigation: the old one falls away and the new one drops in
+// (src/styles/transitions.css; its view transition name alternates, see src/lib/transitions.ts).
+// Its content is part of its snapshot, so the text moves with the card and is readable from the
+// start.
 import styles from './ContentCard.module.css';
 ---
 
 {/* tabindex="-1": the skip link and client-side navigations move focus here. */}
-<main
-  id="content"
-  class={styles.card}
-  tabindex="-1"
-  transition:name="content-card"
-  transition:animate="initial"
->
-  <div class={styles.body} transition:name="content-body" transition:animate={contentFade}>
+<main id="content" class={styles.card} tabindex="-1">
+  <div class={styles.body}>
     <slot />
   </div>
 </main>
