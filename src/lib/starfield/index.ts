@@ -21,13 +21,16 @@ import {
 const MAX_DPR = 1.5;
 /** After a long pause (a background tab, a debugger) the field moves on by at most this much. */
 const MAX_STEP = 0.1;
-/** On a page load the stars appear one by one over this many seconds (+ FADE_IN). */
+/** On a page load the other stars appear one by one over this many seconds (+ FADE_IN). */
 const INTRO = 7;
+/** This share of the stars is there from the start, so the first second isn't empty. */
+const INTRO_START = 0.15;
 /** Stars added by a larger window appear over this many seconds (+ FADE_IN). */
 const GROW = 1;
 /**
  * The fixed stars only change while some fade in or out, which is slow, so their canvas is
- * redrawn on every this-many-th frame (15 times a second at 60 fps).
+ * redrawn on every this-many-th frame (15 times a second at 60 fps; with eased fades and fine
+ * opacity steps that changes a star by at most about 2.5% at a time, too little to see).
  */
 const FIXED_EVERY = 4;
 
@@ -85,8 +88,11 @@ export function startStarfield(container: HTMLElement) {
     if (!field || !fixedStars) {
       field = createField(width, height);
       fixedStars = createFixedStars(width, height);
-      appear(field, 0, field.count, INTRO);
-      appear(fixedStars, 0, fixedStars.count, INTRO);
+      for (const stars of [field, fixedStars]) {
+        const head = Math.round(stars.count * INTRO_START);
+        appear(stars, 0, head, 0);
+        appear(stars, head, stars.count, INTRO);
+      }
     } else {
       // A larger window gets more stars, which fade in; a smaller one draws fewer.
       field.reach = reachOf(width, height);

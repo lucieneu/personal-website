@@ -204,10 +204,13 @@ export function createFixedStars(width: number, height: number, random = Math.ra
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
+/** Eases a fade in and out, so a star starts to appear (or disappear) gradually, not at once. */
+const smooth = (t: number) => t * t * (3 - 2 * t);
+
 /** How far star `i` is faded in (after `appear`) and not yet out (after `vanish`), 0–1. */
 const shown = (stars: Lifetimes, i: number, seconds: number) =>
-  clamp01((seconds - stars.appear[i]!) / FADE_IN) *
-  clamp01((stars.vanish[i]! + FADE_OUT - seconds) / FADE_OUT);
+  smooth(clamp01((seconds - stars.appear[i]!) / FADE_IN)) *
+  smooth(clamp01((stars.vanish[i]! + FADE_OUT - seconds) / FADE_OUT));
 
 /**
  * Star `i`'s opacity at `seconds`: its brightness, a ±20% twinkle, the fades at both ends of the

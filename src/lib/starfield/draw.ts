@@ -17,9 +17,10 @@ import {
 const ROUND_FROM = 2;
 /**
  * Opacity is rounded to this many steps, so all stars of one step are filled in one call
- * instead of one call per star (the main cost on slow devices). The steps are too small to see.
+ * instead of one call per star (the main cost on slow devices). The steps (1.5%) are too small
+ * to see while a star fades.
  */
-const LEVELS = 20;
+const LEVELS = 64;
 
 // Per star, filled before drawing: its step (0 = not drawn) and where it's drawn. Allocated once.
 const size = Math.max(STAR_MAX, FIXED_MAX);
@@ -27,6 +28,10 @@ const level = new Uint8Array(size);
 const left = new Float32Array(size);
 const top = new Float32Array(size);
 const tall = new Float32Array(size);
+// The stars sorted by step (see `fill`).
+const order = new Uint16Array(size);
+const first = new Uint16Array(LEVELS + 2);
+const next = new Uint16Array(LEVELS + 2);
 
 /** Puts star `i` at (`x`, `y`), `h` px tall, at `opacity`; returns its step. */
 function plan(i: number, x: number, y: number, h: number, opacity: number) {
@@ -40,11 +45,20 @@ function plan(i: number, x: number, y: number, h: number, opacity: number) {
 
 /** Fills the first `count` planned stars, one call per opacity step up to `highest`. */
 function fill(ctx: CanvasRenderingContext2D, count: number, highest: number) {
+  // Sort the stars by step (a counting sort): first[step] is where that step's stars start in
+  // `order`.
+  first.fill(0);
+  for (let i = 0; i < count; i++) first[level[i]! + 1]!++;
+  for (let step = 1; step <= LEVELS + 1; step++) first[step]! += first[step - 1]!;
+  next.set(first);
+  for (let i = 0; i < count; i++) order[next[level[i]!]!++] = i;
+
   for (let step = 1; step <= highest; step++) {
+    if (first[step] === first[step + 1]) continue;
     ctx.globalAlpha = step / LEVELS;
     ctx.beginPath();
-    for (let i = 0; i < count; i++) {
-      if (level[i] !== step) continue;
+    for (let k = first[step]!; k < first[step + 1]!; k++) {
+      const i = order[k]!;
       const h = tall[i]!;
       if (h < ROUND_FROM) ctx.rect(left[i]!, top[i]!, h * CARD_ASPECT, h);
       else ctx.roundRect(left[i]!, top[i]!, h * CARD_ASPECT, h, h * 0.15);
