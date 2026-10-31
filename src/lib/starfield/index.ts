@@ -168,11 +168,10 @@ export function startStarfield(container: HTMLElement) {
   readColor();
   resize();
   new ResizeObserver(resize).observe(moving);
-  // The theme toggle sets data-theme on <html>; without it, the OS preference applies.
+  // The theme toggle sets data-theme on <html>.
   new MutationObserver(readColor).observe(document.documentElement, {
     attributeFilter: ['data-theme'],
   });
-  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readColor);
 
   container.dataset.state = reduced ? 'still' : 'running';
   if (reduced) return;

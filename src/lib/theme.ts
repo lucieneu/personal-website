@@ -1,17 +1,15 @@
 // The theme switch. Every color token is a light-dark() value, so switching the theme only sets
 // `data-theme` on <html> (which switches `color-scheme`). ThemeScript.astro applies the stored
-// choice before the first paint; without one, the site follows the OS preference.
+// choice before the first paint; without one, the site is dark (not the OS preference: browsers
+// report "light" also when nobody chose it).
 
 export type Theme = 'light' | 'dark';
 
 export const THEME_STORAGE_KEY = 'theme';
 
-/** The theme on screen: the stored choice, or else the OS preference. */
-export function currentTheme(): Theme {
-  const { theme } = document.documentElement.dataset;
-  if (theme === 'light' || theme === 'dark') return theme;
-  return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
+/** The theme on screen: light only when chosen, dark otherwise. */
+export const currentTheme = (): Theme =>
+  document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
 
 function setTheme(theme: Theme) {
   document.documentElement.dataset.theme = theme;
@@ -69,7 +67,7 @@ function syncToggles() {
 
 /**
  * Wires up the theme toggle (ThemeToggle.astro): a click switches the theme, and aria-pressed
- * follows the theme, also when the OS preference changes. Call it once. The sidebar is replaced
+ * follows the theme. Call it once. The sidebar is replaced
  * on every navigation, so it attaches to the new button after each one.
  */
 export function initThemeToggle() {
@@ -78,5 +76,4 @@ export function initThemeToggle() {
     document.querySelector<HTMLButtonElement>(TOGGLE)?.addEventListener('click', toggleTheme);
   });
   document.addEventListener('theme-change', syncToggles);
-  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncToggles);
 }

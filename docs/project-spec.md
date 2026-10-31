@@ -129,7 +129,7 @@ The sidebar stays still during a page change; the card and the starfield move.
 - **Units (since phase 1):** every size in this document is the value at the browser's default font size (16 px). In `tokens.css` sizes and spacing are in rem (`--space-4: 1rem`, `--size-icon: 1.25rem`) and the breakpoint is in em (`64em`), so the whole layout grows with a visitor's font-size setting, not only the text; with large text the one-column layout starts at a wider window. Only hairlines stay in px: 1 px borders, 2 px focus rings and underlines, and shadow offsets and blurs. A Playwright test checks the pages at a 150% default font size.
 - **Typography:** one sans variable font for everything and one mono font for code. Body 17 px with a 1.6 line height; headings 22, 28 and 40 px with a 1.2 line height.
 
-**Dark mode:** by default the site follows `prefers-color-scheme`. The theme toggle overrides that and stores the choice in `localStorage`. An inline script in `<head>` sets `data-theme` before the first paint, so there is no flash of the wrong theme. In `tokens.css` every color is a `light-dark(<light>, <dark>)` value, so `data-theme` only has to switch `color-scheme` (done since phase 0).
+**Dark mode:** the site is dark unless the light theme is chosen with the toggle, which stores the choice in `localStorage` (changed Oct 31, 2026, at the owner's request; until then it followed `prefers-color-scheme`. The OS preference can't count as an explicit choice: browsers report `light` also when nobody chose a theme. A better light theme is issue #16). An inline script in `<head>` sets `data-theme` before the first paint, so there is no flash of the wrong theme. In `tokens.css` every color is a `light-dark(<light>, <dark>)` value, so `data-theme` only has to switch `color-scheme` (done since phase 0).
 
 ## Page transitions
 
@@ -276,8 +276,8 @@ When the theme toggle is clicked, the new theme expands as a circle from the but
 ```ts
 function toggleTheme(e: MouseEvent) {
   const root = document.documentElement;
-  // Without a stored choice, data-theme is unset and the OS preference is the current theme.
-  const current = root.dataset.theme ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  // Without a stored choice, data-theme is unset and the site is dark.
+  const current = root.dataset.theme === 'light' ? 'light' : 'dark';
   const next = current === 'dark' ? 'light' : 'dark';
   const apply = () => { root.dataset.theme = next; localStorage.setItem('theme', next); };
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;

@@ -1,21 +1,29 @@
-// The theme switch: follows the OS until clicked, remembers the choice, and never flashes the
-// wrong theme on load or navigation.
+// The theme switch: dark until light is chosen (whatever the OS prefers), remembers the choice,
+// and never flashes the wrong theme on load or navigation.
 import { clickLink, expect, recordAnimations, test } from './fixtures';
 
 const theme = (page: import('@playwright/test').Page) =>
   page.evaluate(() => document.documentElement.dataset.theme ?? null);
 
-test.describe('in a dark OS', () => {
-  test.use({ colorScheme: 'dark' });
+/** The page's resolved color scheme: 'dark' or 'light'. */
+const scheme = (page: import('@playwright/test').Page) =>
+  page.evaluate(() => getComputedStyle(document.documentElement).colorScheme);
 
-  test('the first click switches to light, and the choice is remembered', async ({ page }) => {
+test.describe('in a light OS', () => {
+  test.use({ colorScheme: 'light' });
+
+  test('the site is dark; the first click switches to light, and it is remembered', async ({
+    page,
+  }) => {
     await page.goto('/');
     const toggle = page.locator('[data-theme-toggle]');
     expect(await theme(page)).toBeNull();
+    expect(await scheme(page)).toBe('dark');
     await expect(toggle).toHaveAttribute('aria-pressed', 'true');
 
     await toggle.click();
     await expect.poll(() => theme(page)).toBe('light');
+    expect(await scheme(page)).toBe('light');
     await expect(toggle).toHaveAttribute('aria-pressed', 'false');
     expect(await page.evaluate(() => localStorage.getItem('theme'))).toBe('light');
 
