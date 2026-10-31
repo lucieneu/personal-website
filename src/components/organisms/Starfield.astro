@@ -29,8 +29,9 @@ import styles from './Starfield.module.css';
           const container = document.querySelector<HTMLElement>('[data-starfield]');
           if (container) startStarfield(container);
         })
-        // Not loaded (offline, or the visitor left the page meanwhile): the plain background stays.
-        .catch(() => {});
+        .catch(() => {
+          // Not loaded (offline, or the visitor left the page meanwhile): the plain background stays.
+        });
     if ('requestIdleCallback' in window) requestIdleCallback(start);
     else setTimeout(start, 1000);
   }
