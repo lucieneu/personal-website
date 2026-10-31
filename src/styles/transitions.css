@@ -15,12 +15,6 @@
   mix-blend-mode: normal;
 }
 
-/* During the theme switch the whole page is revealed at once, so no part of it gets its own
-   transition. The class is set on <html> by toggleTheme(). */
-.theme-transition * {
-  view-transition-name: none !important;
-}
-
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
   ::view-transition-old(*),

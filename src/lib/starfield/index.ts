@@ -24,6 +24,7 @@ import {
   itemsAt,
   startHandoff,
 } from '@/lib/starfield/handoff';
+import { goingBack } from '@/lib/transitions';
 
 /** Device pixels per CSS px, at most; more costs fill rate without looking sharper on stars. */
 const MAX_DPR = 1.5;
@@ -180,15 +181,11 @@ export function startStarfield(container: HTMLElement) {
 
   // Sections 1 and 4 start when the new page is swapped in, right before the cards move. A
   // navigation during a hand-off starts its own; the earlier ones keep running.
-  let back = false;
-  document.addEventListener('astro:before-preparation', (event) => {
-    back = event.direction === 'back';
-  });
   document.addEventListener('astro:after-swap', () => {
     if (!field || !overlayCtx) return;
     if (handoffs.length === MAX_HANDOFFS) finishHandoff(field, handoffs.shift()!, seconds);
     const card = document.getElementById('content')?.getBoundingClientRect();
-    const handoff = card && startHandoff(field, seconds, width, height, card, back);
+    const handoff = card && startHandoff(field, seconds, width, height, card, goingBack());
     if (handoff) handoffs.push(handoff);
   });
 

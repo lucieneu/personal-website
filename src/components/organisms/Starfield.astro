@@ -1,10 +1,9 @@
 ---
 // The card starfield behind the page (src/lib/starfield): a canvas of fixed stars, drawn once,
 // and above it a canvas with the moving field. The container persists across navigations, so the
-// field keeps moving while the card changes. It needs no view transition name of its own: it's
-// part of the page's snapshot, whose new state is live during a transition. Until the script has
-// run, and without JavaScript, the page shows its plain background. The third canvas, above the
-// card, only draws the two stars of the card hand-off while the page changes.
+// field keeps moving while the card changes. Until the script has run, and without JavaScript,
+// the page shows its plain background. The third canvas, above the card, only draws the stars of
+// the card hand-off (a flaring star and a returning outline per navigation) while the page changes.
 import styles from './Starfield.module.css';
 ---
 

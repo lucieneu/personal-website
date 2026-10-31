@@ -43,18 +43,13 @@ export function toggleTheme(event: MouseEvent) {
   }
   const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
 
-  // Turns off the named elements (card, sidebar) for this transition, so the whole page is
-  // revealed at once instead of each part crossfading on its own. See transitions.css.
-  const root = document.documentElement;
-  root.classList.add('theme-transition');
   const transition = document.startViewTransition(() => setTheme(next));
   transition.ready.then(() => {
-    root.animate(
+    document.documentElement.animate(
       { clipPath: [`circle(0 at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
       { duration: 450, easing: 'ease-out', pseudoElement: '::view-transition-new(root)' },
     );
   });
-  transition.finished.finally(() => root.classList.remove('theme-transition'));
 }
 
 const TOGGLE = '[data-theme-toggle]';

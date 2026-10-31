@@ -20,6 +20,11 @@ const IN_FADE = [{ opacity: 0 }, { opacity: 1, offset: 0.55 }, { opacity: 1 }];
 /** The nav island's current-page marker slides to the new item. */
 const MARKER = { duration: 300, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' };
 
+let back = false;
+
+/** Whether the navigation in progress goes Back (set by `cardHandoff`; the starfield mirrors too). */
+export const goingBack = () => back;
+
 /** Each card turns around the middle of the screen, not its own middle (a long card). */
 const turnOrigin = (box: DOMRect) => `50% ${Math.round(innerHeight / 2 - box.top)}px`;
 
@@ -77,7 +82,6 @@ function ghostOf(card: HTMLElement) {
  * script on every page.
  */
 export function cardHandoff() {
-  let back = false;
   let ghost: { ghost: HTMLElement; origin: string } | undefined;
   let styles: Element[] = [];
   let marker: DOMRect | undefined;
@@ -161,8 +165,8 @@ export function cardHandoff() {
 /**
  * A link to the page you're on (the current item in the navigation, the name in the header on
  * the home page) plays no transition: ClientRouter would load the same page again and hand the
- * card off to itself. Such a click only scrolls back to the top. Links with a #hash and clicks
- * that open a new tab or window are left alone. Runs before ClientRouter's own click handler
+ * card off to itself. Such a click only scrolls back to the top. Links with a #hash, downloads,
+ * links that reload the page and clicks that open a new tab or window are left alone. Runs before ClientRouter's own click handler
  * (capture phase), which skips clicks that are already handled. Call it once, from a script on
  * every page.
  */
@@ -170,9 +174,11 @@ export function stayOnSamePage() {
   document.addEventListener(
     'click',
     (event) => {
-      const link = event.target instanceof Element ? event.target.closest('a') : null;
-      if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return;
+      const link = event.target instanceof Element ? event.target.closest('a[href]') : null;
+      if (!(link instanceof HTMLAnchorElement)) return;
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return;
       if (event.altKey || (link.target && link.target !== '_self')) return;
+      if (link.hasAttribute('download') || link.hasAttribute('data-astro-reload')) return;
       const to = new URL(link.href);
       const here = location;
       if (to.origin !== here.origin || to.pathname !== here.pathname) return;

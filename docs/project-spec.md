@@ -265,6 +265,14 @@ Phones get the starfield too (Canvas 2D is light enough, unlike the WebGL scene 
 - [ ] When the theme changes, the starfield follows within one frame.
 - [ ] The starfield is decorative (`aria-hidden="true"`) and not reachable by keyboard.
 
+**Known limitations** (from the Oct 31, 2026 code review; not fixed on purpose, revisit when they start to matter)
+
+- The old card's ghost is a deep `cloneNode` of the card: duplicate ids, and an `astro-island` in a card could hydrate a second time. Revisit when a card gets an interactive island (strip ids and islands from the clone).
+- Resize: shrinking and then growing the window can re-reveal a star that is hidden for a running hand-off (its index is above the shrunken count), so it shows before the outline arrives.
+- `prefers-reduced-motion` is read once when the starfield starts; turning it on mid-visit stops the card hand-off but not the drifting stars.
+- The ghost's copied styles are dropped when its fade ends, also when the fade is cancelled; a cancelled ghost can drop styles a newer ghost still needs (the card briefly unstyled).
+- `renewField` and `renewFixed` scan every star on every frame (about 5000 checks); cheap at the measured 1–2 ms a frame, but they could run less often.
+
 ## Other interactive parts
 
 Three extra parts, each built with the lightest possible technique: the theme switch in vanilla JS, the command palette as a React island, and the live-data widget as an optional extension.
@@ -285,17 +293,15 @@ function toggleTheme(e: MouseEvent) {
 
   const { clientX: x, clientY: y } = e;
   const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
-  root.classList.add('theme-transition');
   const t = document.startViewTransition(apply);
   t.ready.then(() => root.animate(
     { clipPath: [`circle(0 at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
     { duration: 450, easing: 'ease-out', pseudoElement: '::view-transition-new(root)' },
   ));
-  t.finished.finally(() => root.classList.remove('theme-transition'));
 }
 ```
 
-- During the switch, `.theme-transition * { view-transition-name: none !important; }` temporarily turns off all named elements. That way the whole page is revealed at once, instead of the card and sidebar crossfading separately.
+- Nothing on the page has a `view-transition-name` (the card hand-off runs on the page itself), so the whole page is revealed at once.
 - The root rule in `transitions.css` also gets `mix-blend-mode: normal`, so the circle stays sharp.
 - The script attaches the click listener in `astro:page-load`, so it works after every navigation.
 - Without the View Transitions API, or with reduced motion, the theme switches instantly.

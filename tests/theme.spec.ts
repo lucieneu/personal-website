@@ -69,7 +69,6 @@ test('the theme switch reveals the new theme as a circle', async ({ page }) => {
   await expect
     .poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor))
     .not.toBe(before);
-  await expect(page.locator('html')).not.toHaveClass(/theme-transition/);
 });
 
 test('the toggle works from the keyboard', async ({ page, isMobile }) => {
