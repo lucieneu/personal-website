@@ -57,7 +57,7 @@ test('the stars follow the theme', async ({ page }) => {
  * Records, every frame for `ms` milliseconds from now, whether the hand-off canvas (the two
  * stars of the card hand-off, above the card) has anything on it. Await the result.
  */
-const recordHandoff = (page: import('@playwright/test').Page, ms = 3200) =>
+const recordHandoff = (page: import('@playwright/test').Page, ms = 4200) =>
   page.evaluate((duration) => {
     const w = window as unknown as { __handoff: Promise<boolean[]> };
     w.__handoff = new Promise((resolve) => {
@@ -85,7 +85,7 @@ test('on a navigation one star leaves and one returns, above the card, and then 
   await recordHandoff(page);
   await clickLink(page, '/projects/');
   const frames = await handoffFrames(page);
-  // Drawn during the hand-off (about two seconds), and cleared again at the end.
+  // Drawn during the hand-off (about three seconds), and cleared again at the end.
   expect(frames.filter(Boolean).length).toBeGreaterThan(10);
   expect(frames.at(-1)).toBe(false);
 });
