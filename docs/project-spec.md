@@ -457,7 +457,8 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 ├── wrangler.jsonc                # Cloudflare Workers: static assets, previews
 ├── docs/
 │   ├── project-spec.md           # this document
-│   └── cloudflare-setup.md       # one-time Cloudflare dashboard setup (all done), for reference
+│   ├── cloudflare-setup.md       # one-time Cloudflare dashboard setup (all done), for reference
+│   └── sonarcloud-setup.md       # one-time SonarCloud dashboard setup, for reference
 ├── public/
 │   ├── _headers                  # cache headers for /_astro/*
 │   ├── favicon.svg
