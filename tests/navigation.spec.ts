@@ -152,6 +152,18 @@ test('a link to the page you are on plays no transition, it only scrolls back up
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
 });
 
+test('a link can be clicked while a transition is still running', async ({ page }) => {
+  await page.goto('/projects/');
+  await markDocument(page);
+  // The navigation is always on screen; the second link is where it was before the first click.
+  const next = await mainNav(page).locator('a[href="/"]').boundingBox();
+  await mainNav(page).locator('a[href="/about/"]').click();
+  await page.waitForTimeout(100);
+  await page.mouse.click(next!.x + next!.width / 2, next!.y + next!.height / 2);
+  await page.waitForURL((url) => url.pathname === '/');
+  expect(await isSameDocument(page)).toBe(true);
+});
+
 test('Back plays the mirrored transition and restores the scroll position', async ({ page }) => {
   await page.goto('/projects/');
   await markDocument(page);

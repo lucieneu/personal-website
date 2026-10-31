@@ -58,6 +58,27 @@ export function stayOnSamePage() {
 }
 
 /**
+ * Lets you click on while a page transition runs. Until the cards have settled (about 0.6 s) the
+ * browser sends every click to <html>, so a click on a link would do nothing. Such a click is
+ * passed on to the link under the pointer, which starts the next navigation right away (the
+ * running transition is skipped). Clicks with a modifier key are left alone. Call it once, from a
+ * script on every page.
+ */
+export function clickThroughTransitions() {
+  document.addEventListener('click', (event) => {
+    if (event.target !== document.documentElement) return;
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+      return;
+    const link = [...document.querySelectorAll<HTMLAnchorElement>('a[href]')].find((a) => {
+      const box = a.getBoundingClientRect();
+      const { clientX: x, clientY: y } = event;
+      return x >= box.left && x <= box.right && y >= box.top && y <= box.bottom;
+    });
+    link?.click();
+  });
+}
+
+/**
  * After a client-side navigation, moves focus to the new content (`#content`), so keyboard and
  * screen reader users start at the top of the page they asked for, as on a full page load.
  * ClientRouter announces the new page title on its own. preventScroll keeps the restored scroll

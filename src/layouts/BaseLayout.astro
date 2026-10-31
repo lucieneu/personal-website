@@ -72,6 +72,7 @@ const { alternates, targets } = languagePaths(Astro.url.pathname, !notFound);
 
 <script>
   import {
+    clickThroughTransitions,
     focusContentAfterNavigation,
     prepareCardHandoff,
     stayOnSamePage,
@@ -80,4 +81,5 @@ const { alternates, targets } = languagePaths(Astro.url.pathname, !notFound);
   prepareCardHandoff();
   focusContentAfterNavigation();
   stayOnSamePage();
+  clickThroughTransitions();
 </script>
