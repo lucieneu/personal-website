@@ -1,14 +1,15 @@
 /*
  * View transitions: page navigation (ClientRouter) and the theme switch (src/lib/theme.ts).
- * On a navigation the content card is handed off: the old card falls away to the bottom and the
- * new one drops in from the top (timing in src/lib/transitions.ts); on Back it's mirrored. The
- * sidebar has transition:animate="none", and the rest of the page (the root) switches without a
- * crossfade. On mobile the nav island stays put too; only its current-page marker slides.
+ * On a navigation the content card is handed off: the old card sinks away and the new one
+ * settles in from above, both only a short way, so the hand-off stays calm and doesn't distract;
+ * on Back it's mirrored. The sidebar has transition:animate="none", and the rest of the page
+ * (the root) switches without a crossfade. On mobile the nav island stays put too; only its
+ * current-page marker slides.
  */
 
 @keyframes card-out {
   to {
-    transform: perspective(1000px) translateY(80vh) rotateX(-40deg) scale(0.8);
+    transform: perspective(1000px) translateY(6vh) rotateX(-6deg) scale(0.97);
   }
 }
 
@@ -20,20 +21,20 @@
 
 @keyframes card-in {
   from {
-    transform: perspective(1000px) translateY(-40vh) rotateX(40deg) scale(0.8);
+    transform: perspective(1000px) translateY(-4vh) rotateX(6deg) scale(0.97);
   }
 }
 
 /* Back: the same, mirrored top to bottom. */
 @keyframes card-out-up {
   to {
-    transform: perspective(1000px) translateY(-80vh) rotateX(40deg) scale(0.8);
+    transform: perspective(1000px) translateY(-6vh) rotateX(6deg) scale(0.97);
   }
 }
 
 @keyframes card-in-up {
   from {
-    transform: perspective(1000px) translateY(40vh) rotateX(-40deg) scale(0.8);
+    transform: perspective(1000px) translateY(4vh) rotateX(-6deg) scale(0.97);
   }
 }
 
@@ -48,21 +49,21 @@
 }
 
 /* The card's two names alternate (src/lib/transitions.ts), so the old and new card are never
-   paired: each moves from its own place, at its own size. The old card falls away in 300 ms
-   (movement ease-in, fade ease-out); the new card drops in from 200 to 600 ms (ease-out), its
+   paired: each moves from its own place, at its own size. The old card sinks away in 200 ms
+   (movement ease-in, fade ease-out); the new card settles in from 120 to 440 ms (ease-out), its
    content visible from the start. On Back (data-astro-transition="back") it's mirrored. */
 ::view-transition-old(card-a),
 ::view-transition-old(card-b) {
   animation:
-    card-out 300ms cubic-bezier(0.11, 0, 0.5, 0) both,
-    card-out-fade 300ms cubic-bezier(0.5, 1, 0.89, 1) both;
+    card-out 200ms cubic-bezier(0.11, 0, 0.5, 0) both,
+    card-out-fade 200ms cubic-bezier(0.5, 1, 0.89, 1) both;
 }
 
 ::view-transition-new(card-a),
 ::view-transition-new(card-b) {
   animation:
-    card-in 400ms cubic-bezier(0.33, 1, 0.68, 1) 200ms both,
-    card-in-fade 400ms linear 200ms both;
+    card-in 320ms cubic-bezier(0.33, 1, 0.68, 1) 120ms both,
+    card-in-fade 320ms linear 120ms both;
 }
 
 html[data-astro-transition='back']::view-transition-old(card-a),
@@ -93,11 +94,11 @@ html[data-astro-transition='back']::view-transition-new(card-b) {
 }
 
 ::view-transition-old(site-footer) {
-  animation: card-out-fade 300ms cubic-bezier(0.5, 1, 0.89, 1) both;
+  animation: card-out-fade 200ms cubic-bezier(0.5, 1, 0.89, 1) both;
 }
 
 ::view-transition-new(site-footer) {
-  animation: card-in-fade 400ms linear 200ms both;
+  animation: card-in-fade 320ms linear 120ms both;
 }
 
 /* The nav island's current-page marker slides to the new item. */
