@@ -28,7 +28,7 @@ const LEAVE_FAR = 2.2;
  * star at depth RETURN_DEPTH. In its last RETURN_FADE it fades to that star's brightness.
  */
 const RETURN_FROM = 0.3;
-const RETURN_TO = 1;
+const RETURN_TO = 1.8;
 const RETURN_HEIGHT = 24;
 const RETURN_DEPTH = 1.6;
 const RETURN_FADE = 0.4;
@@ -65,7 +65,8 @@ export interface Handoff {
 const halfDiagonal = (h: number) => Math.hypot(h, h * CARD_ASPECT) / 2;
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 const smooth = (t: number) => t * t * (3 - 2 * t);
-const inOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+/** A gentle in-out: at its fastest only about 1.6× its average speed. */
+const inOutSine = (t: number) => (1 - Math.cos(Math.PI * t)) / 2;
 /** From `a` to `b` on a log scale, so growing and shrinking look even. */
 const logLerp = (a: number, b: number, t: number) => a * (b / a) ** t;
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -169,7 +170,7 @@ export function itemsAt(
   // target is the hidden star's live position, so the item ends exactly where the star shows.
   if (t > RETURN_FROM) {
     const u = clamp01((t - RETURN_FROM) / (RETURN_TO - RETURN_FROM));
-    const e = inOutCubic(u);
+    const e = inOutSine(u);
     const target = screenOf(field, handoff.star, seconds, width, height, point);
     const tx = target.x;
     const ty = mirror(target.y);
