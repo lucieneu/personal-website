@@ -88,7 +88,15 @@ test('on a navigation one star leaves and one returns, above the card, and then 
   // Drawn during the hand-off (about three seconds), and cleared again at the end. Not a frame
   // count: without a GPU (WebKit in CI) the canvas only manages a few frames a second.
   expect(frames.some(Boolean)).toBe(true);
-  expect(frames.at(-1)).toBe(false);
+  // The field's clock moves at most 0.1 s per frame, so at a few frames a second the hand-off
+  // takes much longer than its three seconds.
+  const drawn = () =>
+    page.evaluate(() => {
+      const canvas = document.querySelector<HTMLCanvasElement>('[data-handoff]')!;
+      const { data } = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height);
+      return data.some((value, i) => i % 4 === 3 && value > 0);
+    });
+  await expect.poll(drawn, { timeout: 30_000 }).toBe(false);
 });
 
 test.describe('with prefers-reduced-motion: reduce', () => {
