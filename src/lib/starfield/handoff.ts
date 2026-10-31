@@ -32,8 +32,9 @@ const LEAVE_FAR = 2.2;
  * Section 4: a RETURN_HEIGHT px outline, from RETURN_FROM to RETURN_TO seconds, that ends as a
  * star at depth RETURN_DEPTH. In its last RETURN_FADE it fades to that star's brightness.
  */
-const RETURN_FROM = 0.3;
-const RETURN_TO = 3.3;
+/** It starts with the old card's exit, so the two read as one movement. */
+const RETURN_FROM = 0;
+const RETURN_TO = 3;
 const RETURN_HEIGHT = 24;
 const RETURN_DEPTH = 1.6;
 const RETURN_FADE = 0.4;
@@ -185,7 +186,7 @@ export function itemsAt(
 
   // Section 4: from below the bottom edge, low and rising late, into the star's place. The
   // target is the hidden star's live position, so the item ends exactly where the star shows.
-  if (t > RETURN_FROM) {
+  if (t >= RETURN_FROM) {
     const u = clamp01((t - RETURN_FROM) / (RETURN_TO - RETURN_FROM));
     const e = outExpo(u);
     const target = screenOf(field, handoff.star, seconds, width, height, point);
