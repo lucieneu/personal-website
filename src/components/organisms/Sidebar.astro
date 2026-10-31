@@ -19,7 +19,7 @@ const { lang, t } = pageLang(Astro.currentLocale);
 ---
 
 {/* Replaced on every navigation (so the current link is right), but never animated. */}
-<div class={styles.sidebar} transition:name="sidebar" transition:animate="none">
+<div class={styles.sidebar}>
   <header class={styles.masthead}>
     <Link class={styles.name} href={localePath(lang)} tone="text" underline={false}>
       {t('site.name')}

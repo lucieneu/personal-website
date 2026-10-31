@@ -4,6 +4,7 @@ import ContentCard from '@/components/organisms/ContentCard.astro';
 import Seo from '@/components/organisms/Seo.astro';
 import Sidebar from '@/components/organisms/Sidebar.astro';
 import SiteFooter from '@/components/organisms/SiteFooter.astro';
+import Starfield from '@/components/organisms/Starfield.astro';
 import ThemeScript from '@/components/organisms/ThemeScript.astro';
 import { isHomePath, languagePaths, pageLang } from '@/i18n/utils';
 import { pageTitle } from '@/lib/seo';
@@ -37,7 +38,7 @@ const { alternates, targets } = languagePaths(Astro.url.pathname, !notFound);
     <meta charset="utf-8" />
     {/* viewport-fit=cover: the nav island uses env(safe-area-inset-bottom) to clear the iPhone's home indicator. */}
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="color-scheme" content="light dark" />
+    <meta name="color-scheme" content="dark" />
     <ThemeScript />
     <Seo
       title={pageTitle(title, t('site.name'))}
@@ -55,6 +56,7 @@ const { alternates, targets } = languagePaths(Astro.url.pathname, !notFound);
     <ClientRouter />
   </head>
   <body>
+    <Starfield />
     <Link class={styles.skipLink} href="#content" underline={false}>
       {t('skip.link')}
     </Link>
@@ -69,7 +71,9 @@ const { alternates, targets } = languagePaths(Astro.url.pathname, !notFound);
 </html>
 
 <script>
-  import { focusContentAfterNavigation } from '@/lib/transitions';
+  import { cardHandoff, focusContentAfterNavigation, stayOnSamePage } from '@/lib/transitions';
 
+  cardHandoff();
   focusContentAfterNavigation();
+  stayOnSamePage();
 </script>

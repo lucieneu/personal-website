@@ -23,8 +23,6 @@
     box-shadow: var(--shadow-float);
     -webkit-backdrop-filter: blur(24px);
     backdrop-filter: blur(24px);
-    /* Its own snapshot, so it stays on top of the card during a page transition. */
-    view-transition-name: nav-island;
   }
 
   /* Without the blur, text behind would show through the labels, so it stays opaque. */

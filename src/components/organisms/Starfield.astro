@@ -1,0 +1,37 @@
+---
+// The card starfield behind the page (src/lib/starfield): a canvas of fixed stars, drawn once,
+// and above it a canvas with the moving field. The container persists across navigations, so the
+// field keeps moving while the card changes. Until the script has run, and without JavaScript,
+// the page shows its plain background. The third canvas, above the card, only draws the stars of
+// the card hand-off (a flaring star and a returning outline per navigation) while the page changes.
+import styles from './Starfield.module.css';
+---
+
+<div class={styles.starfield} data-starfield aria-hidden="true" transition:persist="starfield">
+  <canvas class={styles.canvas} data-fixed></canvas>
+  <canvas class={styles.canvas} data-moving></canvas>
+</div>
+<canvas
+  class={styles.handoff}
+  data-handoff
+  aria-hidden="true"
+  transition:persist="star-handoff"
+></canvas>
+
+<script>
+  // Off the critical path: load the starfield once the browser is idle. With Data Saver on,
+  // the page keeps its plain background.
+  const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+  if (!connection?.saveData) {
+    const start = () =>
+      import('@/lib/starfield')
+        .then(({ startStarfield }) => {
+          const container = document.querySelector<HTMLElement>('[data-starfield]');
+          if (container) startStarfield(container);
+        })
+        // Not loaded (offline, or the visitor left the page meanwhile): the plain background stays.
+        .catch(() => {});
+    if ('requestIdleCallback' in window) requestIdleCallback(start);
+    else setTimeout(start, 1000);
+  }
+</script>

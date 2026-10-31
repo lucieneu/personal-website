@@ -76,10 +76,12 @@ interface ViewTransitionAnimation {
 }
 
 /**
- * Starts recording the view transition animations that run in the next `ms` milliseconds.
- * Await the returned promise after triggering the transition.
+ * Starts recording the transition animations that run in the next `ms` milliseconds: those of
+ * a view transition (named by their CSS animation, with their pseudo-element) and the page's own
+ * script animations that have an id (the card hand-off, with an empty pseudo). Await the
+ * returned promise after triggering the transition.
  */
-export async function recordViewTransition(
+export async function recordAnimations(
   page: Page,
   ms = 800,
 ): Promise<() => Promise<ViewTransitionAnimation[]>> {
@@ -92,8 +94,11 @@ export async function recordViewTransition(
         for (const animation of document.getAnimations()) {
           const effect = animation.effect as KeyframeEffect | null;
           const pseudo = effect?.pseudoElement ?? '';
-          if (!pseudo.startsWith('::view-transition')) continue;
-          const name = (animation as CSSAnimation).animationName ?? 'script';
+          const isViewTransition = pseudo.startsWith('::view-transition');
+          if (!isViewTransition && !animation.id) continue;
+          const name = isViewTransition
+            ? ((animation as CSSAnimation).animationName ?? 'script')
+            : animation.id;
           const end = Number(effect?.getComputedTiming().endTime ?? 0);
           seen.set(`${pseudo}|${name}`, { pseudo, name, end });
         }

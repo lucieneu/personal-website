@@ -17,11 +17,13 @@ test.use({ allowedConsoleErrors: [/404/] });
 
 for (const colorScheme of ['light', 'dark'] as const) {
   test.describe(colorScheme, () => {
-    test.use({ colorScheme });
-
     for (const path of paths) {
       test(`${path} looks the same`, async ({ page }) => {
+        // The site is dark unless light is chosen with the toggle, which stores the choice.
+        await page.addInitScript((theme) => localStorage.setItem('theme', theme), colorScheme);
         await page.goto(path);
+        // The starfield is hidden: its stars are random and moving.
+        await page.addStyleTag({ content: '[data-starfield] { visibility: hidden; }' });
         // Images are masked: lazy ones may still be loading.
         await expect(page).toHaveScreenshot(`${nameOf(path)}-${colorScheme}.png`, {
           fullPage: true,
