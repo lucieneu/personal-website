@@ -23,6 +23,29 @@ const MARKER = { duration: 300, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' };
 /** Each card turns around the middle of the screen, not its own middle (a long card). */
 const turnOrigin = (box: DOMRect) => `50% ${Math.round(innerHeight / 2 - box.top)}px`;
 
+/**
+ * Keeps the current page's styles that `next` doesn't have, by adding copies to its <head>.
+ * ClientRouter swaps the <head> with the page, so the copy of the old card would lose the styles
+ * of its own components (a project's row, say) halfway through falling away. ClientRouter keeps
+ * an element that's in both heads as it is, so nothing is loaded again. Returns the copies, to
+ * remove them (`dropStyles`) once the old card is gone.
+ */
+function keepStyles(next: Document) {
+  const styles = 'link[rel="stylesheet"], style';
+  const wanted = [...next.head.querySelectorAll(styles)];
+  const kept = [...document.head.querySelectorAll(styles)]
+    .filter((style) => !wanted.some((other) => other.isEqualNode(style)))
+    .map((style) => style.cloneNode(true) as Element);
+  next.head.append(...kept);
+  return kept;
+}
+
+/** Removes the styles that `keepStyles` kept, unless the page has them for itself. */
+function dropStyles(kept: Element[]) {
+  for (const style of document.head.querySelectorAll('link[rel="stylesheet"], style'))
+    if (kept.some((copy) => copy.isEqualNode(style))) style.remove();
+}
+
 /** A copy of the old card, in its place on the screen, that can't be focused or clicked. */
 function ghostOf(card: HTMLElement) {
   const box = card.getBoundingClientRect();
@@ -56,13 +79,14 @@ function ghostOf(card: HTMLElement) {
 export function cardHandoff() {
   let back = false;
   let ghost: { ghost: HTMLElement; origin: string } | undefined;
+  let styles: Element[] = [];
   let marker: DOMRect | undefined;
 
   document.addEventListener('astro:before-preparation', (event) => {
     back = event.direction === 'back';
   });
 
-  document.addEventListener('astro:before-swap', () => {
+  document.addEventListener('astro:before-swap', (event) => {
     ghost = undefined;
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     // A card from a navigation that's still running: gone at once.
@@ -72,6 +96,7 @@ export function cardHandoff() {
     // A card that's still arriving falls away from its place.
     for (const animation of card.getAnimations()) animation.finish();
     ghost = ghostOf(card);
+    styles = keepStyles(event.newDocument);
     marker = document.querySelector('[data-nav-marker]')?.getBoundingClientRect();
   });
 
@@ -92,10 +117,13 @@ export function cardHandoff() {
       easing: OUT_FADE,
       id: 'card-out-fade',
     });
-    fade.finished.then(
-      () => old.remove(),
-      () => old.remove(),
-    );
+    const kept = styles;
+    const done = () => {
+      old.remove();
+      // Unless a newer navigation has taken them over for its own copy.
+      if (styles === kept) dropStyles(kept);
+    };
+    fade.finished.then(done, done);
 
     const card = document.getElementById('content');
     if (card) {

@@ -121,6 +121,44 @@ test('page transition: the card is handed off, settled within 650 ms', async ({ 
   expect(Math.round(settled)).toBeLessThanOrEqual(650);
 });
 
+test('the old card keeps its own styles while it falls away, and they go afterwards', async ({
+  page,
+}) => {
+  const styles = () =>
+    page.evaluate(() =>
+      [...document.head.querySelectorAll('link[rel="stylesheet"], style')]
+        .map((style) => style.outerHTML)
+        .sort(),
+    );
+  await page.goto('/about/');
+  const aboutStyles = await styles();
+
+  // The project rows' styles aren't on the About page; without them the copy of the old card
+  // would show its images at full width.
+  await page.goto('/projects/');
+  const imageWidth = () =>
+    page
+      .locator('#content img')
+      .first()
+      .evaluate((image) => image.clientWidth);
+  const before = await imageWidth();
+  await page.evaluate(() => {
+    document.addEventListener(
+      'astro:after-swap',
+      () => {
+        const image = document.querySelector<HTMLImageElement>('[data-card-ghost] img');
+        (window as unknown as { __ghostImage: number }).__ghostImage = image?.clientWidth ?? -1;
+      },
+      { once: true },
+    );
+  });
+  await clickLink(page, '/about/');
+  expect(
+    await page.evaluate(() => (window as unknown as { __ghostImage: number }).__ghostImage),
+  ).toBe(before);
+  await expect.poll(styles).toEqual(aboutStyles);
+});
+
 test('a link to the page you are on plays no transition, it only scrolls back up', async ({
   page,
 }) => {
