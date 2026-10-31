@@ -140,11 +140,11 @@ On every navigation the sidebar stays put and the content card is handed off: th
 | # | What | Where | Time | Movement | Easing |
 | --- | --- | --- | --- | --- | --- |
 | 1 | A star leaves the background | Starfield canvas | 0–200 ms | A star near the sidebar grows to 32 px tall, drifts 30 px sideways and leaves past the top edge | Ease-in (quadratic) |
-| 2 | The new card arrives | View transition, `::view-transition-new(card-a/b)` | 120–440 ms | From 4vh above, `scale(0.97)` and `rotateX(6deg)` to its place; fades in during the first 55%. The content is visible from the start (no empty card) | Ease-out (cubic) |
+| 2 | The new card arrives | View transition, `::view-transition-new(card-a/b)` | 120–620 ms | From 4vh above, `scale(0.97)` and `rotateX(6deg)` to its place; fades in during the first 55%. The content is visible from the start (no empty card) | Ease-out (cubic) |
 | 3 | The old card leaves | View transition, `::view-transition-old(card-a/b)` | 0–200 ms | Sinks 6vh down to `scale(0.97)` and `rotateX(-6deg)`; fades out quickly at first while the movement speeds up | Movement ease-in (quadratic), fade ease-out (quadratic) |
 | 4 | A star returns to the background | Starfield canvas | 330–1230 ms | A card outline flows in from below the bottom edge, travels low and rises late into the starfield next to the card, shrinking until it's a star | In-out (cubic) |
 
-Both cards use `perspective(1000px)`. The text of the new page is readable after about 250 ms and the cards are settled at 440 ms. (Calmed down on Oct 31, 2026, at the owner's request: the first version, falling 80vh and dropping in from 40vh with a 40° tilt over 600 ms, moved too much and distracted from the navigation.) Sections 1 and 4 are not part of the view transition: the page is usable at 440 ms, and the background settles on its own until 1230 ms. The canvas side of sections 1 and 4 is described under 3D background: card starfield.
+Both cards use `perspective(1000px)`. The text of the new page is readable after about 300 ms and the cards are settled at 620 ms (the arrival was lengthened from 320 to 500 ms on Oct 31, 2026, so it eases out more slowly). (Calmed down on Oct 31, 2026, at the owner's request: the first version, falling 80vh and dropping in from 40vh with a 40° tilt over 600 ms, moved too much and distracted from the navigation.) Sections 1 and 4 are not part of the view transition: the page is usable at 620 ms, and the background settles on its own until 1230 ms. The canvas side of sections 1 and 4 is described under 3D background: card starfield.
 
 **How it works**
 
@@ -220,12 +220,12 @@ import { ClientRouter } from 'astro:transitions';
   transform-origin: 50% calc(50vh - var(--old-card-top, 0px));
 }
 
-/* New card: settles in from 120 to 440 ms (ease-out), content visible from the start */
+/* New card: settles in from 120 to 620 ms (ease-out), content visible from the start */
 ::view-transition-new(card-a),
 ::view-transition-new(card-b) {
   animation:
-    card-in 320ms cubic-bezier(0.33, 1, 0.68, 1) 120ms both,
-    card-in-fade 320ms linear 120ms both;
+    card-in 500ms cubic-bezier(0.33, 1, 0.68, 1) 120ms both,
+    card-in-fade 500ms linear 120ms both;
   transform-origin: 50% calc(50vh - var(--new-card-top, 0px));
 }
 
@@ -259,7 +259,7 @@ html[data-astro-transition='back']::view-transition-new(card-a) { animation-name
 **Acceptance criteria**
 
 - [ ] When navigating between any two pages, the sidebar doesn't move.
-- [ ] The old card sinks away and the new card settles in from above, with the timings in the table; the cards are settled within 440 ms.
+- [ ] The old card sinks away and the new card settles in from above, with the timings in the table; the cards are settled within 620 ms.
 - [ ] Navigation never waits for the starfield: links and scrolling work while sections 1 and 4 are still running.
 - [ ] Sections 1 and 4 start and end fully outside the viewport: no corner of a star card pops in or out at an edge.
 - [ ] The returning star (section 4) becomes a regular star at the same spot, without a jump.

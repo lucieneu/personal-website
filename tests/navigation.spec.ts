@@ -103,7 +103,7 @@ test('client-side navigation through every page in both languages', async ({ pag
   }
 });
 
-test('page transition: the card is handed off, settled within 450 ms', async ({ page }) => {
+test('page transition: the card is handed off, settled within 650 ms', async ({ page }) => {
   await page.goto('/');
   test.skip(
     !(await page.evaluate(() => 'startViewTransition' in document)),
@@ -127,7 +127,7 @@ test('page transition: the card is handed off, settled within 450 ms', async ({ 
   expect(pseudos.filter((pseudo) => pseudo.includes('(sidebar)'))).toEqual([]);
   expect(pseudos.filter((pseudo) => pseudo.includes('(root)'))).toEqual([]);
   const settled = Math.max(...running.map((animation) => animation.end));
-  expect(Math.round(settled)).toBeLessThanOrEqual(450);
+  expect(Math.round(settled)).toBeLessThanOrEqual(650);
 });
 
 test('Back plays the mirrored transition and restores the scroll position', async ({ page }) => {

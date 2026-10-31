@@ -50,7 +50,7 @@
 
 /* The card's two names alternate (src/lib/transitions.ts), so the old and new card are never
    paired: each moves from its own place, at its own size. The old card sinks away in 200 ms
-   (movement ease-in, fade ease-out); the new card settles in from 120 to 440 ms (ease-out), its
+   (movement ease-in, fade ease-out); the new card settles in from 120 to 620 ms (ease-out), its
    content visible from the start. On Back (data-astro-transition="back") it's mirrored. */
 ::view-transition-old(card-a),
 ::view-transition-old(card-b) {
@@ -62,8 +62,8 @@
 ::view-transition-new(card-a),
 ::view-transition-new(card-b) {
   animation:
-    card-in 320ms cubic-bezier(0.33, 1, 0.68, 1) 120ms both,
-    card-in-fade 320ms linear 120ms both;
+    card-in 500ms cubic-bezier(0.33, 1, 0.68, 1) 120ms both,
+    card-in-fade 500ms linear 120ms both;
 }
 
 html[data-astro-transition='back']::view-transition-old(card-a),
@@ -98,7 +98,7 @@ html[data-astro-transition='back']::view-transition-new(card-b) {
 }
 
 ::view-transition-new(site-footer) {
-  animation: card-in-fade 320ms linear 120ms both;
+  animation: card-in-fade 500ms linear 120ms both;
 }
 
 /* The nav island's current-page marker slides to the new item. */
