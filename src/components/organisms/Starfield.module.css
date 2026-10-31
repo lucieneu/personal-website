@@ -26,6 +26,20 @@
   opacity: 1;
 }
 
+/* The card hand-off's stars (sections 1 and 4): above the card, below the nav island (z-index
+   10). Its own view transition name keeps it above the cards' snapshots while they move. */
+.handoff {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  color: var(--color-text);
+  view-transition-name: star-handoff;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .canvas {
     transition: none;

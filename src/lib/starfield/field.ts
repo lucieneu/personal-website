@@ -213,14 +213,67 @@ const shown = (stars: Lifetimes, i: number, seconds: number) =>
   smooth(clamp01((stars.vanish[i]! + FADE_OUT - seconds) / FADE_OUT));
 
 /**
- * Star `i`'s opacity at `seconds`: its brightness, a ±20% twinkle, the fades at both ends of the
- * depth range and its fade in and out.
+ * Star `i`'s opacity at `seconds` once it's fully shown: its brightness, a ±20% twinkle and the
+ * fades at both ends of the depth range.
  */
-export function opacityOf(field: Field, i: number, seconds: number) {
+export function brightnessOf(field: Field, i: number, seconds: number) {
   const z = field.z[i]!;
   const twinkle = 1 + 0.2 * Math.sin(field.phase[i]! + field.speed[i]! * seconds);
   const fade = clamp01((Z_FAR - z) / FADE_BACK) * clamp01((z - Z_NEAR) / FADE_FRONT);
-  return clamp01(field.brightness[i]! * twinkle) * fade * shown(field, i, seconds);
+  return clamp01(field.brightness[i]! * twinkle) * fade;
+}
+
+/** Star `i`'s opacity at `seconds`: its brightness, times its fade in and out. */
+export const opacityOf = (field: Field, i: number, seconds: number) =>
+  brightnessOf(field, i, seconds) * shown(field, i, seconds);
+
+/** Hides star `i` at once, until it's revealed again. */
+export function hide(stars: Lifetimes, i: number) {
+  stars.appear[i] = Infinity;
+  stars.vanish[i] = Infinity;
+}
+
+/** A point on the screen, in CSS px from its top left corner. */
+export interface Point {
+  x: number;
+  y: number;
+}
+
+/** Where star `i` is on a `width` × `height` screen at `seconds`, written to `out`. */
+export function screenOf(
+  field: Field,
+  i: number,
+  seconds: number,
+  width: number,
+  height: number,
+  out: Point,
+) {
+  const scale = scaleAt(field.z[i]!, height);
+  const x = field.x[i]! * scale;
+  const y = field.y[i]! * scale;
+  const roll = rollAt(seconds);
+  out.x = width / 2 + x * Math.cos(roll) - y * Math.sin(roll);
+  out.y = height / 2 + x * Math.sin(roll) + y * Math.cos(roll);
+  return out;
+}
+
+/** Puts star `i` at depth `z` where it shows at (`x`, `y`) on the screen at `seconds`. */
+export function placeOnScreen(
+  field: Field,
+  i: number,
+  point: Point,
+  z: number,
+  seconds: number,
+  width: number,
+  height: number,
+) {
+  const scale = scaleAt(z, height);
+  const dx = point.x - width / 2;
+  const dy = point.y - height / 2;
+  const roll = rollAt(seconds);
+  field.x[i] = (dx * Math.cos(roll) + dy * Math.sin(roll)) / scale;
+  field.y[i] = (-dx * Math.sin(roll) + dy * Math.cos(roll)) / scale;
+  field.z[i] = z;
 }
 
 /** Fixed star `i`'s opacity at `seconds`: its own, times its fade in and out. */

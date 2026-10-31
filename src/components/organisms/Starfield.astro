@@ -3,7 +3,8 @@
 // and above it a canvas with the moving field. The container persists across navigations, so the
 // field keeps moving while the card changes. It needs no view transition name of its own: it's
 // part of the page's snapshot, whose new state is live during a transition. Until the script has
-// run, and without JavaScript, the page shows its plain background.
+// run, and without JavaScript, the page shows its plain background. The third canvas, above the
+// card, only draws the two stars of the card hand-off while the page changes.
 import styles from './Starfield.module.css';
 ---
 
@@ -11,6 +12,12 @@ import styles from './Starfield.module.css';
   <canvas class={styles.canvas} data-fixed></canvas>
   <canvas class={styles.canvas} data-moving></canvas>
 </div>
+<canvas
+  class={styles.handoff}
+  data-handoff
+  aria-hidden="true"
+  transition:persist="star-handoff"
+></canvas>
 
 <script>
   // Off the critical path: load the starfield once the browser is idle. With Data Saver on,

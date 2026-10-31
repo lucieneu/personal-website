@@ -12,6 +12,7 @@ import {
   STAR_MAX,
   starHeight,
 } from '@/lib/starfield/field';
+import type { Item } from '@/lib/starfield/handoff';
 
 /** Below this height (px) a star is a plain rectangle; its rounded corners wouldn't show. */
 const ROUND_FROM = 2;
@@ -136,4 +137,40 @@ export function drawFixed(
     highest = Math.max(highest, step);
   }
   fill(ctx, stars.count, highest);
+}
+
+/** Above this height (px) a hand-off item is the outline of an empty card, not a filled star. */
+const OUTLINE_FROM = 4;
+
+/**
+ * Draws the first `count` hand-off `items` (sections 1 and 4) on the canvas above the card, or
+ * clears it when there are none.
+ */
+export function drawItems(
+  ctx: CanvasRenderingContext2D,
+  items: readonly Item[],
+  count: number,
+  dpr: number,
+  color: string,
+) {
+  clear(ctx, color);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1;
+  for (let k = 0; k < count; k++) {
+    const { x, y, h, opacity } = items[k]!;
+    const w = h * CARD_ASPECT;
+    ctx.globalAlpha = opacity;
+    ctx.beginPath();
+    if (h > OUTLINE_FROM) {
+      // Inset by half the line, so the outline's outer edge is the card's size.
+      ctx.roundRect(x - w / 2 + 0.5, y - h / 2 + 0.5, w - 1, h - 1, h * 0.15);
+      ctx.stroke();
+    } else {
+      if (h < ROUND_FROM) ctx.rect(x - w / 2, y - h / 2, w, h);
+      else ctx.roundRect(x - w / 2, y - h / 2, w, h, h * 0.15);
+      ctx.fill();
+    }
+  }
+  ctx.globalAlpha = 1;
 }

@@ -1,7 +1,7 @@
 // Runs the card starfield on the canvases that Starfield.astro renders. Loaded on idle by that
 // component's script, so it's never on the critical path. Its container persists across
 // navigations, so this runs once per visit and the field keeps moving while pages change.
-import { drawField, drawFixed } from '@/lib/starfield/draw';
+import { drawField, drawFixed, drawItems } from '@/lib/starfield/draw';
 import {
   createField,
   createFixedStars,
@@ -16,6 +16,14 @@ import {
   reveal,
   starCount,
 } from '@/lib/starfield/field';
+import {
+  finishHandoff,
+  type Handoff,
+  handoffDone,
+  type Item,
+  itemsAt,
+  startHandoff,
+} from '@/lib/starfield/handoff';
 
 /** Device pixels per CSS px, at most; more costs fill rate without looking sharper on stars. */
 const MAX_DPR = 1.5;
@@ -42,6 +50,8 @@ const FIXED_EVERY = 4;
  * and from then on some fade out and return elsewhere. With reduced motion the field is one
  * still frame, with every star at once. Sets `data-state` on the container to `running` or `still`
  * once the first frame is drawn, which fades the canvases in.
+ * On every client-side navigation it plays sections 1 and 4 of the card hand-off on the
+ * `[data-handoff]` canvas above the card (not with reduced motion).
  * Without Canvas 2D it does nothing, and the page keeps its plain background.
  */
 export function startStarfield(container: HTMLElement) {
@@ -50,6 +60,9 @@ export function startStarfield(container: HTMLElement) {
   const ctx = moving?.getContext('2d');
   const fixedCtx = fixed?.getContext('2d');
   if (!moving || !fixed || !ctx || !fixedCtx) return;
+  // Outside the container, which sits behind the page: this one is above the card.
+  const overlay = document.querySelector<HTMLCanvasElement>('[data-handoff]');
+  const overlayCtx = overlay?.getContext('2d');
 
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let width = 0;
@@ -61,6 +74,9 @@ export function startStarfield(container: HTMLElement) {
   let seconds = 0;
   let last: number | undefined;
   let frame = 0;
+  let handoff: Handoff | undefined;
+  const items: Item[] = [0, 1].map(() => ({ x: 0, y: 0, h: 0, opacity: 0 }));
+  let itemsShown = false;
 
   const draw = () => {
     if (field) drawField(ctx, field, seconds, width, height, dpr, color);
@@ -81,7 +97,8 @@ export function startStarfield(container: HTMLElement) {
     width = moving!.clientWidth;
     height = moving!.clientHeight;
     dpr = Math.min(devicePixelRatio, MAX_DPR);
-    for (const canvas of [moving!, fixed!]) {
+    for (const canvas of [moving!, fixed!, overlay]) {
+      if (!canvas) continue;
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
     }
@@ -121,8 +138,16 @@ export function startStarfield(container: HTMLElement) {
       drift(field!, step);
       renewField(field!, seconds);
       renewFixed(fixedStars!, seconds);
+      if (handoff && handoffDone(handoff, seconds)) {
+        finishHandoff(field!, handoff, seconds);
+        handoff = undefined;
+      }
     }
     last = now;
+    // The hand-off items, while there are any; one more frame clears them.
+    const count = handoff ? itemsAt(handoff, field!, seconds, width, height, items) : 0;
+    if (overlayCtx && (count || itemsShown)) drawItems(overlayCtx, items, count, dpr, color);
+    itemsShown = count > 0;
     if (frames++ % FIXED_EVERY === 0) drawAll();
     else draw();
     frame = requestAnimationFrame(tick);
@@ -141,6 +166,20 @@ export function startStarfield(container: HTMLElement) {
   if (reduced) return;
 
   frame = requestAnimationFrame(tick);
+
+  // Sections 1 and 4 start when the new page is swapped in, right before the cards move. A
+  // navigation that starts mid-hand-off finishes the previous one at once.
+  let back = false;
+  document.addEventListener('astro:before-preparation', (event) => {
+    back = event.direction === 'back';
+  });
+  document.addEventListener('astro:after-swap', () => {
+    if (!field || !overlayCtx) return;
+    if (handoff) finishHandoff(field, handoff, seconds);
+    const card = document.getElementById('content')?.getBoundingClientRect();
+    handoff = card && startHandoff(field, seconds, width, height, card, back);
+  });
+
   // Pause while the tab is hidden; on return the field continues where it was.
   document.addEventListener('visibilitychange', () => {
     cancelAnimationFrame(frame);

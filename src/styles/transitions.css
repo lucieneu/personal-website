@@ -101,6 +101,18 @@ html[data-astro-transition='back']::view-transition-new(card-b) {
   animation: card-in-fade 500ms linear 120ms both;
 }
 
+/* The canvas with the hand-off's stars stays live above the cards: its old snapshot (still
+   empty) is hidden and the live canvas shows without animation. */
+::view-transition-group(star-handoff),
+::view-transition-new(star-handoff) {
+  animation: none;
+}
+
+::view-transition-old(star-handoff) {
+  animation: none;
+  opacity: 0;
+}
+
 /* The nav island's current-page marker slides to the new item. */
 ::view-transition-group(nav-marker) {
   animation-duration: 300ms;
