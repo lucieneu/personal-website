@@ -131,7 +131,7 @@ export function startHandoff(
     inward: left ? 1 : -1,
     from: {
       x: point.x,
-      y: mirror(point.y),
+      y: point.y,
       h: starHeight(field.z[star]!),
       opacity: opacityOf(field, star, seconds),
       outline: false,
@@ -178,15 +178,15 @@ export function itemsAt(
   // Section 1: swells and brightens in place, then fades out (a filled star throughout).
   if (t < FLARE) {
     const p = t / FLARE;
-    const { from } = handoff;
-    const peak = Math.min(1, from.opacity + FLARE_BRIGHTER);
+    const start = handoff.from;
+    const peak = Math.min(1, start.opacity + FLARE_BRIGHTER);
     const item = out[count++]!;
-    item.x = from.x;
-    item.y = mirror(from.y);
-    item.h = logLerp(from.h, FLARE_HEIGHT, smooth(clamp01(p / FLARE_GROW)));
+    item.x = start.x;
+    item.y = start.y;
+    item.h = logLerp(start.h, FLARE_HEIGHT, smooth(clamp01(p / FLARE_GROW)));
     item.opacity =
       p < FLARE_PEAK
-        ? lerp(from.opacity, peak, smooth(p / FLARE_PEAK))
+        ? lerp(start.opacity, peak, smooth(p / FLARE_PEAK))
         : lerp(peak, 0, smooth((p - FLARE_PEAK) / (1 - FLARE_PEAK)));
     item.outline = false;
   }

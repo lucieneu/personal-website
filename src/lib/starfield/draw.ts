@@ -62,11 +62,24 @@ function fill(ctx: CanvasRenderingContext2D, count: number, highest: number) {
       const i = order[k]!;
       const h = tall[i]!;
       if (h < ROUND_FROM) ctx.rect(left[i]!, top[i]!, h * CARD_ASPECT, h);
-      else ctx.roundRect(left[i]!, top[i]!, h * CARD_ASPECT, h, h * 0.15);
+      else cardPath(ctx, left[i]!, top[i]!, h * CARD_ASPECT, h, h * 0.15);
     }
     ctx.fill();
   }
   ctx.globalAlpha = 1;
+}
+
+/** Adds a rounded rectangle to the path where the browser has roundRect (not older Firefox or Safari). */
+function cardPath(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  radius: number,
+) {
+  if (typeof ctx.roundRect === 'function') ctx.roundRect(x, y, w, h, radius);
+  else ctx.rect(x, y, w, h);
 }
 
 function clear(ctx: CanvasRenderingContext2D, color: string) {
@@ -161,11 +174,11 @@ export function drawItems(
     ctx.beginPath();
     if (outline) {
       // Inset by half the line, so the outline's outer edge is the card's size.
-      ctx.roundRect(x - w / 2 + 0.5, y - h / 2 + 0.5, w - 1, h - 1, h * 0.15);
+      cardPath(ctx, x - w / 2 + 0.5, y - h / 2 + 0.5, w - 1, h - 1, h * 0.15);
       ctx.stroke();
     } else {
       if (h < ROUND_FROM) ctx.rect(x - w / 2, y - h / 2, w, h);
-      else ctx.roundRect(x - w / 2, y - h / 2, w, h, h * 0.15);
+      else cardPath(ctx, x - w / 2, y - h / 2, w, h, h * 0.15);
       ctx.fill();
     }
   }

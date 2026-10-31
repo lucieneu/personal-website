@@ -1,8 +1,6 @@
 ---
-// The card is handed off on every navigation: the old one falls away and the new one drops in
-// (src/styles/transitions.css; its view transition name alternates, see src/lib/transitions.ts).
-// Its content is part of its snapshot, so the text moves with the card and is readable from the
-// start.
+// The card is handed off on every navigation: the old one falls away and the new one drops in,
+// animated on the page itself (src/lib/transitions.ts; timing in src/styles/transitions.css).
 import styles from './ContentCard.module.css';
 ---
 
