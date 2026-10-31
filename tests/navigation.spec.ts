@@ -57,6 +57,8 @@ test('every page loads in both languages, with its translation linked', async ({
 });
 
 test('client-side navigation through every page in both languages', async ({ page }) => {
+  // Many navigations, each with the card hand-off; without a GPU (WebKit in CI) that's slow.
+  test.slow();
   const paths = await sitePaths(page);
   const slugsIn = (section: string) =>
     paths
@@ -188,7 +190,13 @@ test('the navigation responds while a transition is still running', async ({ pag
   const home = mainNav(page).locator('a[href="/"]');
   const next = await home.boundingBox();
   await mainNav(page).locator('a[href="/about/"]').click();
-  await page.waitForTimeout(100);
+  // 60 ms into the hand-off: after the swap (the browser's own view transition is over), long
+  // before the cards have settled (620 ms).
+  await page.waitForFunction(() =>
+    document
+      .getAnimations()
+      .some((animation) => animation.id === 'card-in' && Number(animation.currentTime) > 60),
+  );
   const x = next!.x + next!.width / 2;
   const y = next!.y + next!.height / 2;
   if (!isMobile) {
