@@ -254,7 +254,7 @@ html[data-astro-transition='back']::view-transition-new(card-a) { animation-name
 - Switching language is a normal navigation with the same transition. The `lang` attribute on `<html>` comes from the new page; check that it is updated after a client-side navigation, because screen readers rely on it.
 - Every `transition:name` is unique per page. Two elements with the same name on one page break the transition.
 - Astro's default animations may need to be overridden; check in DevTools (Animations panel) which animation actually runs.
-- A click during a transition starts the next navigation right away (the browser skips the running view transition). The starfield then finishes sections 1 and 4 of the previous navigation at once: the flared star is gone and the returning star is a regular star at its spot.
+- A click during a transition starts the next navigation right away (the browser skips the running view transition). The starfield starts sections 1 and 4 of the new navigation and lets those of the earlier ones run on, so their stars keep settling (changed Oct 31, 2026, at the owner's request; at first an earlier hand-off was finished at once). At most four run at once; beyond that the oldest finishes at once, its returning star then a regular star at its spot.
 - A link to the current page still starts a client-side navigation by default, so the hand-off would play with the same page on both cards. Detect it (the target URL's path equals `location.pathname`) and skip the transition, for example by handling the click before ClientRouter does, or by turning the animations off for that navigation. See the acceptance criteria.
 
 **Acceptance criteria**
@@ -264,7 +264,7 @@ html[data-astro-transition='back']::view-transition-new(card-a) { animation-name
 - [ ] Navigation never waits for the starfield: links and scrolling work while sections 1 and 4 are still running.
 - [ ] Sections 1 and 4 start and end fully outside the viewport: no corner of a star card pops in or out at an edge.
 - [ ] The returning star (section 4) becomes a regular star at the same spot, without a jump.
-- [ ] Clicking another link mid-transition starts the new navigation right away, without leftover cards or stars.
+- [ ] Clicking another link mid-transition starts the new navigation right away, without leftover cards; the earlier navigation's stars carry on until they've settled.
 - [ ] A link to the page you're already on (such as the current item in the navigation, or the name in the header on the home page) plays no transition: no card hand-off and no star leaving or returning (sections 1 and 4). The page stays as it is; at most it scrolls back to the top. (Added Oct 31, 2026, at the owner's request.)
 - [ ] The browser's back button plays the mirrored transition (old card up and out, new card up from the bottom, stars mirrored too) and restores the scroll position.
 - [ ] On phones, sections 1 and 4 run along a side edge of the screen and their stars stay visible next to the card.

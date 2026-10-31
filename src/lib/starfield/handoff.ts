@@ -155,7 +155,10 @@ export function finishHandoff(field: Field, handoff: Handoff, seconds: number) {
   reveal(field, handoff.star, handoff.star + 1, seconds - FADE_IN, 0);
 }
 
-/** Writes the items to draw at `seconds` into `out` (room for two); returns how many. */
+/**
+ * Writes the items to draw at `seconds` into `out`, from index `from` on (at most two);
+ * returns the index after the last one written.
+ */
 export function itemsAt(
   handoff: Handoff,
   field: Field,
@@ -163,10 +166,11 @@ export function itemsAt(
   width: number,
   height: number,
   out: Item[],
+  from = 0,
 ) {
   const mirror = (y: number) => (handoff.back ? height - y : y);
   const t = seconds - handoff.start;
-  let count = 0;
+  let count = from;
 
   // Section 1: swells and brightens in place, then fades out (a filled star throughout).
   if (t < FLARE) {

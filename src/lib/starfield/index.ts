@@ -41,6 +41,11 @@ const GROW = 1;
  * opacity steps that changes a star by at most about 2.5% at a time, too little to see).
  */
 const FIXED_EVERY = 4;
+/**
+ * Hand-offs (sections 1 and 4) that can run at once: a navigation during one starts its own and
+ * leaves the earlier ones running. Beyond this many, the oldest finishes at once.
+ */
+const MAX_HANDOFFS = 4;
 
 /**
  * Starts the starfield in `container`: the fixed stars on its `[data-fixed]` canvas, redrawn a
@@ -74,8 +79,14 @@ export function startStarfield(container: HTMLElement) {
   let seconds = 0;
   let last: number | undefined;
   let frame = 0;
-  let handoff: Handoff | undefined;
-  const items: Item[] = [0, 1].map(() => ({ x: 0, y: 0, h: 0, opacity: 0, outline: false }));
+  const handoffs: Handoff[] = [];
+  const items: Item[] = Array.from({ length: MAX_HANDOFFS * 2 }, () => ({
+    x: 0,
+    y: 0,
+    h: 0,
+    opacity: 0,
+    outline: false,
+  }));
   let itemsShown = false;
 
   const draw = () => {
@@ -138,14 +149,15 @@ export function startStarfield(container: HTMLElement) {
       drift(field!, step);
       renewField(field!, seconds);
       renewFixed(fixedStars!, seconds);
-      if (handoff && handoffDone(handoff, seconds)) {
-        finishHandoff(field!, handoff, seconds);
-        handoff = undefined;
-      }
+      // They start in order, so the oldest is done first.
+      while (handoffs.length && handoffDone(handoffs[0]!, seconds))
+        finishHandoff(field!, handoffs.shift()!, seconds);
     }
     last = now;
     // The hand-off items, while there are any; one more frame clears them.
-    const count = handoff ? itemsAt(handoff, field!, seconds, width, height, items) : 0;
+    let count = 0;
+    for (const handoff of handoffs)
+      count = itemsAt(handoff, field!, seconds, width, height, items, count);
     if (overlayCtx && (count || itemsShown)) drawItems(overlayCtx, items, count, dpr, color);
     itemsShown = count > 0;
     if (frames++ % FIXED_EVERY === 0) drawAll();
@@ -168,16 +180,17 @@ export function startStarfield(container: HTMLElement) {
   frame = requestAnimationFrame(tick);
 
   // Sections 1 and 4 start when the new page is swapped in, right before the cards move. A
-  // navigation that starts mid-hand-off finishes the previous one at once.
+  // navigation during a hand-off starts its own; the earlier ones keep running.
   let back = false;
   document.addEventListener('astro:before-preparation', (event) => {
     back = event.direction === 'back';
   });
   document.addEventListener('astro:after-swap', () => {
     if (!field || !overlayCtx) return;
-    if (handoff) finishHandoff(field, handoff, seconds);
+    if (handoffs.length === MAX_HANDOFFS) finishHandoff(field, handoffs.shift()!, seconds);
     const card = document.getElementById('content')?.getBoundingClientRect();
-    handoff = card && startHandoff(field, seconds, width, height, card, back);
+    const handoff = card && startHandoff(field, seconds, width, height, card, back);
+    if (handoff) handoffs.push(handoff);
   });
 
   // Pause while the tab is hidden; on return the field continues where it was.
