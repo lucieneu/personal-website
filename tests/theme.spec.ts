@@ -1,6 +1,6 @@
 // The theme switch: follows the OS until clicked, remembers the choice, and never flashes the
 // wrong theme on load or navigation.
-import { clickLink, expect, recordViewTransition, test } from './fixtures';
+import { clickLink, expect, recordAnimations, test } from './fixtures';
 
 const theme = (page: import('@playwright/test').Page) =>
   page.evaluate(() => document.documentElement.dataset.theme ?? null);
@@ -52,7 +52,7 @@ test('the theme switch reveals the new theme as a circle', async ({ page }) => {
     'no View Transitions API in this browser',
   );
   const before = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  const animations = await recordViewTransition(page, 700);
+  const animations = await recordAnimations(page, 700);
   await page.locator('[data-theme-toggle]').click();
   const running = await animations();
 
@@ -81,7 +81,7 @@ test.describe('with prefers-reduced-motion: reduce', () => {
 
   test('the theme switches instantly', async ({ page }) => {
     await page.goto('/');
-    const animations = await recordViewTransition(page, 300);
+    const animations = await recordAnimations(page, 300);
     const before = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
     await page.locator('[data-theme-toggle]').click();
     expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).not.toBe(

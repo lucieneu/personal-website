@@ -1,32 +1,132 @@
-// Page transitions. The card hand-off's animations live in src/styles/transitions.css.
+// Page transitions: the card hand-off, animated on the page itself (Web Animations), not in a
+// view transition. During a view transition the browser covers the page with a layer that
+// catches every click and hover, so the menu wouldn't respond until the cards had settled; here
+// the page stays fully interactive. ClientRouter still starts a view transition on every
+// navigation, but nothing has a view-transition-name and the root isn't animated
+// (src/styles/transitions.css), so it ends right after the swap.
 
-const CARD_NAMES = ['card-a', 'card-b'];
+/** A card tilted in perspective, `y` vh down (up when negative) and turned `deg` degrees. */
+const tilted = (y: number, deg: number) =>
+  `perspective(1000px) translateY(${y}vh) rotateX(${deg}deg) scale(0.97)`;
 
-/** How far the card's top is from the top of the screen, in px, for the turn's center. */
-const cardTop = (card: HTMLElement) => `${Math.round(card.getBoundingClientRect().top)}px`;
+/** The old card sinks away in 200 ms: movement ease-in, fade ease-out. */
+const OUT = { duration: 200, fill: 'forwards' } as const;
+const OUT_MOVE = 'cubic-bezier(0.11, 0, 0.5, 0)';
+const OUT_FADE = 'cubic-bezier(0.5, 1, 0.89, 1)';
+/** The new card settles in from 120 to 620 ms (ease-out), fully visible after 55% of it. */
+const IN = { duration: 500, delay: 120, fill: 'backwards' } as const;
+const IN_MOVE = 'cubic-bezier(0.33, 1, 0.68, 1)';
+const IN_FADE = [{ opacity: 0 }, { opacity: 1, offset: 0.55 }, { opacity: 1 }];
+/** The nav island's current-page marker slides to the new item. */
+const MARKER = { duration: 300, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' };
+
+/** Each card turns around the middle of the screen, not its own middle (a long card). */
+const turnOrigin = (box: DOMRect) => `50% ${Math.round(innerHeight / 2 - box.top)}px`;
+
+/** A copy of the old card, in its place on the screen, that can't be focused or clicked. */
+function ghostOf(card: HTMLElement) {
+  const box = card.getBoundingClientRect();
+  const ghost = card.cloneNode(true) as HTMLElement;
+  ghost.removeAttribute('id');
+  ghost.removeAttribute('tabindex');
+  ghost.inert = true;
+  ghost.setAttribute('aria-hidden', 'true');
+  ghost.dataset.cardGhost = '';
+  Object.assign(ghost.style, {
+    position: 'fixed',
+    top: `${box.top}px`,
+    left: `${box.left}px`,
+    width: `${box.width}px`,
+    margin: '0',
+    // Behind the page (the header, the new card) and in front of the starfield, which comes
+    // earlier in the page at the same z-index.
+    zIndex: '-1',
+    pointerEvents: 'none',
+  });
+  return { ghost, origin: turnOrigin(box) };
+}
 
 /**
- * Prepares the card hand-off on every navigation. The new page's card gets the other of two view
- * transition names than the current card: with different names the old and new card aren't
- * paired, so each moves from its own place (the old one from where it was scrolled to) instead
- * of the old card jumping to the new card's position first. Both cards' positions on screen are
- * passed to the CSS (`--old-card-top`, `--new-card-top`), so each turns around the middle of the
- * screen, however far the page is scrolled. Call it once, from a script on every page.
+ * Plays the card hand-off on every navigation (spec: Page transitions): a copy of the old card
+ * sinks away and fades out, while the new card settles in from above; on Back it's mirrored. The
+ * footer below the card (phones) fades in with the new card, and the nav island's marker slides
+ * from the old item to the new one. Nothing plays with reduced motion. Call it once, from a
+ * script on every page.
  */
-export function prepareCardHandoff() {
-  document.addEventListener('astro:before-swap', (event) => {
-    const current = document.getElementById('content');
-    const next = event.newDocument.getElementById('content');
-    if (!current || !next) return;
-    const name = getComputedStyle(current).viewTransitionName;
-    next.style.viewTransitionName = name === CARD_NAMES[0] ? CARD_NAMES[1]! : CARD_NAMES[0]!;
-    // On the new <html>: ClientRouter replaces the attributes of <html> with the new page's.
-    event.newDocument.documentElement.style.setProperty('--old-card-top', cardTop(current));
+export function cardHandoff() {
+  let back = false;
+  let ghost: { ghost: HTMLElement; origin: string } | undefined;
+  let marker: DOMRect | undefined;
+
+  document.addEventListener('astro:before-preparation', (event) => {
+    back = event.direction === 'back';
   });
+
+  document.addEventListener('astro:before-swap', () => {
+    ghost = undefined;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // A card from a navigation that's still running: gone at once.
+    for (const old of document.querySelectorAll('[data-card-ghost]')) old.remove();
+    const card = document.getElementById('content');
+    if (!card) return;
+    // A card that's still arriving falls away from its place.
+    for (const animation of card.getAnimations()) animation.finish();
+    ghost = ghostOf(card);
+    marker = document.querySelector('[data-nav-marker]')?.getBoundingClientRect();
+  });
+
   // After the swap the new page is scrolled into place (to the top, or back on Back).
   document.addEventListener('astro:after-swap', () => {
+    if (!ghost) return;
+    const sign = back ? -1 : 1;
+    const old = ghost.ghost;
+    document.body.append(old);
+    const origin = { transformOrigin: ghost.origin };
+    old.animate([{ ...origin }, { ...origin, transform: tilted(6 * sign, -6 * sign) }], {
+      ...OUT,
+      easing: OUT_MOVE,
+      id: back ? 'card-out-up' : 'card-out',
+    });
+    const fade = old.animate([{ opacity: 1 }, { opacity: 0 }], {
+      ...OUT,
+      easing: OUT_FADE,
+      id: 'card-out-fade',
+    });
+    fade.finished.then(
+      () => old.remove(),
+      () => old.remove(),
+    );
+
     const card = document.getElementById('content');
-    if (card) document.documentElement.style.setProperty('--new-card-top', cardTop(card));
+    if (card) {
+      const from = { transformOrigin: turnOrigin(card.getBoundingClientRect()) };
+      card.animate(
+        [
+          { ...from, transform: tilted(-4 * sign, 6 * sign) },
+          { ...from, transform: 'none' },
+        ],
+        { ...IN, easing: IN_MOVE, id: back ? 'card-in-up' : 'card-in' },
+      );
+      card.animate(IN_FADE, { ...IN, easing: 'linear', id: 'card-in-fade' });
+    }
+    document
+      .querySelector('[data-page-footer]')
+      ?.animate(IN_FADE, { ...IN, easing: 'linear', id: 'footer-in-fade' });
+
+    // The marker moves from where the old one was (it only shows in the nav island).
+    const next = document.querySelector('[data-nav-marker]');
+    const to = next?.getBoundingClientRect();
+    if (next && to?.width && marker?.width) {
+      const shift = `translate(${marker.left - to.left}px, ${marker.top - to.top}px)`;
+      const scale = `scale(${marker.width / to.width}, ${marker.height / to.height})`;
+      next.animate(
+        [
+          { transformOrigin: '0 0', transform: `${shift} ${scale}` },
+          { transformOrigin: '0 0', transform: 'none' },
+        ],
+        { ...MARKER, id: 'nav-marker' },
+      );
+    }
   });
 }
 
@@ -55,27 +155,6 @@ export function stayOnSamePage() {
     },
     { capture: true },
   );
-}
-
-/**
- * Lets you click on while a page transition runs. Until the cards have settled (about 0.6 s) the
- * browser sends every click to <html>, so a click on a link would do nothing. Such a click is
- * passed on to the link under the pointer, which starts the next navigation right away (the
- * running transition is skipped). Clicks with a modifier key are left alone. Call it once, from a
- * script on every page.
- */
-export function clickThroughTransitions() {
-  document.addEventListener('click', (event) => {
-    if (event.target !== document.documentElement) return;
-    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
-      return;
-    const link = [...document.querySelectorAll<HTMLAnchorElement>('a[href]')].find((a) => {
-      const box = a.getBoundingClientRect();
-      const { clientX: x, clientY: y } = event;
-      return x >= box.left && x <= box.right && y >= box.top && y <= box.bottom;
-    });
-    link?.click();
-  });
 }
 
 /**

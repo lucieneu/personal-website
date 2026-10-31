@@ -18,7 +18,7 @@ const { href, label, current, desktopOnly = false } = Astro.props;
 <li class:list={[desktopOnly && styles.desktopOnly]}>
   <Link class={styles.link} href={href} aria-current={current} underline={false}>
     {/* The island's current-page marker; it slides to the new item on a navigation. */}
-    {current && <span class={styles.marker} aria-hidden="true" />}
+    {current && <span class={styles.marker} aria-hidden="true" data-nav-marker />}
     <span class={styles.label}>{label}</span>
   </Link>
 </li>

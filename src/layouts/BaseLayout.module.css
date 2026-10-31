@@ -17,9 +17,12 @@
   outline-offset: 2px;
 }
 
-/* Mobile: keep clear of the notch in landscape. */
+/* Mobile: keep clear of the notch in landscape. Nothing in it scrolls sideways: the card's tilt
+   during a page transition reaches a few px past the screen's edges, which would otherwise widen
+   the page on phones for a moment. clip, unlike hidden, keeps position: sticky working. */
 .layout {
   padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
+  overflow-x: clip;
 }
 
 @media (width >= 64em) {
