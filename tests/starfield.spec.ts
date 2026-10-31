@@ -57,7 +57,7 @@ test('the stars follow the theme', async ({ page }) => {
  * Records, every frame for `ms` milliseconds from now, whether the hand-off canvas (the two
  * stars of the card hand-off, above the card) has anything on it. Await the result.
  */
-const recordHandoff = (page: import('@playwright/test').Page, ms = 2800) =>
+const recordHandoff = (page: import('@playwright/test').Page, ms = 3200) =>
   page.evaluate((duration) => {
     const w = window as unknown as { __handoff: Promise<boolean[]> };
     w.__handoff = new Promise((resolve) => {
