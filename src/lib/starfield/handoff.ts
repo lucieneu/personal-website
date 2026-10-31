@@ -32,9 +32,12 @@ const LEAVE_FAR = 2.2;
  * Section 4: a RETURN_HEIGHT px outline, from RETURN_FROM to RETURN_TO seconds, that ends as a
  * star at depth RETURN_DEPTH. In its last RETURN_FADE it fades to that star's brightness.
  */
-/** It starts with the old card's exit, so the two read as one movement. */
-const RETURN_FROM = 0;
-const RETURN_TO = 3;
+/**
+ * It starts just after the old card begins to leave, as the card's sinking speeds up and the new
+ * card starts to arrive, so they read as one movement.
+ */
+const RETURN_FROM = 0.12;
+const RETURN_TO = 3.12;
 const RETURN_HEIGHT = 24;
 const RETURN_DEPTH = 1.6;
 const RETURN_FADE = 0.4;
