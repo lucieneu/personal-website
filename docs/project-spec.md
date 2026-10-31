@@ -88,7 +88,7 @@ A fixed sidebar on the left and one content card on the right, with the card sta
 
 | Layer | Contents | On a page change | Animates |
 | --- | --- | --- | --- |
-| 0 · Card starfield (canvas) | Tiny card-shaped stars on every page | Persists and keeps running; one star leaves and one returns (sections 1 and 4 in Page transitions) | **Yes**, in the background |
+| 0 · Card starfield (canvas) | Tiny card-shaped stars on every page | Persists and keeps running; one star flares out and one returns (sections 1 and 4 in Page transitions) | **Yes**, in the background |
 | 1 · Sidebar | Name, intro, navigation and theme toggle | Replaced, without animation | No |
 | 2 · Content card, old | The card with its content | Falls away to the bottom and fades (section 3) | **Yes** |
 | 2 · Content card, new | The card with its content | Drops in from the top and fades in, content visible from the start (section 2) | **Yes** |
@@ -133,13 +133,13 @@ The sidebar stays still during a page change; the card and the starfield move.
 
 ## Page transitions
 
-On every navigation the sidebar stays put and the content card is handed off: the old card falls away to the bottom and the new card drops in from the top. Meanwhile the card starfield keeps running and plays along: one star leaves the field before the new card arrives, and one returns to it after the old card has gone. (Since phase 2; this replaces the phase 1 morph of the card's frame. The timings were tuned in a prototype with the owner on Oct 24, 2026.)
+On every navigation the sidebar stays put and the content card is handed off: the old card falls away to the bottom and the new card drops in from the top. Meanwhile the card starfield keeps running and plays along: one star flares up and fades out as the old card goes, and one returns to it after the old card has gone. (Since phase 2; this replaces the phase 1 morph of the card's frame. The timings were tuned in a prototype with the owner on Oct 24, 2026.)
 
 **The four sections**
 
 | # | What | Where | Time | Movement | Easing |
 | --- | --- | --- | --- | --- | --- |
-| 1 | A star leaves the background | Starfield canvas | 0–200 ms | A star near the sidebar grows to 16 px tall, drifts 15 px sideways and leaves past the top edge | Ease-in (quadratic) |
+| 1 | A star flares out | Starfield canvas | 0–400 ms | A star near the sidebar swells to 6 px and brightens where it is, then fades out | Smoothstep |
 | 2 | The new card arrives | View transition, `::view-transition-new(card-a/b)` | 120–620 ms | From 4vh above, `scale(0.97)` and `rotateX(6deg)` to its place; fades in during the first 55%. The content is visible from the start (no empty card) | Ease-out (cubic) |
 | 3 | The old card leaves | View transition, `::view-transition-old(card-a/b)` | 0–200 ms | Sinks 6vh down to `scale(0.97)` and `rotateX(-6deg)`; fades out quickly at first while the movement speeds up | Movement ease-in (quadratic), fade ease-out (quadratic) |
 | 4 | A star returns to the background | Starfield canvas | 300–1800 ms | A 24 px card outline flows in from below the bottom edge, travels low and rises late into the starfield next to the card, shrinking until it's a star | In-out (sine) |
@@ -254,7 +254,7 @@ html[data-astro-transition='back']::view-transition-new(card-a) { animation-name
 - Switching language is a normal navigation with the same transition. The `lang` attribute on `<html>` comes from the new page; check that it is updated after a client-side navigation, because screen readers rely on it.
 - Every `transition:name` is unique per page. Two elements with the same name on one page break the transition.
 - Astro's default animations may need to be overridden; check in DevTools (Animations panel) which animation actually runs.
-- A click during a transition starts the next navigation right away (the browser skips the running view transition). The starfield then finishes sections 1 and 4 of the previous navigation at once: the leaving star is gone and the returning star is a regular star at its spot.
+- A click during a transition starts the next navigation right away (the browser skips the running view transition). The starfield then finishes sections 1 and 4 of the previous navigation at once: the flared star is gone and the returning star is a regular star at its spot.
 - A link to the current page still starts a client-side navigation by default, so the hand-off would play with the same page on both cards. Detect it (the target URL's path equals `location.pathname`) and skip the transition, for example by handling the click before ClientRouter does, or by turning the animations off for that navigation. See the acceptance criteria.
 
 **Acceptance criteria**
@@ -275,7 +275,7 @@ html[data-astro-transition='back']::view-transition-new(card-a) { animation-name
 - [ ] After navigation, the new page is announced to screen readers and focus is at the top of the new content.
 - [ ] After switching language, `lang` on `<html>` matches the new page.
 
-**Back button: mirrored** (decided Oct 24, 2026). Going back plays the whole hand-off upside down: the old card rises out past the top, the new card comes up from below, the leaving star (section 1) goes out past the bottom edge, and the returning star (section 4) comes in from the top edge and drops late into place. The timings stay the same. Astro passes the direction to `transition:animate` (`backwards`); the starfield reads it from `event.direction` in `astro:before-preparation` (`'back'`).
+**Back button: mirrored** (decided Oct 24, 2026). Going back plays the whole hand-off upside down: the old card rises out past the top, the new card comes up from below, the flare (section 1) stays in place, and the returning star (section 4) comes in from the top edge and drops late into place. The timings stay the same. Astro passes the direction to `transition:animate` (`backwards`); the starfield reads it from `event.direction` in `astro:before-preparation` (`'back'`).
 
 **Phones: the same hand-off** (decided Oct 24, 2026). On phones the card covers almost the whole width, so sections 1 and 4 run along a side edge of the screen, where the user can see them: section 1 picks a star in the outer strip at the side, and section 4 flows in from the bottom corner on that side and ends in the side margin or the header area, not behind the card. Check on a real phone that the card's distances (6vh and 4vh) still feel right on a tall screen.
 
@@ -304,7 +304,7 @@ One subtle, self-built background behind the content, on every page: a field of 
 
 - Both items use the stars' color (`--color-text`) at most 55% opacity, so the returning star matches the field's stars exactly when it lands (built Oct 31, 2026; the first plan used `--color-text-muted`). While they're larger than 4 px they're drawn as the outline of an empty card; smaller, they're a filled star.
 - Both items are drawn on a canvas of their own above the card (`[data-handoff]`, `pointer-events: none`, z-index 5, below the nav island), which only draws during these items. It has its own view transition name (`star-handoff`, no animation, old snapshot hidden), so it stays live above the cards' snapshots. (Built Oct 31, 2026, simpler than the first plan, which moved an item behind the card once it was smaller than 8 px: both items start and end next to the card, so they never need to pass behind it.)
-- **Section 1 (0–200 ms):** picks a star near the sidebar (on phones: in the outer strip at one side), in the upper half, at a depth between 0.9 and 2.2. It grows on a log scale to 16 px tall, drifts 15 px sideways (away from the card) and leaves past the top edge (ease-in). Its end point is half the item's diagonal plus 6 px above the edge, so the turned card never shows a corner.
+- **Section 1 (0–400 ms):** picks a star near the sidebar (on phones: in the outer strip at one side), in the upper half (lower on Back), at a depth between 0.9 and 2.2. Where it is, it swells on a log scale to 6 px tall in the first 40% of the time and brightens by 30 percentage points (at most to 100%) until 30%, then fades out; it stays a filled star. (Changed Oct 31, 2026, at the owner's request: the first version grew to 32 px, later 16 px, and shot past the top edge in 200 ms, which pulled the eye away from the cards.)
 - **Section 4 (300–1800 ms):** picks a target spot in the visible part of the field next to the card (on desktop: the sidebar column, 30–70% down; on phones: the side margin or the header area on the same side as section 1) and adds a hidden star there at depth 1.6. A 24 px tall card outline starts below the bottom edge (half its diagonal plus 6 px below it), about 30% of the viewport width to the right of the target (on phones straight below it, so it rises along the side margin instead of crossing the card). It follows a curve that travels low and rises late: a quadratic curve whose control point is 75% of the way from the middle of the straight line to a point below the target, at 90% of the viewport height. It shrinks on a log scale to the star's size and fades to the star's brightness in its last 40% (in-out sine easing). At the end the hidden star shows at exactly that spot.
 - The field keeps the same number of stars: section 1 removes a star, section 4 adds one.
 

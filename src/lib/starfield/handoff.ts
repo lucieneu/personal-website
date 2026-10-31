@@ -1,7 +1,7 @@
 // Sections 1 and 4 of the card hand-off (docs/project-spec.md, Page transitions): as the old card
-// goes, a star near the sidebar grows and leaves past the top edge; after it, a card outline
-// flows in from below the bottom edge and becomes a star next to the new card. On Back both are
-// mirrored top to bottom. Pure math on the field's clock; drawn on the canvas above the card.
+// goes, a star near the sidebar flares up and fades out where it is; after it, a card outline
+// flows in from below the bottom edge and becomes a star next to the new card. On Back the
+// outline is mirrored top to bottom. Pure math on the field's clock; drawn on the canvas above the card.
 import {
   brightnessOf,
   CARD_ASPECT,
@@ -16,10 +16,15 @@ import {
   starHeight,
 } from '@/lib/starfield/field';
 
-/** Section 1: the star grows to LEAVE_HEIGHT px and drifts LEAVE_SIDEWAYS px in LEAVE seconds. */
-const LEAVE = 0.2;
-const LEAVE_HEIGHT = 16;
-const LEAVE_SIDEWAYS = 15;
+/**
+ * Section 1: in FLARE seconds the star swells to FLARE_HEIGHT px (in the first FLARE_GROW of
+ * that time), brightens by FLARE_BRIGHTER until FLARE_PEAK of the time, then fades out in place.
+ */
+const FLARE = 0.4;
+const FLARE_HEIGHT = 6;
+const FLARE_GROW = 0.4;
+const FLARE_BRIGHTER = 0.3;
+const FLARE_PEAK = 0.3;
 /** It's picked at a depth in this range, so it's neither tiny nor already large. */
 const LEAVE_NEAR = 0.9;
 const LEAVE_FAR = 2.2;
@@ -32,25 +37,28 @@ const RETURN_TO = 1.8;
 const RETURN_HEIGHT = 24;
 const RETURN_DEPTH = 1.6;
 const RETURN_FADE = 0.4;
-/** Both items are at most this opaque. */
+/** The returning outline is at most this opaque. */
 const ITEM_OPACITY = 0.55;
-/** Items start and end this many px past an edge, beyond their corners. */
+/** The outline starts this many px past the bottom edge, beyond its corners. */
 const MARGIN = 6;
 /** A card further than this from the left edge has the sidebar next to it (desktop). */
 const SIDEBAR_FROM = 100;
 /** On phones the strip at the side is at least this wide. */
 const PHONE_STRIP = 16;
+/** Above this height (px) the returning item is the outline of an empty card. */
+const OUTLINE_FROM = 4;
 
-/** An item to draw: its center, height and opacity. */
+/** An item to draw: its center, height and opacity, and whether it's an outline or filled. */
 export interface Item extends Point {
   h: number;
   opacity: number;
+  outline: boolean;
 }
 
 export interface Handoff {
   /** When it started, on the field's clock. */
   start: number;
-  /** The star that leaves, and returns elsewhere (its index in the field). */
+  /** The star that flares out, and returns elsewhere (its index in the field). */
   star: number;
   /** Back: mirrored, so every y below is measured from the bottom edge instead of the top. */
   back: boolean;
@@ -119,6 +127,7 @@ export function startHandoff(
       y: mirror(point.y),
       h: starHeight(field.z[star]!),
       opacity: opacityOf(field, star, seconds),
+      outline: false,
     },
     startX: 0,
   };
@@ -155,15 +164,20 @@ export function itemsAt(
   const t = seconds - handoff.start;
   let count = 0;
 
-  // Section 1: grows and leaves past the top edge, speeding up (ease-in).
-  if (t < LEAVE) {
-    const p = (t / LEAVE) ** 2;
+  // Section 1: swells and brightens in place, then fades out (a filled star throughout).
+  if (t < FLARE) {
+    const p = t / FLARE;
     const { from } = handoff;
+    const peak = Math.min(1, from.opacity + FLARE_BRIGHTER);
     const item = out[count++]!;
-    item.h = logLerp(from.h, LEAVE_HEIGHT, p);
-    item.x = from.x - handoff.inward * LEAVE_SIDEWAYS * p;
-    item.y = mirror(lerp(from.y, -halfDiagonal(LEAVE_HEIGHT) - MARGIN, p));
-    item.opacity = lerp(from.opacity, ITEM_OPACITY, p);
+    item.x = from.x;
+    item.y = mirror(from.y);
+    item.h = logLerp(from.h, FLARE_HEIGHT, smooth(clamp01(p / FLARE_GROW)));
+    item.opacity =
+      p < FLARE_PEAK
+        ? lerp(from.opacity, peak, smooth(p / FLARE_PEAK))
+        : lerp(peak, 0, smooth((p - FLARE_PEAK) / (1 - FLARE_PEAK)));
+    item.outline = false;
   }
 
   // Section 4: from below the bottom edge, low and rising late, into the star's place. The
@@ -186,6 +200,7 @@ export function itemsAt(
     item.h = logLerp(RETURN_HEIGHT, starHeight(field.z[handoff.star]!), e);
     const fade = smooth(clamp01((u - (1 - RETURN_FADE)) / RETURN_FADE));
     item.opacity = lerp(ITEM_OPACITY, brightnessOf(field, handoff.star, seconds), fade);
+    item.outline = item.h > OUTLINE_FROM;
   }
   return count;
 }

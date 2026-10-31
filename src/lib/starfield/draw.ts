@@ -139,9 +139,6 @@ export function drawFixed(
   fill(ctx, stars.count, highest);
 }
 
-/** Above this height (px) a hand-off item is the outline of an empty card, not a filled star. */
-const OUTLINE_FROM = 4;
-
 /**
  * Draws the first `count` hand-off `items` (sections 1 and 4) on the canvas above the card, or
  * clears it when there are none.
@@ -158,11 +155,11 @@ export function drawItems(
   ctx.strokeStyle = color;
   ctx.lineWidth = 1;
   for (let k = 0; k < count; k++) {
-    const { x, y, h, opacity } = items[k]!;
+    const { x, y, h, opacity, outline } = items[k]!;
     const w = h * CARD_ASPECT;
     ctx.globalAlpha = opacity;
     ctx.beginPath();
-    if (h > OUTLINE_FROM) {
+    if (outline) {
       // Inset by half the line, so the outline's outer edge is the card's size.
       ctx.roundRect(x - w / 2 + 0.5, y - h / 2 + 0.5, w - 1, h - 1, h * 0.15);
       ctx.stroke();

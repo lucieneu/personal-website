@@ -75,7 +75,7 @@ export function startStarfield(container: HTMLElement) {
   let last: number | undefined;
   let frame = 0;
   let handoff: Handoff | undefined;
-  const items: Item[] = [0, 1].map(() => ({ x: 0, y: 0, h: 0, opacity: 0 }));
+  const items: Item[] = [0, 1].map(() => ({ x: 0, y: 0, h: 0, opacity: 0, outline: false }));
   let itemsShown = false;
 
   const draw = () => {
