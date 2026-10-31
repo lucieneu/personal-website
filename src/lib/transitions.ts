@@ -31,6 +31,33 @@ export function prepareCardHandoff() {
 }
 
 /**
+ * A link to the page you're on (the current item in the navigation, the name in the header on
+ * the home page) plays no transition: ClientRouter would load the same page again and hand the
+ * card off to itself. Such a click only scrolls back to the top. Links with a #hash and clicks
+ * that open a new tab or window are left alone. Runs before ClientRouter's own click handler
+ * (capture phase), which skips clicks that are already handled. Call it once, from a script on
+ * every page.
+ */
+export function stayOnSamePage() {
+  document.addEventListener(
+    'click',
+    (event) => {
+      const link = event.target instanceof Element ? event.target.closest('a') : null;
+      if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return;
+      if (event.altKey || (link.target && link.target !== '_self')) return;
+      const to = new URL(link.href);
+      const here = location;
+      if (to.origin !== here.origin || to.pathname !== here.pathname) return;
+      if (to.search !== here.search || to.hash) return;
+      event.preventDefault();
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({ top: 0, behavior: reduced ? 'instant' : 'smooth' });
+    },
+    { capture: true },
+  );
+}
+
+/**
  * After a client-side navigation, moves focus to the new content (`#content`), so keyboard and
  * screen reader users start at the top of the page they asked for, as on a full page load.
  * ClientRouter announces the new page title on its own. preventScroll keeps the restored scroll

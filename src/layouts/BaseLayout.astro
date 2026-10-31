@@ -71,8 +71,13 @@ const { alternates, targets } = languagePaths(Astro.url.pathname, !notFound);
 </html>
 
 <script>
-  import { prepareCardHandoff, focusContentAfterNavigation } from '@/lib/transitions';
+  import {
+    focusContentAfterNavigation,
+    prepareCardHandoff,
+    stayOnSamePage,
+  } from '@/lib/transitions';
 
   prepareCardHandoff();
   focusContentAfterNavigation();
+  stayOnSamePage();
 </script>

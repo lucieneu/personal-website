@@ -130,6 +130,28 @@ test('page transition: the card is handed off, settled within 650 ms', async ({ 
   expect(Math.round(settled)).toBeLessThanOrEqual(650);
 });
 
+test('a link to the page you are on plays no transition, it only scrolls back up', async ({
+  page,
+}) => {
+  await page.goto('/projects/');
+  await markDocument(page);
+  await page.evaluate(() => {
+    window.scrollTo(0, Math.round((document.documentElement.scrollHeight - innerHeight) / 2));
+    // Fired by every client-side navigation, before the new page is fetched.
+    document.addEventListener('astro:before-preparation', () => {
+      document.documentElement.dataset.navigated = '';
+    });
+  });
+
+  // The current item in the navigation, which is always on screen.
+  const animations = await recordViewTransition(page, 600);
+  await mainNav(page).locator('a[href="/projects/"]').click();
+  expect(await animations()).toEqual([]);
+  await expect(page.locator('html')).not.toHaveAttribute('data-navigated');
+  expect(await isSameDocument(page)).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+});
+
 test('Back plays the mirrored transition and restores the scroll position', async ({ page }) => {
   await page.goto('/projects/');
   await markDocument(page);
