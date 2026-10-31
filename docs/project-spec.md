@@ -151,7 +151,7 @@ Both cards use `perspective(1000px)`. The text of the new page is readable after
 The menu must work normally during the animation: hover, clicks and taps. A view transition can't give that: while one runs, the browser covers the whole page with its own layer (in the top layer, above any z-index), and every click and hover goes to `<html>` until the last animation has ended. So the cards are animated on the page itself, with the Web Animations API, and the view transition that ClientRouter still starts on every navigation animates nothing. (Changed Oct 31, 2026, at the owner's request; the cards were first animated as view transition pseudo-elements, `::view-transition-old/new(card-a/b)`, and the menu didn't respond for about 0.6 s after each click.)
 
 1. `<ClientRouter />` from `astro:transitions` is in the `<head>` of `BaseLayout.astro`. Nothing on the page has a `view-transition-name` (no `transition:name` either), and the root's view transition has `animation: none` (`src/styles/transitions.css`). So the browser's view transition only covers the swap itself and ends about 66 ms after the click; from then on the page is fully interactive.
-2. `cardHandoff()` in `src/lib/transitions.ts`, on every navigation:
+2. `cardHandoff()` in `src/lib/transitions/card.ts`, on every navigation:
    - `astro:before-swap`: copies the old card (`cloneNode`) where it is on the screen: `position: fixed` at its box, `inert`, `aria-hidden`, without its `id`, at `z-index: -1` (behind the page, in front of the starfield). It also notes where the nav island's marker is.
    - `astro:after-swap` (the new page is in place and scrolled): the copy sinks away and fades out (section 3) and is then removed; the new card settles in (section 2, `fill: backwards`, so nothing stays on the card afterwards); the footer below the card (phones, `[data-page-footer]`) fades in with it; and the island's marker (`[data-nav-marker]`) slides from the old item to the new one (300 ms, translate and scale from the old box).
    - Each card turns around the middle of the screen, not its own middle: its `transform-origin` is set from its distance to the top of the screen.
@@ -451,6 +451,7 @@ Static parts are `.astro` files; React (`.tsx`) lives only in `src/islands/`, so
 ├── astro.config.mjs              # includes the i18n config
 ├── package.json
 ├── playwright.config.ts          # local build, or BASE_URL (a deploy)
+├── vitest.config.ts              # npm run test:unit (unit tests next to the code in src/lib)
 ├── playwright.visual.config.ts   # npm run test:visual (screenshots of every page)
 ├── tsconfig.json                 # strict, plus the @/ alias for src/
 ├── wrangler.jsonc                # Cloudflare Workers: static assets, previews

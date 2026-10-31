@@ -41,6 +41,7 @@ on your machine. It checks the files on disk, uncommitted changes included. To s
 | `npm run format`       | Format everything with Prettier                                         |
 | `npm run format:check` | Check formatting without changing files                                 |
 | `npm run verify`       | Check, lint, format check and build (CI, deploys and the pre-push hook) |
+| `npm run test:unit`    | Vitest unit tests of the pure functions in `src/lib` (`*.test.ts`)      |
 | `npm run test:e2e`     | Playwright smoke tests (see below)                                      |
 | `npm run test:visual`  | Compare screenshots of every page with earlier ones (see below)         |
 

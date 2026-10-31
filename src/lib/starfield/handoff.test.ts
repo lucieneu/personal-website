@@ -1,29 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import {
-  createField,
-  type Field,
-  opacityOf,
-  placeOnScreen,
-  reveal,
-  screenOf,
-  starHeight,
-} from '@/lib/starfield/field';
-import {
-  finishHandoff,
-  handoffDone,
-  type Item,
-  itemsAt,
-  startHandoff,
-} from '@/lib/starfield/handoff';
+import { createField, type Field, opacityOf } from '@/lib/starfield/field';
+import { reveal } from '@/lib/starfield/lifetimes';
+import { placeOnScreen, screenOf, starHeight } from '@/lib/starfield/projection';
+import { finishHandoff, handoffDone, itemsAt, startHandoff } from '@/lib/starfield/handoff';
+import { createItem, type Item } from '@/lib/starfield/item';
 import { always, seeded } from '@/lib/starfield/testing';
 
 const WIDTH = 1440;
 const HEIGHT = 900;
+const SCREEN = { width: WIDTH, height: HEIGHT };
 const CARD = { left: 300, right: 1100 };
 const NOW = 100;
 
-const newItems = (): Item[] =>
-  Array.from({ length: 2 }, () => ({ x: 0, y: 0, h: 0, opacity: 0, outline: false }));
+const newItems = (): Item[] => [createItem(), createItem()];
 
 /** A field with one star, fully shown at (`x`, `y`) on the screen. */
 function fieldWithStar(x: number, y: number): Field {
@@ -37,7 +26,7 @@ function fieldWithStar(x: number, y: number): Field {
 describe('startHandoff', () => {
   it('picks the star in the sidebar column, hides it and records where it was', () => {
     const field = fieldWithStar(150, 200);
-    const handoff = startHandoff(field, NOW, WIDTH, HEIGHT, CARD, false, always(0.5));
+    const handoff = startHandoff(field, NOW, SCREEN, CARD, false, always(0.5));
     expect(handoff).toBeDefined();
     expect(handoff!.star).toBe(0);
     expect(handoff!.inward).toBe(1);
@@ -49,38 +38,29 @@ describe('startHandoff', () => {
 
   it('finds nothing when no star is in the upper half', () => {
     const field = fieldWithStar(150, 800);
-    expect(startHandoff(field, NOW, WIDTH, HEIGHT, CARD, false, always(0.5))).toBeUndefined();
+    expect(startHandoff(field, NOW, SCREEN, CARD, false, always(0.5))).toBeUndefined();
     expect(opacityOf(field, 0, NOW)).toBeGreaterThan(0);
   });
 
   it('looks in the lower half on Back', () => {
     const field = fieldWithStar(150, 800);
-    const handoff = startHandoff(field, NOW, WIDTH, HEIGHT, CARD, true, always(0.5));
+    const handoff = startHandoff(field, NOW, SCREEN, CARD, true, always(0.5));
     expect(handoff?.back).toBe(true);
   });
 
   it('ignores a star that is too faint, too near or too far', () => {
     const field = fieldWithStar(150, 200);
     field.z[0] = 0.5;
-    expect(startHandoff(field, NOW, WIDTH, HEIGHT, CARD, false, always(0.5))).toBeUndefined();
+    expect(startHandoff(field, NOW, SCREEN, CARD, false, always(0.5))).toBeUndefined();
   });
 
   it('on a phone, leaves at one side or the other, picked at random', () => {
     const phoneCard = { left: 16, right: WIDTH - 16 };
-    const left = startHandoff(
-      fieldWithStar(8, 200),
-      NOW,
-      WIDTH,
-      HEIGHT,
-      phoneCard,
-      false,
-      always(0.1),
-    );
+    const left = startHandoff(fieldWithStar(8, 200), NOW, SCREEN, phoneCard, false, always(0.1));
     const right = startHandoff(
       fieldWithStar(WIDTH - 8, 200),
       NOW,
-      WIDTH,
-      HEIGHT,
+      SCREEN,
       phoneCard,
       false,
       always(0.9),
@@ -93,14 +73,14 @@ describe('startHandoff', () => {
 describe('itemsAt', () => {
   const start = () => {
     const field = fieldWithStar(150, 200);
-    const handoff = startHandoff(field, NOW, WIDTH, HEIGHT, CARD, false, always(0.5))!;
+    const handoff = startHandoff(field, NOW, SCREEN, CARD, false, always(0.5))!;
     return { field, handoff };
   };
 
   it('starts with only the flare, at the star, still a filled star', () => {
     const { field, handoff } = start();
     const items = newItems();
-    expect(itemsAt(handoff, field, NOW, WIDTH, HEIGHT, items)).toBe(1);
+    expect(itemsAt(handoff, field, NOW, SCREEN, items)).toBe(1);
     expect(items[0]!.x).toBeCloseTo(150, 2);
     expect(items[0]!.y).toBeCloseTo(200, 2);
     expect(items[0]!.outline).toBe(false);
@@ -109,7 +89,7 @@ describe('itemsAt', () => {
   it('adds the returning outline, below the bottom edge, once the old card has begun to leave', () => {
     const { field, handoff } = start();
     const items = newItems();
-    expect(itemsAt(handoff, field, NOW + 0.2, WIDTH, HEIGHT, items)).toBe(2);
+    expect(itemsAt(handoff, field, NOW + 0.2, SCREEN, items)).toBe(2);
     expect(items[1]!.y).toBeGreaterThan(HEIGHT / 2);
     expect(items[1]!.outline).toBe(true);
   });
@@ -118,7 +98,7 @@ describe('itemsAt', () => {
     const { field, handoff } = start();
     const items = newItems();
     const end = NOW + 3.12;
-    expect(itemsAt(handoff, field, end, WIDTH, HEIGHT, items)).toBe(1);
+    expect(itemsAt(handoff, field, end, SCREEN, items)).toBe(1);
     const target = screenOf(field, 0, end, WIDTH, HEIGHT, { x: 0, y: 0 });
     expect(items[0]!.x).toBeCloseTo(target.x, 1);
     expect(items[0]!.y).toBeCloseTo(target.y, 1);
@@ -127,14 +107,14 @@ describe('itemsAt', () => {
 
   it('writes after the items already there', () => {
     const { field, handoff } = start();
-    expect(itemsAt(handoff, field, NOW, WIDTH, HEIGHT, newItems(), 1)).toBe(2);
+    expect(itemsAt(handoff, field, NOW, SCREEN, newItems(), 1)).toBe(2);
   });
 
   it('mirrors the outline top to bottom on Back', () => {
     const field = fieldWithStar(150, 800);
-    const handoff = startHandoff(field, NOW, WIDTH, HEIGHT, CARD, true, always(0.5))!;
+    const handoff = startHandoff(field, NOW, SCREEN, CARD, true, always(0.5))!;
     const items = newItems();
-    itemsAt(handoff, field, NOW + 0.2, WIDTH, HEIGHT, items);
+    itemsAt(handoff, field, NOW + 0.2, SCREEN, items);
     expect(items[1]!.y).toBeLessThan(HEIGHT / 2);
   });
 });
@@ -142,7 +122,7 @@ describe('itemsAt', () => {
 describe('finishing', () => {
   it('is done after the outline has arrived, and then shows the star at once', () => {
     const field = fieldWithStar(150, 200);
-    const handoff = startHandoff(field, NOW, WIDTH, HEIGHT, CARD, false, always(0.5))!;
+    const handoff = startHandoff(field, NOW, SCREEN, CARD, false, always(0.5))!;
     expect(handoffDone(handoff, NOW + 3)).toBe(false);
     expect(handoffDone(handoff, NOW + 3.12)).toBe(true);
     finishHandoff(field, handoff, NOW + 3.12);

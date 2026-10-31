@@ -20,7 +20,7 @@
   margin-top: var(--space-6);
 }
 
-/* Below the card it fades in with the new card (src/lib/transitions.ts), and leaves room for
+/* Below the card it fades in with the new card (src/lib/transitions/), and leaves room for
    the nav island, so the island never covers it. */
 .placementPage {
   padding: var(--space-6) var(--space-4)

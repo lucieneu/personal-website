@@ -1,6 +1,6 @@
 /*
  * View transitions: page navigation (ClientRouter) and the theme switch (src/lib/theme.ts).
- * A navigation's card hand-off is animated on the page itself (src/lib/transitions.ts): while a
+ * A navigation's card hand-off is animated on the page itself (src/lib/transitions/): while a
  * view transition runs, the browser's layer over the page catches every click and hover. So on a
  * navigation nothing has a view-transition-name and the root switches without animation, and
  * the view transition ends right after the swap.

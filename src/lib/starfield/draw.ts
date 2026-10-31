@@ -1,18 +1,10 @@
 // Draws the stars onto a canvas, every star a tiny card: the moving field, turned by its roll,
 // and the fixed stars, on a canvas of their own that is redrawn only a few times a second.
-import {
-  CARD_ASPECT,
-  type Field,
-  FIXED_MAX,
-  type FixedStars,
-  fixedOpacityOf,
-  opacityOf,
-  rollAt,
-  scaleAt,
-  STAR_MAX,
-  starHeight,
-} from '@/lib/starfield/field';
-import type { Item } from '@/lib/starfield/handoff';
+import { FIXED_MAX, STAR_MAX } from '@/lib/starfield/counts';
+import { type Field, opacityOf } from '@/lib/starfield/field';
+import { type FixedStars, fixedOpacityOf } from '@/lib/starfield/fixed';
+import type { Item } from '@/lib/starfield/item';
+import { CARD_ASPECT, rollAt, scaleAt, starHeight } from '@/lib/starfield/projection';
 
 /** Below this height (px) a star is a plain rectangle; its rounded corners wouldn't show. */
 const ROUND_FROM = 2;
