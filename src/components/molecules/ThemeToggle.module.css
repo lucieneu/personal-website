@@ -1,4 +1,4 @@
-/* Without JavaScript the toggle can't work, so it's hidden and the site follows the OS.
+/* Without JavaScript the toggle can't work, so it's hidden and the site stays dark.
    The attribute makes this win over IconButton's display, whatever the CSS order. */
 @media (scripting: none) {
   .toggle[data-theme-toggle] {
@@ -6,25 +6,16 @@
   }
 }
 
-/* The icon shows the theme a click switches to: a moon in light mode, a sun in dark mode. */
-.iconSun {
+/* The icon shows the theme a click switches to: a sun in dark mode (the default), a moon in
+   light mode. */
+.iconMoon {
   display: none;
 }
 
-:global(:root[data-theme='dark']) .iconSun {
+:global(:root[data-theme='light']) .iconMoon {
   display: block;
 }
 
-:global(:root[data-theme='dark']) .iconMoon {
+:global(:root[data-theme='light']) .iconSun {
   display: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  :global(:root:not([data-theme='light'])) .iconSun {
-    display: block;
-  }
-
-  :global(:root:not([data-theme='light'])) .iconMoon {
-    display: none;
-  }
 }

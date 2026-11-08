@@ -23,6 +23,7 @@ const { t } = pageLang(Astro.currentLocale);
     styles.footer,
     placement === 'sidebar' ? styles.placementSidebar : styles.placementPage,
   ]}
+  data-page-footer={placement === 'page' ? '' : undefined}
 >
   {/* On desktop the secondary links are in the sidebar, below the main navigation. */}
   {placement === 'page' && <SecondaryNav class={styles.secondaryNav} />}

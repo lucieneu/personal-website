@@ -5,9 +5,9 @@
  * whole layout grows with a visitor's font-size setting, not only the text. Only hairlines
  * stay in px: 1px borders, 2px focus rings and underlines, shadow offsets and blurs.
  *
- * Themes: each color is `light-dark(<light>, <dark>)`, picked by `color-scheme`. By default
- * that follows `prefers-color-scheme`; setting `data-theme="light"` or `data-theme="dark"` on
- * <html> overrides it (the theme toggle does this from phase 1).
+ * Themes: each color is `light-dark(<light>, <dark>)`, picked by `color-scheme`. The site is
+ * dark unless the light theme is chosen with the toggle (`data-theme="light"` on <html>); the
+ * OS preference doesn't count, since browsers report "light" also when nobody chose it.
  * All text colors meet 4.5:1 contrast on both --color-bg and --color-surface.
  * Reading a color in JS (the 3D scene, phase 2): getPropertyValue('--color-accent') returns
  * the light-dark() text, so read the computed `color` of an element that uses the token.
@@ -18,7 +18,7 @@
  */
 
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
 
   /* Colors: light-dark(light theme, dark theme) */
   --color-bg: light-dark(#f6f6f3, #0b0f17);
@@ -96,8 +96,4 @@
 
 :root[data-theme='light'] {
   color-scheme: light;
-}
-
-:root[data-theme='dark'] {
-  color-scheme: dark;
 }

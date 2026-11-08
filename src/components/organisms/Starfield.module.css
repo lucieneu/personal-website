@@ -1,0 +1,46 @@
+/* Behind everything else on the page. z-index -1 instead of 0 keeps the sidebar and the card
+   above it without giving the layout a stacking context (which would trap the fixed nav island);
+   the body's background is painted on the viewport, below it. */
+.starfield {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  /* The stars' color; the script reads the resolved value. */
+  color: var(--color-text);
+}
+
+/* Both canvases on top of each other, the moving one above. */
+.canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 600ms ease-out;
+}
+
+/* Set by the script once the first frame is drawn (the fade covers both canvases). */
+.starfield[data-state] .canvas {
+  opacity: 1;
+}
+
+/* The card hand-off's stars (sections 1 and 4): above the card, below the nav island (z-index
+   10). */
+.handoff {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  color: var(--color-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas {
+    transition: none;
+  }
+}

@@ -8,7 +8,7 @@ import {
   languageSwitch,
   mainNav,
   markDocument,
-  recordViewTransition,
+  recordAnimations,
   secondaryNav,
   sitePaths,
   skipLink,
@@ -57,6 +57,8 @@ test('every page loads in both languages, with its translation linked', async ({
 });
 
 test('client-side navigation through every page in both languages', async ({ page }) => {
+  // Many navigations, each with the card hand-off; without a GPU (WebKit in CI) that's slow.
+  test.slow();
   const paths = await sitePaths(page);
   const slugsIn = (section: string) =>
     paths
@@ -90,7 +92,8 @@ test('client-side navigation through every page in both languages', async ({ pag
     await clickLink(page, href);
     expect(await isSameDocument(page), `${href} loaded client-side`).toBe(true);
     await expect(page.locator('html')).toHaveAttribute('lang', langOf(href));
-    await expect(page.locator('h1')).toBeVisible();
+    // By role: the copy of the old card that falls away is hidden from assistive technology.
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     // Within a language it doesn't move at all; across languages the centred island may get
     // wider or narrower with its labels, but stays at the same height.
     const box = await nav.boundingBox();
@@ -103,25 +106,109 @@ test('client-side navigation through every page in both languages', async ({ pag
   }
 });
 
-test('page transition: only the card animates, within 350 ms', async ({ page }) => {
+test('page transition: the card is handed off, settled within 650 ms', async ({ page }) => {
   await page.goto('/');
-  test.skip(
-    !(await page.evaluate(() => 'startViewTransition' in document)),
-    'no View Transitions API in this browser',
-  );
-
-  const animations = await recordViewTransition(page);
+  const animations = await recordAnimations(page);
   await clickLink(page, '/projects/');
   const running = await animations();
 
-  const pseudos = running.map((animation) => animation.pseudo);
-  expect(pseudos).toEqual(expect.arrayContaining(['::view-transition-group(content-card)']));
-  expect(pseudos.filter((pseudo) => pseudo.includes('(sidebar)'))).toEqual([]);
-  expect(pseudos.filter((pseudo) => pseudo.includes('(root)'))).toEqual([]);
-  expect(Math.max(...running.map((animation) => animation.end))).toBeLessThanOrEqual(350);
+  // A copy of the old card falls out and the new card drops in, on the page itself. The
+  // browser's view transition animates nothing, so its layer over the page (which catches
+  // every click and hover) is gone right after the swap.
+  expect(running.map((animation) => animation.name)).toEqual(
+    expect.arrayContaining(['card-out', 'card-out-fade', 'card-in', 'card-in-fade']),
+  );
+  expect(running.filter((animation) => animation.pseudo)).toEqual([]);
+  const settled = Math.max(...running.map((animation) => animation.end));
+  expect(Math.round(settled)).toBeLessThanOrEqual(650);
 });
 
-test('Back plays the transition and restores the scroll position', async ({ page }) => {
+test('the old card keeps its own styles while it falls away, and they go afterwards', async ({
+  page,
+}) => {
+  const styles = () =>
+    page.evaluate(() =>
+      [...document.head.querySelectorAll('link[rel="stylesheet"], style')]
+        .map((style) => style.outerHTML)
+        .sort(),
+    );
+  await page.goto('/about/');
+  const aboutStyles = await styles();
+
+  // The project rows' styles aren't on the About page; without them the copy of the old card
+  // would show its images at full width.
+  await page.goto('/projects/');
+  const imageWidth = () =>
+    page
+      .locator('#content img')
+      .first()
+      .evaluate((image) => image.clientWidth);
+  const before = await imageWidth();
+  await page.evaluate(() => {
+    document.addEventListener(
+      'astro:after-swap',
+      () => {
+        const image = document.querySelector<HTMLImageElement>('[data-card-ghost] img');
+        (window as unknown as { __ghostImage: number }).__ghostImage = image?.clientWidth ?? -1;
+      },
+      { once: true },
+    );
+  });
+  await clickLink(page, '/about/');
+  expect(
+    await page.evaluate(() => (window as unknown as { __ghostImage: number }).__ghostImage),
+  ).toBe(before);
+  await expect.poll(styles).toEqual(aboutStyles);
+});
+
+test('a link to the page you are on plays no transition, it only scrolls back up', async ({
+  page,
+}) => {
+  await page.goto('/projects/');
+  await markDocument(page);
+  await page.evaluate(() => {
+    window.scrollTo(0, Math.round((document.documentElement.scrollHeight - innerHeight) / 2));
+    // Fired by every client-side navigation, before the new page is fetched.
+    document.addEventListener('astro:before-preparation', () => {
+      document.documentElement.dataset.navigated = '';
+    });
+  });
+
+  // The current item in the navigation, which is always on screen.
+  const animations = await recordAnimations(page, 600);
+  await mainNav(page).locator('a[href="/projects/"]').click();
+  expect(await animations()).toEqual([]);
+  await expect(page.locator('html')).not.toHaveAttribute('data-navigated');
+  expect(await isSameDocument(page)).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+});
+
+test('the navigation responds while a transition is still running', async ({ page, isMobile }) => {
+  await page.goto('/projects/');
+  await markDocument(page);
+  // The navigation is always on screen; the second link is where it was before the first click.
+  const home = mainNav(page).locator('a[href="/"]');
+  const next = await home.boundingBox();
+  await mainNav(page).locator('a[href="/about/"]').click();
+  // 60 ms into the hand-off: after the swap (the browser's own view transition is over), long
+  // before the cards have settled (620 ms).
+  await page.waitForFunction(() =>
+    document
+      .getAnimations()
+      .some((animation) => animation.id === 'card-in' && Number(animation.currentTime) > 60),
+  );
+  const x = next!.x + next!.width / 2;
+  const y = next!.y + next!.height / 2;
+  if (!isMobile) {
+    await page.mouse.move(x, y);
+    expect(await home.evaluate((link) => link.matches(':hover'))).toBe(true);
+  }
+  await page.mouse.click(x, y);
+  await page.waitForURL((url) => url.pathname === '/');
+  expect(await isSameDocument(page)).toBe(true);
+});
+
+test('Back plays the mirrored transition and restores the scroll position', async ({ page }) => {
   await page.goto('/projects/');
   await markDocument(page);
   // Halfway down; how far the page scrolls depends on the screen size.
@@ -132,12 +219,18 @@ test('Back plays the transition and restores the scroll position', async ({ page
   expect(scrolled).toBeGreaterThan(50);
 
   // Through the navigation, which is always on screen: clicking a link elsewhere would make
-  // Playwright scroll it into view first and change the position to restore.
+  // Playwright scroll it into view first and change the position to restore. Recording the
+  // animations also waits until the transition is over, so Back doesn't cut it short.
+  let animations = await recordAnimations(page);
   await clickLink(page, '/about/');
+  await animations();
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
 
+  animations = await recordAnimations(page);
   await page.goBack();
   await page.waitForURL('**/projects/');
+  const names = (await animations()).map((animation) => animation.name);
+  expect(names).toEqual(expect.arrayContaining(['card-out-up', 'card-in-up']));
   expect(await isSameDocument(page)).toBe(true);
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(scrolled);
 });
@@ -172,7 +265,7 @@ test.describe('with prefers-reduced-motion: reduce', () => {
 
   test('pages change without animation', async ({ page }) => {
     await page.goto('/');
-    const animations = await recordViewTransition(page);
+    const animations = await recordAnimations(page);
     await clickLink(page, '/projects/');
     const moving = (await animations()).filter((animation) => animation.end > 0);
     expect(moving).toEqual([]);

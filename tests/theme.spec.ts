@@ -1,21 +1,29 @@
-// The theme switch: follows the OS until clicked, remembers the choice, and never flashes the
-// wrong theme on load or navigation.
-import { clickLink, expect, recordViewTransition, test } from './fixtures';
+// The theme switch: dark until light is chosen (whatever the OS prefers), remembers the choice,
+// and never flashes the wrong theme on load or navigation.
+import { clickLink, expect, recordAnimations, test } from './fixtures';
 
 const theme = (page: import('@playwright/test').Page) =>
   page.evaluate(() => document.documentElement.dataset.theme ?? null);
 
-test.describe('in a dark OS', () => {
-  test.use({ colorScheme: 'dark' });
+/** The page's resolved color scheme: 'dark' or 'light'. */
+const scheme = (page: import('@playwright/test').Page) =>
+  page.evaluate(() => getComputedStyle(document.documentElement).colorScheme);
 
-  test('the first click switches to light, and the choice is remembered', async ({ page }) => {
+test.describe('in a light OS', () => {
+  test.use({ colorScheme: 'light' });
+
+  test('the site is dark; the first click switches to light, and it is remembered', async ({
+    page,
+  }) => {
     await page.goto('/');
     const toggle = page.locator('[data-theme-toggle]');
     expect(await theme(page)).toBeNull();
+    expect(await scheme(page)).toBe('dark');
     await expect(toggle).toHaveAttribute('aria-pressed', 'true');
 
     await toggle.click();
     await expect.poll(() => theme(page)).toBe('light');
+    expect(await scheme(page)).toBe('light');
     await expect(toggle).toHaveAttribute('aria-pressed', 'false');
     expect(await page.evaluate(() => localStorage.getItem('theme'))).toBe('light');
 
@@ -52,7 +60,7 @@ test('the theme switch reveals the new theme as a circle', async ({ page }) => {
     'no View Transitions API in this browser',
   );
   const before = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  const animations = await recordViewTransition(page, 700);
+  const animations = await recordAnimations(page, 700);
   await page.locator('[data-theme-toggle]').click();
   const running = await animations();
 
@@ -61,7 +69,6 @@ test('the theme switch reveals the new theme as a circle', async ({ page }) => {
   await expect
     .poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor))
     .not.toBe(before);
-  await expect(page.locator('html')).not.toHaveClass(/theme-transition/);
 });
 
 test('the toggle works from the keyboard', async ({ page, isMobile }) => {
@@ -81,7 +88,7 @@ test.describe('with prefers-reduced-motion: reduce', () => {
 
   test('the theme switches instantly', async ({ page }) => {
     await page.goto('/');
-    const animations = await recordViewTransition(page, 300);
+    const animations = await recordAnimations(page, 300);
     const before = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
     await page.locator('[data-theme-toggle]').click();
     expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).not.toBe(

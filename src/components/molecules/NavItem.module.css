@@ -49,8 +49,6 @@
       color-mix(in srgb, var(--color-accent) 22%, transparent),
       color-mix(in srgb, var(--color-accent) 16%, transparent)
     );
-    /* Captured on its own, so it moves from the old item to the new one. */
-    view-transition-name: nav-marker;
   }
 }
 

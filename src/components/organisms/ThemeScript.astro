@@ -10,7 +10,7 @@ import { THEME_STORAGE_KEY } from '@/lib/theme';
     const theme = localStorage.getItem(key);
     if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
   } catch {
-    // Storage is blocked: follow the OS preference.
+    // Storage is blocked: the site stays dark.
   }
   // On a client-side navigation, ClientRouter replaces all attributes of <html> with those of the
   // new page. Copying the theme onto the new page first keeps it from jumping back.
